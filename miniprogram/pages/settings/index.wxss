@@ -1,0 +1,100 @@
+.page-settings {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+/* 用户卡片 */
+.user-card {
+  display: flex;
+  align-items: center;
+  margin: 20rpx 24rpx;
+  padding: 32rpx 24rpx;
+}
+
+.user-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 48rpx;
+  background: #f0f0f0;
+}
+
+.user-info {
+  margin-left: 20rpx;
+}
+
+.user-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333333;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.user-role {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+/* 设置列表 */
+.settings-group {
+  margin: 20rpx 24rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 24rpx;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item:active {
+  background: #f9f9f9;
+}
+
+.settings-left {
+  display: flex;
+  align-items: center;
+}
+
+.settings-icon {
+  font-size: 36rpx;
+  margin-right: 16rpx;
+}
+
+.settings-label {
+  font-size: 30rpx;
+  color: #333333;
+}
+
+.settings-right {
+  display: flex;
+  align-items: center;
+}
+
+.settings-value {
+  font-size: 26rpx;
+  color: #999999;
+  margin-right: 8rpx;
+}
+
+.connected {
+  color: #52c41a;
+}
+
+.disconnected {
+  color: #ff4d4f;
+}
+
+.settings-arrow {
+  font-size: 32rpx;
+  color: #cccccc;
+}

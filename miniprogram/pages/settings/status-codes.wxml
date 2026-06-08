@@ -1,0 +1,44 @@
+<view class="page-status-codes">
+  <!-- 状态编码列表 -->
+  <view class="code-list">
+    <view class="code-item" wx:for="{{statusCodes}}" wx:key="_id">
+      <view class="code-left">
+        <text class="code-letter">{{item.code}}</text>
+        <text class="code-label">{{item.label}}</text>
+      </view>
+      <view class="code-right">
+        <text class="tag {{item.is_system ? 'tag-gray' : 'tag-blue'}}">{{item.is_system ? '系统' : '自定义'}}</text>
+        <text class="code-delete" wx:if="{{!item.is_system}}" bindtap="onDeleteCode" data-id="{{item._id}}">删除</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加自定义编码 -->
+  <view class="add-bar">
+    <view class="btn btn-primary" bindtap="onAddCode">+ 添加自定义编码</view>
+  </view>
+
+  <!-- 添加编码弹窗 -->
+  <view class="picker-mask" wx:if="{{showAddDialog}}" bindtap="hideAddDialog">
+    <view class="dialog" catchtap="">
+      <view class="dialog-title">添加自定义状态编码</view>
+      <view class="form-group">
+        <text class="form-label">编码字母</text>
+        <picker range="{{availableCodes}}" value="{{selectedCodeIndex}}" bindchange="onCodeSelect">
+          <view class="form-picker">
+            <text>{{availableCodes[selectedCodeIndex] || '请选择'}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <text class="form-label">状态名称</text>
+        <input class="dialog-input" placeholder="如: 维修中" value="{{newCodeLabel}}" bindinput="onLabelInput" />
+      </view>
+      <view class="dialog-actions">
+        <view class="btn btn-ghost" bindtap="hideAddDialog">取消</view>
+        <view class="btn btn-primary" bindtap="onConfirmAdd">确认添加</view>
+      </view>
+    </view>
+  </view>
+</view>

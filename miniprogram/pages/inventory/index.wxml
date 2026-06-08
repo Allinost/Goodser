@@ -1,0 +1,138 @@
+<view class="page-inventory">
+  <!-- 顶部操作栏 -->
+  <view class="top-bar">
+    <view class="inventory-selector" bindtap="showInventoryPicker">
+      <text class="inventory-name">{{currentInventory.name}}</text>
+      <text class="selector-arrow">▼</text>
+    </view>
+    <view class="top-actions">
+      <view class="top-btn" bindtap="onAddInventory">+ 新增</view>
+      <view class="top-btn top-btn-danger" bindtap="onDeleteInventory">删除</view>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <search-bar
+    placeholder="搜索商品名称、编号、备注、状态..."
+    value="{{searchKeyword}}"
+    bind:search="onSearch"
+    bind:clear="onClearSearch"
+  />
+
+  <!-- 排序筛选栏 -->
+  <view class="sort-bar">
+    <scroll-view class="sort-scroll" scroll-x="true">
+      <view
+        class="sort-item {{sortBy === item.key ? 'sort-active' : ''}}"
+        wx:for="{{sortOptions}}"
+        wx:key="key"
+        bindtap="onSort"
+        data-key="{{item.key}}"
+      >
+        <text>{{item.label}}</text>
+        <text class="sort-arrow" wx:if="{{sortBy === item.key}}">{{sortOrder === 'asc' ? '↑' : '↓'}}</text>
+      </view>
+    </scroll-view>
+    <view class="filter-btn" bindtap="onFilter">
+      <text>筛选</text>
+    </view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="product-list" wx:if="{{filteredProducts.length > 0}}">
+    <product-card
+      wx:for="{{filteredProducts}}"
+      wx:key="_id"
+      product="{{item}}"
+      bind:tap="onProductTap"
+    />
+  </view>
+
+  <!-- 空状态 -->
+  <empty-state
+    wx:else
+    icon="📦"
+    title="暂无库存商品"
+    description="点击入库页面添加商品"
+  />
+
+  <!-- 库存目录选择弹窗 -->
+  <view class="picker-mask" wx:if="{{showPicker}}" bindtap="hideInventoryPicker">
+    <view class="picker-panel" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">选择库存目录</text>
+        <text class="picker-close" bindtap="hideInventoryPicker">✕</text>
+      </view>
+      <view class="picker-list">
+        <view
+          class="picker-item {{currentInventoryId === item._id ? 'picker-item-active' : ''}}"
+          wx:for="{{inventories}}"
+          wx:key="_id"
+          bindtap="onSelectInventory"
+          data-id="{{item._id}}"
+        >
+          <text>{{item.name}}</text>
+          <text wx:if="{{currentInventoryId === item._id}}">✓</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选弹窗 -->
+  <view class="picker-mask" wx:if="{{showFilter}}" bindtap="hideFilter">
+    <view class="picker-panel filter-panel" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">筛选条件</text>
+        <text class="picker-close" bindtap="hideFilter">✕</text>
+      </view>
+      <view class="filter-content">
+        <view class="filter-group">
+          <text class="filter-label">主分区</text>
+          <view class="filter-tags">
+            <view
+              class="filter-tag {{filterMainZone === '' ? 'filter-tag-active' : ''}}"
+              bindtap="onFilterMainZone"
+              data-val="">全部</view>
+            <view
+              class="filter-tag {{filterMainZone === item ? 'filter-tag-active' : ''}}"
+              wx:for="{{mainZones}}"
+              wx:key="*this"
+              bindtap="onFilterMainZone"
+              data-val="{{item}}">{{item}}</view>
+          </view>
+        </view>
+        <view class="filter-group">
+          <text class="filter-label">状态</text>
+          <view class="filter-tags">
+            <view
+              class="filter-tag {{filterStatus === '' ? 'filter-tag-active' : ''}}"
+              bindtap="onFilterStatus"
+              data-val="">全部</view>
+            <view
+              class="filter-tag {{filterStatus === item.code ? 'filter-tag-active' : ''}}"
+              wx:for="{{statusCodeOptions}}"
+              wx:key="code"
+              bindtap="onFilterStatus"
+              data-val="{{item.code}}">{{item.label}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="filter-footer">
+        <view class="btn btn-ghost" bindtap="onResetFilter">重置</view>
+        <view class="btn btn-primary" bindtap="onApplyFilter">确认筛选</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 新增库存目录弹窗 -->
+  <view class="picker-mask" wx:if="{{showAddDialog}}" bindtap="hideAddDialog">
+    <view class="dialog" catchtap="">
+      <view class="dialog-title">新增库存目录</view>
+      <input class="dialog-input" placeholder="请输入目录名称" value="{{newInventoryName}}" bindinput="onNewNameInput" />
+      <view class="dialog-actions">
+        <view class="btn btn-ghost" bindtap="hideAddDialog">取消</view>
+        <view class="btn btn-primary" bindtap="onConfirmAddInventory">确认</view>
+      </view>
+    </view>
+  </view>
+</view>

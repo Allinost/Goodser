@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "新建预留单",
+  "usingComponents": {
+    "search-bar": "/components/search-bar/search-bar"
+  }
+}

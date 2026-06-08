@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "访问白名单",
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  }
+}

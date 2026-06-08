@@ -1,0 +1,180 @@
+.page-create-outbound {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 140rpx;
+}
+
+.card {
+  margin: 20rpx 24rpx;
+}
+
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 160rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  padding: 16rpx 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.section-header {
+  margin-bottom: 12rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+/* 搜索结果 */
+.search-results {
+  max-height: 480rpx;
+  overflow-y: auto;
+  border: 2rpx solid #f0f0f0;
+  border-radius: 8rpx;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.search-result-item:active {
+  background: #f9f9f9;
+}
+
+.result-image {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 8rpx;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.result-info {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.result-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333333;
+  display: block;
+}
+
+.result-code {
+  font-size: 22rpx;
+  color: #999999;
+  display: block;
+}
+
+.result-stock {
+  font-size: 22rpx;
+  color: #1890ff;
+  display: block;
+}
+
+.result-add {
+  font-size: 26rpx;
+  color: #1890ff;
+  font-weight: 500;
+  flex-shrink: 0;
+  padding: 8rpx 16rpx;
+  background: #e6f7ff;
+  border-radius: 6rpx;
+}
+
+/* 已选商品 */
+.selected-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.selected-image {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 8rpx;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.selected-info {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.selected-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333333;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.selected-stock {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.qty-control {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 0 16rpx;
+}
+
+.qty-btn {
+  width: 52rpx;
+  height: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: 600;
+}
+
+.qty-value {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1890ff;
+  min-width: 48rpx;
+  text-align: center;
+}
+
+.remove-btn {
+  font-size: 28rpx;
+  color: #ff4d4f;
+  padding: 8rpx;
+}

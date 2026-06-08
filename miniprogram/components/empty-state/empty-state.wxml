@@ -1,0 +1,9 @@
+<view class="empty-state">
+  <image class="empty-image" src="/images/empty-{{type}}.png" mode="aspectFit" wx:if="{{type}}" />
+  <text class="empty-icon-text" wx:else>{{icon}}</text>
+  <text class="empty-title">{{title}}</text>
+  <text class="empty-desc" wx:if="{{description}}">{{description}}</text>
+  <view class="empty-action" wx:if="{{actionText}}" bindtap="onAction">
+    <text class="empty-action-text">{{actionText}}</text>
+  </view>
+</view>

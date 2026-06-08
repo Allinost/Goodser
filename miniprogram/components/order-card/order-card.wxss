@@ -1,0 +1,64 @@
+.order-card {
+  margin-bottom: 20rpx;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-info-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-no {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.order-time {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 6rpx;
+}
+
+.order-items {
+  margin-bottom: 12rpx;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10rpx 0;
+}
+
+.item-name {
+  font-size: 26rpx;
+  color: #666666;
+}
+
+.item-qty {
+  font-size: 26rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.order-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-total {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.order-arrow {
+  font-size: 26rpx;
+  color: #1890ff;
+}

@@ -1,0 +1,76 @@
+<view class="page-detail">
+  <!-- 头图 -->
+  <view class="detail-image-wrapper">
+    <image class="detail-image" src="{{product.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
+  </view>
+
+  <!-- 基本信息 -->
+  <view class="card detail-card">
+    <view class="detail-name">{{product.name}}</view>
+    <view class="detail-code-row">
+      <text class="detail-code">{{product.code}}</text>
+      <text class="tag {{statusTagClass}}">{{statusLabel}}</text>
+    </view>
+  </view>
+
+  <!-- 详细信息 -->
+  <view class="card detail-card">
+    <view class="info-row">
+      <text class="label">原价</text>
+      <text class="value price">¥{{product.original_price}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">市场价</text>
+      <text class="value price">¥{{product.market_price}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">预期出售价</text>
+      <text class="value price highlight">¥{{product.expected_price}}</text>
+    </view>
+    <view class="divider"></view>
+    <view class="info-row">
+      <text class="label">库存数量</text>
+      <text class="value highlight">{{product.quantity}}{{product.reserved_quantity > 0 ? '（预留 ' + product.reserved_quantity + '）' : ''}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">仓储位置</text>
+      <text class="value">{{product.storage_location || '-'}}</text>
+    </view>
+    <view class="divider"></view>
+    <view class="info-row">
+      <text class="label">主分区</text>
+      <text class="value">{{product.main_zone}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">子分区</text>
+      <text class="value">{{product.sub_zone}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">序号</text>
+      <text class="value">{{product.seq_number}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">状态</text>
+      <text class="value">{{statusLabel}}（{{product.status_code}}）</text>
+    </view>
+    <view class="divider"></view>
+    <view class="info-row">
+      <text class="label">备注</text>
+      <text class="value">{{product.remark || '-'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">创建时间</text>
+      <text class="value">{{product.created_at}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">更新时间</text>
+      <text class="value">{{product.updated_at}}</text>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <view class="btn btn-ghost" bindtap="onEdit">编辑</view>
+    <view class="btn btn-danger" bindtap="onDelete">删除</view>
+  </view>
+</view>

@@ -1,0 +1,16 @@
+<view class="product-card" bindtap="onTap">
+  <image class="product-image" src="{{product.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
+  <view class="product-info">
+    <view class="product-code">{{product.code}}</view>
+    <view class="product-name">{{product.name}}</view>
+    <view class="product-meta">
+      <text class="product-quantity">
+        库存: {{product.quantity}}{{product.reserved_quantity > 0 ? ' + ' + product.reserved_quantity : ''}}
+      </text>
+      <text class="product-location" wx:if="{{product.storage_location}}">{{product.storage_location}}</text>
+    </view>
+  </view>
+  <view class="product-status">
+    <text class="tag {{statusTagClass}}">{{statusLabel}}</text>
+  </view>
+</view>

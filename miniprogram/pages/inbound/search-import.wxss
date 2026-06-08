@@ -1,0 +1,152 @@
+.page-search-import {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 140rpx;
+}
+
+/* 搜索结果 */
+.search-results {
+  margin-top: 16rpx;
+}
+
+.search-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.search-item:active {
+  background: #f9f9f9;
+}
+
+.search-item-active {
+  background: #e6f7ff;
+  border-radius: 8rpx;
+}
+
+.search-item-image {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 8rpx;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.search-item-info {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.search-item-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333333;
+  display: block;
+}
+
+.search-item-code {
+  font-size: 22rpx;
+  color: #999999;
+  display: block;
+}
+
+.search-item-stock {
+  font-size: 22rpx;
+  color: #1890ff;
+  display: block;
+}
+
+.search-item-check {
+  font-size: 32rpx;
+  color: #1890ff;
+  font-weight: 700;
+  margin-left: 12rpx;
+}
+
+/* 已选商品 */
+.selected-product-info {
+  display: flex;
+  align-items: center;
+}
+
+.sp-image {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 12rpx;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.sp-info {
+  margin-left: 16rpx;
+}
+
+.sp-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.sp-code {
+  font-size: 24rpx;
+  color: #999999;
+  font-family: 'Courier New', monospace;
+}
+
+/* 表单 */
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.required {
+  color: #ff4d4f;
+}
+
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.form-picker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 80rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.picker-arrow {
+  font-size: 20rpx;
+  color: #999999;
+}
+
+.zone-options {
+  padding: 16rpx 20rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+}
+
+.zone-label {
+  font-size: 26rpx;
+  color: #666666;
+}

@@ -1,0 +1,133 @@
+.page-whitelist {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.add-bar {
+  padding: 24rpx;
+  background: #ffffff;
+}
+
+.member-list {
+  background: #ffffff;
+  margin: 0 24rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.member-info {
+  flex: 1;
+  margin-left: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.member-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333333;
+}
+
+.member-action {
+  padding: 8rpx 16rpx;
+}
+
+.remove-text {
+  font-size: 26rpx;
+  color: #ff4d4f;
+}
+
+/* 弹窗 */
+.picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog {
+  width: 600rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 40rpx 32rpx;
+}
+
+.dialog-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 12rpx;
+  color: #333333;
+}
+
+.dialog-desc {
+  font-size: 24rpx;
+  color: #999999;
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.dialog-input {
+  width: 100%;
+  height: 80rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+  margin-bottom: 24rpx;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+.dialog-actions .btn {
+  flex: 1;
+  text-align: center;
+}
+
+.dialog-divider {
+  height: 2rpx;
+  background: #f0f0f0;
+  margin: 24rpx 0;
+}
+
+.share-btn {
+  text-align: center;
+  padding: 16rpx;
+}
+
+.share-text {
+  font-size: 28rpx;
+  color: #1890ff;
+  font-weight: 500;
+}

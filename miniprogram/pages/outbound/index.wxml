@@ -1,0 +1,50 @@
+<view class="page-outbound">
+  <!-- 顶部操作按钮 -->
+  <view class="top-actions-bar">
+    <view class="action-btn action-btn-primary" bindtap="onCreateOutbound">
+      <text class="action-icon">📤</text>
+      <text>新建出库</text>
+    </view>
+    <view class="action-btn action-btn-orange" bindtap="onCreateReserve">
+      <text class="action-icon">📋</text>
+      <text>新建预留</text>
+    </view>
+  </view>
+
+  <!-- Tab 切换 -->
+  <view class="tab-bar">
+    <view
+      class="tab-item {{activeTab === 'all' ? 'tab-active' : ''}}"
+      bindtap="onTabChange"
+      data-tab="all"
+    >全部</view>
+    <view
+      class="tab-item {{activeTab === 'outbound' ? 'tab-active' : ''}}"
+      bindtap="onTabChange"
+      data-tab="outbound"
+    >出库单</view>
+    <view
+      class="tab-item {{activeTab === 'reserve' ? 'tab-active' : ''}}"
+      bindtap="onTabChange"
+      data-tab="reserve"
+    >预留单</view>
+  </view>
+
+  <!-- 订单列表 -->
+  <view class="order-list" wx:if="{{filteredOrders.length > 0}}">
+    <order-card
+      wx:for="{{filteredOrders}}"
+      wx:key="_id"
+      order="{{item}}"
+      bind:tap="onOrderTap"
+    />
+  </view>
+
+  <!-- 空状态 -->
+  <empty-state
+    wx:else
+    icon="📤"
+    title="暂无出库记录"
+    description="点击上方按钮创建出库单或预留单"
+  />
+</view>

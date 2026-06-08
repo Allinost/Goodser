@@ -1,0 +1,89 @@
+<view class="page-single-inbound">
+  <!-- 商品图片 -->
+  <view class="card image-card">
+    <text class="form-label">商品头图</text>
+    <view class="image-upload" bindtap="onChooseImage">
+      <image class="upload-preview" wx:if="{{imageUrl}}" src="{{imageUrl}}" mode="aspectFill" />
+      <view class="upload-placeholder" wx:else>
+        <text class="upload-icon">📷</text>
+        <text class="upload-text">上传图片</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 商品信息 -->
+  <view class="card">
+    <view class="form-group">
+      <text class="form-label">商品名称 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入商品名称" value="{{name}}" bindinput="onNameInput" />
+    </view>
+    <view class="price-row">
+      <view class="form-group flex-1">
+        <text class="form-label">原价</text>
+        <input class="form-input" type="digit" placeholder="0.00" value="{{originalPrice}}" bindinput="onOriginalPriceInput" />
+      </view>
+      <view class="form-group flex-1">
+        <text class="form-label">市场价</text>
+        <input class="form-input" type="digit" placeholder="0.00" value="{{marketPrice}}" bindinput="onMarketPriceInput" />
+      </view>
+    </view>
+    <view class="form-group">
+      <text class="form-label">预期出售价</text>
+      <input class="form-input" type="digit" placeholder="0.00" value="{{expectedPrice}}" bindinput="onExpectedPriceInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">库存数量 <text class="required">*</text></text>
+      <input class="form-input" type="number" placeholder="0" value="{{quantity}}" bindinput="onQuantityInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">仓储位置</text>
+      <input class="form-input" placeholder="如: A区-1架-2层" value="{{storageLocation}}" bindinput="onStorageLocationInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">备注信息</text>
+      <textarea class="form-textarea" placeholder="请输入备注" value="{{remark}}" bindinput="onRemarkInput" maxlength="200" />
+    </view>
+  </view>
+
+  <!-- 分区与状态选择 -->
+  <view class="card">
+    <view class="form-group">
+      <text class="form-label">主分区 <text class="required">*</text></text>
+      <picker range="{{mainZones}}" value="{{mainZoneIndex}}" bindchange="onMainZoneChange">
+        <view class="form-picker">
+          <text>{{mainZones[mainZoneIndex] || '请选择'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <text class="form-label">子分区 <text class="required">*</text></text>
+      <picker range="{{subZones}}" value="{{subZoneIndex}}" bindchange="onSubZoneChange">
+        <view class="form-picker">
+          <text>{{subZones[subZoneIndex] || '请选择'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <text class="form-label">状态编码 <text class="required">*</text></text>
+      <picker range="{{statusCodeLabels}}" value="{{statusCodeIndex}}" bindchange="onStatusCodeChange">
+        <view class="form-picker">
+          <text>{{statusCodeLabels[statusCodeIndex] || '请选择'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 编码预览 -->
+    <view class="code-preview" wx:if="{{previewCode}}">
+      <text class="code-label">生成编码</text>
+      <text class="code-value">{{previewCode}}</text>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-bar">
+    <view class="btn btn-primary btn-block" bindtap="onSubmit">确认入库</view>
+  </view>
+</view>

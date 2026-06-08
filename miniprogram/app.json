@@ -1,0 +1,59 @@
+{
+  "pages": [
+    "pages/inventory/index",
+    "pages/inventory/detail",
+    "pages/outbound/index",
+    "pages/outbound/detail",
+    "pages/outbound/create",
+    "pages/outbound/create-reserve",
+    "pages/inbound/index",
+    "pages/inbound/single",
+    "pages/inbound/batch",
+    "pages/inbound/search-import",
+    "pages/settings/index",
+    "pages/settings/whitelist",
+    "pages/settings/status-codes",
+    "pages/settings/nas-config"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#1890ff",
+    "navigationBarTitleText": "Goodser",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1890ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/inventory/index",
+        "text": "库存",
+        "iconPath": "images/tab-inventory.png",
+        "selectedIconPath": "images/tab-inventory-active.png"
+      },
+      {
+        "pagePath": "pages/outbound/index",
+        "text": "出库",
+        "iconPath": "images/tab-outbound.png",
+        "selectedIconPath": "images/tab-outbound-active.png"
+      },
+      {
+        "pagePath": "pages/inbound/index",
+        "text": "入库",
+        "iconPath": "images/tab-inbound.png",
+        "selectedIconPath": "images/tab-inbound-active.png"
+      },
+      {
+        "pagePath": "pages/settings/index",
+        "text": "设置",
+        "iconPath": "images/tab-settings.png",
+        "selectedIconPath": "images/tab-settings-active.png"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2"
+}

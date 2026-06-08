@@ -1,0 +1,39 @@
+<view class="page-whitelist">
+  <!-- 添加成员 -->
+  <view class="add-bar">
+    <view class="btn btn-primary" bindtap="onAddMember">+ 添加成员</view>
+  </view>
+
+  <!-- 成员列表 -->
+  <view class="member-list" wx:if="{{whitelist.length > 0}}">
+    <view class="member-item" wx:for="{{whitelist}}" wx:key="_id">
+      <image class="member-avatar" src="{{item.avatar_url}}" mode="aspectFill" />
+      <view class="member-info">
+        <text class="member-name">{{item.nickname}}</text>
+        <text class="member-role tag {{item.role === 'admin' ? 'tag-blue' : 'tag-green'}}">{{item.role === 'admin' ? '管理员' : '成员'}}</text>
+      </view>
+      <view class="member-action" wx:if="{{item.role !== 'admin'}}" bindtap="onRemoveMember" data-id="{{item._id}}">
+        <text class="remove-text">删除</text>
+      </view>
+    </view>
+  </view>
+
+  <empty-state wx:else icon="👥" title="暂无成员" description="添加成员以允许访问" />
+
+  <!-- 添加成员弹窗 -->
+  <view class="picker-mask" wx:if="{{showAddDialog}}" bindtap="hideAddDialog">
+    <view class="dialog" catchtap="">
+      <view class="dialog-title">添加成员</view>
+      <view class="dialog-desc">输入对方微信号搜索添加，或分享小程序邀请对方加入</view>
+      <input class="dialog-input" placeholder="请输入微信号" value="{{searchKeyword}}" bindinput="onSearchInput" />
+      <view class="dialog-actions">
+        <view class="btn btn-ghost" bindtap="hideAddDialog">取消</view>
+        <view class="btn btn-primary" bindtap="onSearchUser">搜索</view>
+      </view>
+      <view class="dialog-divider"></view>
+      <view class="share-btn" bindtap="onShareAppMessage">
+        <text class="share-text">分享小程序邀请加入</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,53 @@
+.page-detail {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 140rpx;
+}
+
+.detail-image-wrapper {
+  width: 100%;
+  height: 480rpx;
+  background: #f0f0f0;
+}
+
+.detail-image {
+  width: 100%;
+  height: 100%;
+}
+
+.detail-card {
+  margin: 20rpx 24rpx;
+}
+
+.detail-name {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 12rpx;
+}
+
+.detail-code-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.detail-code {
+  font-size: 26rpx;
+  color: #999999;
+  font-family: 'Courier New', monospace;
+}
+
+.price {
+  font-family: 'Courier New', monospace;
+}
+
+.highlight {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.bottom-bar .btn-ghost {
+  border: 2rpx solid #1890ff;
+  background: #ffffff;
+}

@@ -1,0 +1,64 @@
+<view class="page-nas-config">
+  <!-- 连接状态 -->
+  <view class="status-card card">
+    <view class="status-indicator">
+      <view class="status-dot {{connected ? 'status-connected' : 'status-disconnected'}}"></view>
+      <text class="status-text">{{connected ? 'NAS 已连接' : 'NAS 未连接'}}</text>
+    </view>
+    <text class="status-desc" wx:if="{{!connected}}">请配置 NAS 连接信息以启用图片存储</text>
+    <text class="status-desc" wx:else>存储空间: 可用 1.2TB / 总计 4TB</text>
+  </view>
+
+  <!-- 连接配置 -->
+  <view class="card">
+    <view class="form-group">
+      <text class="form-label">组网方式</text>
+      <picker range="{{vpnTypes}}" value="{{vpnTypeIndex}}" bindchange="onVpnTypeChange">
+        <view class="form-picker">
+          <text>{{vpnTypes[vpnTypeIndex]}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <text class="form-label">NAS 地址</text>
+      <input class="form-input" placeholder="如: 100.64.0.1 或 nas.local" value="{{nasAddress}}" bindinput="onAddressInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">端口</text>
+      <input class="form-input" type="number" placeholder="5000" value="{{nasPort}}" bindinput="onPortInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">访问路径</text>
+      <input class="form-input" placeholder="/goodser/images/" value="{{nasPath}}" bindinput="onPathInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">访问密钥</text>
+      <input class="form-input" placeholder="API Key" password="{{true}}" value="{{nasApiKey}}" bindinput="onApiKeyInput" />
+    </view>
+  </view>
+
+  <!-- 同步设置 -->
+  <view class="card">
+    <view class="setting-row">
+      <view class="setting-left">
+        <text class="setting-label">自动同步到 NAS</text>
+        <text class="setting-desc">上传图片后自动同步到 NAS</text>
+      </view>
+      <switch checked="{{autoSync}}" bindchange="onAutoSyncChange" color="#1890ff" />
+    </view>
+    <view class="setting-row">
+      <view class="setting-left">
+        <text class="setting-label">同步后清理云存储</text>
+        <text class="setting-desc">NAS 同步完成后删除云存储副本</text>
+      </view>
+      <switch checked="{{cleanAfterSync}}" bindchange="onCleanAfterSyncChange" color="#1890ff" />
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-bar">
+    <view class="btn btn-ghost" bindtap="onTestConnection">测试连接</view>
+    <view class="btn btn-primary" bindtap="onSave">保存配置</view>
+  </view>
+</view>

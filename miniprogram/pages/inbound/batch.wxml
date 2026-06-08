@@ -1,0 +1,91 @@
+<view class="page-batch-inbound">
+  <!-- 已添加商品列表 -->
+  <view class="card" wx:if="{{items.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">已添加 {{items.length}} 件商品</text>
+    </view>
+    <view class="batch-list">
+      <view class="batch-item" wx:for="{{items}}" wx:key="id">
+        <view class="batch-item-header">
+          <text class="batch-item-name">{{item.name}}</text>
+          <text class="batch-item-remove" bindtap="onRemoveItem" data-index="{{index}}">删除</text>
+        </view>
+        <view class="batch-item-info">
+          <text class="batch-info-text">{{item.mainZone}}-{{item.subZone}} | 数量: {{item.quantity}} | {{item.statusCode}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 添加商品表单 -->
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title">添加商品</text>
+    </view>
+    <view class="form-group">
+      <text class="form-label">商品名称 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入商品名称" value="{{currentName}}" bindinput="onCurrentNameInput" />
+    </view>
+    <view class="price-row">
+      <view class="form-group flex-1">
+        <text class="form-label">原价</text>
+        <input class="form-input" type="digit" placeholder="0.00" value="{{currentOriginalPrice}}" bindinput="onCurrentOriginalPriceInput" />
+      </view>
+      <view class="form-group flex-1">
+        <text class="form-label">市场价</text>
+        <input class="form-input" type="digit" placeholder="0.00" value="{{currentMarketPrice}}" bindinput="onCurrentMarketPriceInput" />
+      </view>
+    </view>
+    <view class="form-group">
+      <text class="form-label">预期出售价</text>
+      <input class="form-input" type="digit" placeholder="0.00" value="{{currentExpectedPrice}}" bindinput="onCurrentExpectedPriceInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">库存数量 <text class="required">*</text></text>
+      <input class="form-input" type="number" placeholder="0" value="{{currentQuantity}}" bindinput="onCurrentQuantityInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">仓储位置</text>
+      <input class="form-input" placeholder="如: A区-1架-2层" value="{{currentStorageLocation}}" bindinput="onCurrentStorageLocationInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">备注信息</text>
+      <input class="form-input" placeholder="请输入备注" value="{{currentRemark}}" bindinput="onCurrentRemarkInput" />
+    </view>
+    <view class="zone-row">
+      <view class="form-group flex-1">
+        <text class="form-label">主分区 <text class="required">*</text></text>
+        <picker range="{{mainZones}}" value="{{currentMainZoneIndex}}" bindchange="onCurrentMainZoneChange">
+          <view class="form-picker">
+            <text>{{mainZones[currentMainZoneIndex]}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-group flex-1">
+        <text class="form-label">子分区 <text class="required">*</text></text>
+        <picker range="{{subZones}}" value="{{currentSubZoneIndex}}" bindchange="onCurrentSubZoneChange">
+          <view class="form-picker">
+            <text>{{subZones[currentSubZoneIndex]}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-group flex-1">
+        <text class="form-label">状态 <text class="required">*</text></text>
+        <picker range="{{statusCodeLabels}}" value="{{currentStatusCodeIndex}}" bindchange="onCurrentStatusCodeChange">
+          <view class="form-picker">
+            <text class="picker-short">{{statusCodes[currentStatusCodeIndex].code}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+    <view class="btn btn-ghost" bindtap="onAddToBatch">+ 添加到列表</view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-bar" wx:if="{{items.length > 0}}">
+    <view class="btn btn-primary btn-block" bindtap="onSubmit">确认批量入库 ({{items.length}}件)</view>
+  </view>
+</view>

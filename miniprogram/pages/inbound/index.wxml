@@ -1,0 +1,53 @@
+<view class="page-inbound">
+  <!-- 入库方式选择 -->
+  <view class="card method-card">
+    <view class="method-title">选择入库方式</view>
+    <view class="method-list">
+      <view class="method-item" bindtap="onSingleInbound">
+        <view class="method-icon">📝</view>
+        <view class="method-info">
+          <text class="method-name">单独新增</text>
+          <text class="method-desc">录入单个商品信息</text>
+        </view>
+        <text class="method-arrow">›</text>
+      </view>
+      <view class="method-item" bindtap="onBatchInbound">
+        <view class="method-icon">📋</view>
+        <view class="method-info">
+          <text class="method-name">批量新增</text>
+          <text class="method-desc">一次添加多个商品</text>
+        </view>
+        <text class="method-arrow">›</text>
+      </view>
+      <view class="method-item" bindtap="onSearchImport">
+        <view class="method-icon">🔍</view>
+        <view class="method-info">
+          <text class="method-name">搜索导入</text>
+          <text class="method-desc">搜索已有商品导入新库存</text>
+        </view>
+        <text class="method-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 最近入库记录 -->
+  <view class="card">
+    <view class="section-header">
+      <text class="section-title">最近入库记录</text>
+    </view>
+    <view class="log-list" wx:if="{{inboundLogs.length > 0}}">
+      <view class="log-item" wx:for="{{inboundLogs}}" wx:key="_id">
+        <view class="log-icon">{{item.type === 'single' ? '📝' : item.type === 'batch' ? '📋' : '🔍'}}</view>
+        <view class="log-info">
+          <text class="log-type">{{item.type === 'single' ? '单独新增' : item.type === 'batch' ? '批量新增' : '搜索导入'}}</text>
+          <text class="log-products">{{item.items.map(i => i.product_name).join('、')}}</text>
+        </view>
+        <view class="log-right">
+          <text class="log-qty">+{{item.items.reduce((s, i) => s + i.quantity, 0)}}</text>
+          <text class="log-time">{{item.created_at}}</text>
+        </view>
+      </view>
+    </view>
+    <empty-state wx:else icon="📥" title="暂无入库记录" />
+  </view>
+</view>

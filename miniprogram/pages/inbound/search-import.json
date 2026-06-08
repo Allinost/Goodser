@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "搜索导入入库",
+  "usingComponents": {
+    "search-bar": "/components/search-bar/search-bar"
+  }
+}

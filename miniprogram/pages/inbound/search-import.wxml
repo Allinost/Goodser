@@ -1,0 +1,66 @@
+<view class="page-search-import">
+  <!-- 搜索栏 -->
+  <view class="card">
+    <search-bar
+      placeholder="搜索已有商品..."
+      bind:search="onSearch"
+      bind:clear="onClearSearch"
+    />
+
+    <!-- 搜索结果 -->
+    <view class="search-results" wx:if="{{searchResults.length > 0}}">
+      <view
+        class="search-item {{selectedProduct && selectedProduct._id === item._id ? 'search-item-active' : ''}}"
+        wx:for="{{searchResults}}"
+        wx:key="_id"
+        bindtap="onSelectProduct"
+        data-product="{{item}}"
+      >
+        <image class="search-item-image" src="{{item.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
+        <view class="search-item-info">
+          <text class="search-item-name">{{item.name}}</text>
+          <text class="search-item-code">{{item.code}}</text>
+          <text class="search-item-stock">当前库存: {{item.quantity}}</text>
+        </view>
+        <text class="search-item-check" wx:if="{{selectedProduct && selectedProduct._id === item._id}}">✓</text>
+      </view>
+    </view>
+    <empty-state wx:elif="{{searched && searchResults.length === 0}}" icon="🔍" title="未找到商品" description="请尝试其他关键词" />
+  </view>
+
+  <!-- 入库设置 -->
+  <view class="card" wx:if="{{selectedProduct}}">
+    <view class="selected-product-info">
+      <image class="sp-image" src="{{selectedProduct.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
+      <view class="sp-info">
+        <text class="sp-name">{{selectedProduct.name}}</text>
+        <text class="sp-code">{{selectedProduct.code}}</text>
+      </view>
+    </view>
+    <view class="divider"></view>
+    <view class="form-group">
+      <text class="form-label">新增数量 <text class="required">*</text></text>
+      <input class="form-input" type="number" placeholder="0" value="{{addQuantity}}" bindinput="onQuantityInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">分区选择</text>
+      <view class="zone-options">
+        <text class="zone-label">沿用原分区 ({{selectedProduct.main_zone}}-{{selectedProduct.sub_zone}})</text>
+      </view>
+    </view>
+    <view class="form-group">
+      <text class="form-label">状态编码</text>
+      <picker range="{{statusCodeLabels}}" value="{{statusCodeIndex}}" bindchange="onStatusCodeChange">
+        <view class="form-picker">
+          <text>{{statusCodeLabels[statusCodeIndex]}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-bar" wx:if="{{selectedProduct}}">
+    <view class="btn btn-primary btn-block" bindtap="onSubmit">确认导入入库</view>
+  </view>
+</view>

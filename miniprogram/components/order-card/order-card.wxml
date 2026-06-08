@@ -1,0 +1,20 @@
+<view class="order-card card" bindtap="onTap">
+  <view class="order-header">
+    <view class="order-info-left">
+      <text class="order-no">{{order.order_no}}</text>
+      <text class="order-time">{{order.created_at}}</text>
+    </view>
+    <text class="tag {{statusTagClass}}">{{statusLabel}}</text>
+  </view>
+  <view class="divider"></view>
+  <view class="order-items">
+    <view class="order-item" wx:for="{{order.items}}" wx:key="product_id">
+      <text class="item-name">{{item.product_name}}</text>
+      <text class="item-qty">× {{item.quantity}}</text>
+    </view>
+  </view>
+  <view class="order-footer">
+    <text class="order-total">共 {{order.items.length}} 种商品，合计 {{totalQuantity}} 件</text>
+    <view class="order-arrow">查看详情 ›</view>
+  </view>
+</view>
