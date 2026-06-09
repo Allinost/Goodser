@@ -1,6 +1,11 @@
 const util = require('../../utils/util')
 const mockData = require('../../utils/mock-data')
 
+const COLOR_OPTIONS = [
+  '#ff4d4f', '#ff7a45', '#faad14', '#52c41a', '#13c2c2',
+  '#1890ff', '#2f54eb', '#722ed1', '#eb2f96', '#666666'
+]
+
 Page({
   data: {
     inventories: [],
@@ -25,7 +30,9 @@ Page({
     allTags: [],
     selectedTagIds: [],
     showNewTagDialog: false,
-    newTagName: ''
+    newTagName: '',
+    newTagColor: COLOR_OPTIONS[0],
+    colorOptions: COLOR_OPTIONS
   },
 
   onLoad() {
@@ -105,7 +112,7 @@ Page({
   },
 
   onInlineAddTag() {
-    this.setData({ showNewTagDialog: true, newTagName: '' })
+    this.setData({ showNewTagDialog: true, newTagName: '', newTagColor: COLOR_OPTIONS[0] })
   },
 
   hideNewTagDialog() {
@@ -114,6 +121,10 @@ Page({
 
   onNewTagNameInput(e) {
     this.setData({ newTagName: e.detail.value })
+  },
+
+  onSelectColor(e) {
+    this.setData({ newTagColor: e.currentTarget.dataset.color })
   },
 
   onConfirmNewTag() {
@@ -129,7 +140,7 @@ Page({
     const newTag = {
       _id: 'tag_' + Date.now(),
       name,
-      color: '#1890ff',
+      color: this.data.newTagColor,
       owner_openid: 'user_001',
       created_at: new Date().toLocaleString()
     }

@@ -12,7 +12,10 @@ Page({
     orderNo: '',
     showEditModal: false,
     editItems: [],
-    editRemark: ''
+    editRemark: '',
+    editSearchKeyword: '',
+    editSearchResults: [],
+    showEditSearch: false
   },
 
   onLoad(options) {
@@ -54,7 +57,10 @@ Page({
     this.setData({
       showEditModal: true,
       editItems,
-      editRemark: log.remark || ''
+      editRemark: log.remark || '',
+      editSearchKeyword: '',
+      editSearchResults: [],
+      showEditSearch: false
     })
   },
 
@@ -95,6 +101,48 @@ Page({
     const editItems = [...this.data.editItems]
     editItems.splice(index, 1)
     this.setData({ editItems })
+  },
+
+  // 编辑弹窗内搜索添加商品
+  onEditSearchInput(e) {
+    this.setData({ editSearchKeyword: e.detail.value })
+  },
+
+  onEditSearch() {
+    const keyword = this.data.editSearchKeyword.toLowerCase()
+    if (!keyword) {
+      this.setData({ editSearchResults: [], showEditSearch: false })
+      return
+    }
+    const log = this.data.log
+    const results = mockData.products.filter(p =>
+      p.inventory_id === log.inventory_id &&
+      (p.name.toLowerCase().includes(keyword) || p.code.toLowerCase().includes(keyword)) &&
+      !this.data.editItems.find(i => i.product_id === p._id)
+    )
+    this.setData({ editSearchResults: results, showEditSearch: true })
+  },
+
+  onClearEditSearch() {
+    this.setData({ editSearchResults: [], showEditSearch: false, editSearchKeyword: '' })
+  },
+
+  onEditAddProduct(e) {
+    const product = e.currentTarget.dataset.product
+    const newItem = {
+      product_id: product._id,
+      product_name: product.name,
+      product_code: product.code,
+      quantity: 1,
+      image_url: product.image_url || ''
+    }
+    this.setData({
+      editItems: [...this.data.editItems, newItem],
+      editSearchResults: [],
+      showEditSearch: false,
+      editSearchKeyword: ''
+    })
+    wx.showToast({ title: '已添加', icon: 'success' })
   },
 
   onSaveEdit() {

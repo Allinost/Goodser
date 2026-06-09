@@ -26,6 +26,8 @@ Page({
     showFilter: false,
     showAddDialog: false,
     newInventoryName: '',
+    showRenameDialog: false,
+    renameInventoryName: '',
     filterMainZone: '',
     filterStatus: '',
     filterTags: [],
@@ -235,7 +237,13 @@ Page({
 
   onSelectInventory(e) {
     const id = e.currentTarget.dataset.id
-    this.setData({ currentInventoryId: id })
+    this.setData({
+      currentInventoryId: id,
+      searchKeyword: '',
+      filterMainZone: '',
+      filterStatus: '',
+      filterTags: []
+    })
     this.setCurrentInventory()
     this.setData({ showPicker: false })
   },
@@ -293,6 +301,35 @@ Page({
         }
       }
     })
+  },
+
+  // 重命名库存目录
+  onRenameInventory() {
+    this.setData({ showRenameDialog: true, renameInventoryName: this.data.currentInventory.name })
+  },
+
+  hideRenameDialog() {
+    this.setData({ showRenameDialog: false })
+  },
+
+  onRenameInput(e) {
+    this.setData({ renameInventoryName: e.detail.value })
+  },
+
+  onConfirmRename() {
+    const name = this.data.renameInventoryName.trim()
+    if (!name) {
+      wx.showToast({ title: '请输入名称', icon: 'none' })
+      return
+    }
+    const inv = this.data.inventories.find(i => i._id === this.data.currentInventoryId)
+    if (inv) {
+      inv.name = name
+      inv.updated_at = new Date().toLocaleString()
+      this.setData({ inventories: [...this.data.inventories], currentInventory: { ...inv } })
+      wx.showToast({ title: '重命名成功', icon: 'success' })
+    }
+    this.setData({ showRenameDialog: false })
   },
 
   // 商品点击

@@ -1,6 +1,11 @@
 const util = require('../../utils/util')
 const mockData = require('../../utils/mock-data')
 
+const COLOR_OPTIONS = [
+  '#ff4d4f', '#ff7a45', '#faad14', '#52c41a', '#13c2c2',
+  '#1890ff', '#2f54eb', '#722ed1', '#eb2f96', '#666666'
+]
+
 Page({
   data: {
     productId: '',
@@ -19,10 +24,13 @@ Page({
     statusCodes: mockData.statusCodes,
     statusCodeLabels: mockData.statusCodes.map(s => `${s.code} - ${s.label}`),
     statusCodeIndex: 0,
+    previewCode: '',
     allTags: [],
     selectedTagIds: [],
     showNewTagDialog: false,
-    newTagName: ''
+    newTagName: '',
+    newTagColor: COLOR_OPTIONS[0],
+    colorOptions: COLOR_OPTIONS
   },
 
   onLoad(options) {
@@ -54,6 +62,7 @@ Page({
       selectedTagIds: [...(product.tags || [])]
     })
 
+    this.updatePreview()
     wx.setNavigationBarTitle({ title: '编辑商品' })
   },
 
@@ -72,13 +81,29 @@ Page({
   onOriginalPriceInput(e) { this.setData({ originalPrice: e.detail.value }) },
   onMarketPriceInput(e) { this.setData({ marketPrice: e.detail.value }) },
   onExpectedPriceInput(e) { this.setData({ expectedPrice: e.detail.value }) },
-  onQuantityInput(e) { this.setData({ quantity: e.detail.value }) },
+  onQuantityInput(e) { this.setData({ quantity: e.detail.value }); this.updatePreview() },
   onStorageLocationInput(e) { this.setData({ storageLocation: e.detail.value }) },
   onRemarkInput(e) { this.setData({ remark: e.detail.value }) },
 
-  onMainZoneChange(e) { this.setData({ mainZoneIndex: e.detail.value }) },
-  onSubZoneChange(e) { this.setData({ subZoneIndex: e.detail.value }) },
-  onStatusCodeChange(e) { this.setData({ statusCodeIndex: e.detail.value }) },
+  onMainZoneChange(e) { this.setData({ mainZoneIndex: e.detail.value }); this.updatePreview() },
+  onSubZoneChange(e) { this.setData({ subZoneIndex: e.detail.value }); this.updatePreview() },
+  onStatusCodeChange(e) { this.setData({ statusCodeIndex: e.detail.value }); this.updatePreview() },
+
+  updatePreview() {
+    const product = mockData.products.find(p => p._id === this.data.productId)
+    const mainZone = this.data.mainZones[this.data.mainZoneIndex]
+    const subZone = this.data.subZones[this.data.subZoneIndex]
+    const qty = parseInt(this.data.quantity) || 0
+    const statusCode = this.data.statusCodes[this.data.statusCodeIndex].code
+
+    if (mainZone && subZone && qty > 0) {
+      const seqNumber = product ? product.seq_number : 'XXXX'
+      const previewCode = util.generateProductCode(mainZone, subZone, seqNumber, qty, statusCode)
+      this.setData({ previewCode })
+    } else {
+      this.setData({ previewCode: '' })
+    }
+  },
 
   // 标签
   onToggleTag(e) {
@@ -94,7 +119,7 @@ Page({
   },
 
   onInlineAddTag() {
-    this.setData({ showNewTagDialog: true, newTagName: '' })
+    this.setData({ showNewTagDialog: true, newTagName: '', newTagColor: COLOR_OPTIONS[0] })
   },
 
   hideNewTagDialog() {
@@ -103,6 +128,10 @@ Page({
 
   onNewTagNameInput(e) {
     this.setData({ newTagName: e.detail.value })
+  },
+
+  onSelectColor(e) {
+    this.setData({ newTagColor: e.currentTarget.dataset.color })
   },
 
   onConfirmNewTag() {
@@ -118,7 +147,7 @@ Page({
     const newTag = {
       _id: 'tag_' + Date.now(),
       name,
-      color: '#1890ff',
+      color: this.data.newTagColor,
       owner_openid: 'user_001',
       created_at: new Date().toLocaleString()
     }

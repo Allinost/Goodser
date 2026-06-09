@@ -208,3 +208,23 @@
   flex: 1;
   text-align: center;
 }
+
+/* 颜色选择 */
+.color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.color-dot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.color-dot-active {
+  box-shadow: 0 0 0 4rpx #ffffff, 0 0 0 8rpx currentColor;
+}

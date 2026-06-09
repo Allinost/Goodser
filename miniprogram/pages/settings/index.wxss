@@ -94,6 +94,17 @@
   color: #ff4d4f;
 }
 
+.settings-label-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-hint {
+  font-size: 22rpx;
+  color: #999999;
+  margin-top: 4rpx;
+}
+
 .settings-arrow {
   font-size: 32rpx;
   color: #cccccc;

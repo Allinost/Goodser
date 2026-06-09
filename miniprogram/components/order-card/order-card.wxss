@@ -19,6 +19,21 @@
   color: #333333;
 }
 
+.order-no-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.order-type-tag {
+  font-size: 20rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 4rpx;
+  background: #e6f7ff;
+  color: #1890ff;
+  font-weight: 500;
+}
+
 .order-time {
   font-size: 24rpx;
   color: #999999;

@@ -16,12 +16,40 @@ function formatLog(log) {
 
 Page({
   data: {
+    inventories: [],
+    inventoryNames: [],
+    inventoryIndex: 0,
+    currentInventoryId: '',
     inboundLogs: []
   },
 
+  onLoad() {
+    const inventories = mockData.inventories
+    const inventoryNames = inventories.map(i => i.name)
+    this.setData({
+      inventories,
+      inventoryNames,
+      currentInventoryId: inventories[0]._id,
+      inventoryIndex: 0
+    })
+  },
+
   onShow() {
+    this.loadLogs()
+  },
+
+  onInventoryChange(e) {
+    const index = e.detail.value
+    this.setData({
+      inventoryIndex: index,
+      currentInventoryId: this.data.inventories[index]._id
+    })
+    this.loadLogs()
+  },
+
+  loadLogs() {
     const logs = mockData.inboundLogs
-      .filter(l => l.inventory_id === 'inv_001')
+      .filter(l => l.inventory_id === this.data.currentInventoryId)
       .map(formatLog)
     this.setData({ inboundLogs: logs })
   },

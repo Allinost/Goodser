@@ -1,5 +1,10 @@
-const util = require('../../utils/util')
 const mockData = require('../../utils/mock-data')
+const util = require('../../utils/util')
+
+const COLOR_OPTIONS = [
+  '#ff4d4f', '#ff7a45', '#faad14', '#52c41a', '#13c2c2',
+  '#1890ff', '#2f54eb', '#722ed1', '#eb2f96', '#666666'
+]
 
 Page({
   data: {
@@ -25,7 +30,9 @@ Page({
     currentStatusCodeIndex: 0,
     currentTagIds: [],
     showNewTagDialog: false,
-    newTagName: ''
+    newTagName: '',
+    newTagColor: COLOR_OPTIONS[0],
+    colorOptions: COLOR_OPTIONS
   },
 
   onLoad() {
@@ -68,7 +75,7 @@ Page({
   },
 
   onInlineAddTag() {
-    this.setData({ showNewTagDialog: true, newTagName: '' })
+    this.setData({ showNewTagDialog: true, newTagName: '', newTagColor: COLOR_OPTIONS[0] })
   },
 
   hideNewTagDialog() {
@@ -77,6 +84,10 @@ Page({
 
   onNewTagNameInput(e) {
     this.setData({ newTagName: e.detail.value })
+  },
+
+  onSelectColor(e) {
+    this.setData({ newTagColor: e.currentTarget.dataset.color })
   },
 
   onConfirmNewTag() {
@@ -92,7 +103,7 @@ Page({
     const newTag = {
       _id: 'tag_' + Date.now(),
       name,
-      color: '#1890ff',
+      color: this.data.newTagColor,
       owner_openid: 'user_001',
       created_at: new Date().toLocaleString()
     }
@@ -168,17 +179,49 @@ Page({
       content: `目录: ${inventory.name}\n共 ${this.data.items.length} 件商品`,
       success: (res) => {
         if (res.confirm) {
+          const logItems = []
+          this.data.items.forEach(item => {
+            const seqNumber = util.getNextSeqNumber(mockData.products, inventory._id, item.mainZone, item.subZone)
+            const code = util.generateProductCode(item.mainZone, item.subZone, seqNumber, item.quantity, item.statusCode)
+            // 创建商品记录
+            const newProduct = {
+              _id: 'prod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+              inventory_id: inventory._id,
+              code,
+              main_zone: item.mainZone,
+              sub_zone: item.subZone,
+              seq_number: seqNumber,
+              quantity: item.quantity,
+              reserved_quantity: 0,
+              status_code: item.statusCode,
+              name: item.name,
+              original_price: parseFloat(item.originalPrice) || 0,
+              market_price: parseFloat(item.marketPrice) || 0,
+              expected_price: parseFloat(item.expectedPrice) || 0,
+              remark: item.remark || '',
+              storage_location: item.storageLocation || '',
+              image_url: '',
+              tags: [...item.tagIds],
+              owner_openid: 'user_001',
+              created_at: new Date().toLocaleString(),
+              updated_at: new Date().toLocaleString()
+            }
+            mockData.products.push(newProduct)
+            logItems.push({
+              product_id: newProduct._id,
+              product_name: item.name,
+              product_code: code,
+              quantity: item.quantity,
+              image_url: ''
+            })
+          })
           // 创建入库记录
-          const logItems = this.data.items.map(item => ({
-            product_id: '',
-            product_name: item.name,
-            product_code: `${item.mainZone}-${item.subZone}-XXXX-${String(item.quantity).padStart(4, '0')}-${item.statusCode}`,
-            quantity: item.quantity,
-            image_url: ''
-          }))
+          const prefix = inventory.name.substring(0, 2).toUpperCase()
+          const orderNo = util.generateOrderNo(prefix)
           const newLog = {
             _id: 'inlog_' + Date.now(),
             inventory_id: inventory._id,
+            order_no: orderNo,
             type: 'batch',
             items: logItems,
             owner_openid: 'user_001',

@@ -1,4 +1,17 @@
 <view class="page-inbound">
+  <!-- 库存目录选择 -->
+  <view class="card inventory-card">
+    <view class="form-group">
+      <text class="form-label">库存目录</text>
+      <picker range="{{inventoryNames}}" value="{{inventoryIndex}}" bindchange="onInventoryChange">
+        <view class="form-picker">
+          <text>{{inventoryNames[inventoryIndex] || '请选择'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
   <!-- 入库方式选择 -->
   <view class="card method-card">
     <view class="method-title">选择入库方式</view>

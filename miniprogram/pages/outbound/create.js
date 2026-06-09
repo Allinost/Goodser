@@ -48,12 +48,17 @@ Page({
       wx.showToast({ title: '已添加该商品', icon: 'none' })
       return
     }
+    const available = product.quantity - (product.reserved_quantity || 0)
+    if (available <= 0) {
+      wx.showToast({ title: '该商品可用库存不足', icon: 'none' })
+      return
+    }
     const newItem = {
       product_id: product._id,
       product_name: product.name,
       product_code: product.code,
       quantity: 1,
-      stock: product.quantity,
+      stock: available,
       image_url: product.image_url
     }
     this.setData({
@@ -100,10 +105,15 @@ Page({
       wx.showToast({ title: '请添加出库商品', icon: 'none' })
       return
     }
-    // 检查库存是否充足
-    const insufficient = this.data.selectedItems.find(i => i.quantity > i.stock)
+    // 检查可用库存是否充足（总量 - 已预留）
+    const insufficient = this.data.selectedItems.find(i => {
+      const product = mockData.products.find(p => p._id === i.product_id)
+      if (!product) return true
+      const available = product.quantity - (product.reserved_quantity || 0)
+      return i.quantity > available
+    })
     if (insufficient) {
-      wx.showToast({ title: `「${insufficient.product_name}」库存不足`, icon: 'none' })
+      wx.showToast({ title: `「${insufficient.product_name}」可用库存不足`, icon: 'none' })
       return
     }
     const inventory = this.data.inventories[this.data.inventoryIndex]

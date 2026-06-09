@@ -79,6 +79,12 @@ Page({
             owner_openid: 'user_001',
             created_at: new Date().toLocaleString()
           }
+          // 增加商品库存
+          const product = mockData.products.find(p => p._id === this.data.selectedProduct._id)
+          if (product) {
+            product.quantity += parseInt(this.data.addQuantity)
+            product.updated_at = new Date().toLocaleString()
+          }
           mockData.inboundLogs.push(newLog)
           wx.showToast({ title: '导入成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)

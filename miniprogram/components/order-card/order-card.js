@@ -15,7 +15,8 @@ Component({
   data: {
     statusLabel: '',
     statusTagClass: '',
-    totalQuantity: 0
+    totalQuantity: 0,
+    typeLabel: ''
   },
   observers: {
     'order': function(order) {
@@ -25,7 +26,8 @@ Component({
       this.setData({
         statusLabel: status.label,
         statusTagClass: status.tagClass,
-        totalQuantity
+        totalQuantity,
+        typeLabel: order._typeLabel || ''
       })
     }
   },

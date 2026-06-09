@@ -52,6 +52,22 @@
     </view>
   </view>
 
+  <!-- 数据存储 -->
+  <view class="settings-group">
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">☁️</text>
+        <view class="settings-label-group">
+          <text class="settings-label">云数据库</text>
+          <text class="settings-hint">启用后数据将存储至微信云开发</text>
+        </view>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{cloudDbEnabled}}" bindchange="onCloudDbToggle" color="#1890ff" />
+      </view>
+    </view>
+  </view>
+
   <!-- 关于 -->
   <view class="settings-group">
     <view class="settings-item">
