@@ -100,6 +100,17 @@ Page({
       wx.showToast({ title: '请添加预留商品', icon: 'none' })
       return
     }
+    // 检查可用库存是否充足（总量 - 已预留）
+    const insufficient = this.data.selectedItems.find(i => {
+      const product = mockData.products.find(p => p._id === i.product_id)
+      if (!product) return true
+      const available = product.quantity - (product.reserved_quantity || 0)
+      return i.quantity > available
+    })
+    if (insufficient) {
+      wx.showToast({ title: `「${insufficient.product_name}」可用库存不足`, icon: 'none' })
+      return
+    }
     const inventory = this.data.inventories[this.data.inventoryIndex]
     wx.showModal({
       title: '确认新建预留单',
@@ -130,6 +141,14 @@ Page({
             cancelled_at: null
           }
           mockData.outboundOrders.push(newOrder)
+          // 锁定预留库存
+          newOrder.items.forEach(item => {
+            const product = mockData.products.find(p => p._id === item.product_id)
+            if (product) {
+              product.reserved_quantity = (product.reserved_quantity || 0) + item.quantity
+              product.updated_at = new Date().toLocaleString()
+            }
+          })
           wx.showToast({ title: '创建成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

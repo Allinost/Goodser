@@ -149,9 +149,8 @@ Page({
     const statusCode = this.data.statusCodes[this.data.statusCodeIndex].code
     const qty = parseInt(this.data.quantity)
 
-    // 更新编码
-    const qtyStr = String(qty).padStart(4, '0')
-    const code = `${mainZone}-${subZone}-${String(product.seq_number).padStart(4, '0')}-${qtyStr}-${statusCode}`
+    // 更新编码（序号保持不变，其他部分根据修改更新）
+    const code = util.generateProductCode(mainZone, subZone, product.seq_number, qty, statusCode)
 
     // 更新 mock 数据
     product.name = this.data.name.trim()

@@ -100,6 +100,12 @@ Page({
       wx.showToast({ title: '请添加出库商品', icon: 'none' })
       return
     }
+    // 检查库存是否充足
+    const insufficient = this.data.selectedItems.find(i => i.quantity > i.stock)
+    if (insufficient) {
+      wx.showToast({ title: `「${insufficient.product_name}」库存不足`, icon: 'none' })
+      return
+    }
     const inventory = this.data.inventories[this.data.inventoryIndex]
     wx.showModal({
       title: '确认新建出库单',
@@ -131,6 +137,14 @@ Page({
             cancelled_at: null
           }
           mockData.outboundOrders.push(newOrder)
+          // 扣减实际库存
+          newOrder.items.forEach(item => {
+            const product = mockData.products.find(p => p._id === item.product_id)
+            if (product) {
+              product.quantity = Math.max(0, product.quantity - item.quantity)
+              product.updated_at = new Date().toLocaleString()
+            }
+          })
           wx.showToast({ title: '创建成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

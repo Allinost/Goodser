@@ -84,11 +84,8 @@ Page({
     const statusCode = this.data.statusCodes[this.data.statusCodeIndex].code
 
     if (mainZone && subZone && qty > 0) {
-      const qtyStr = String(qty).padStart(4, '0')
-      const seqStr = 'XXXX'
-      this.setData({
-        previewCode: `${mainZone}-${subZone}-${seqStr}-${qtyStr}-${statusCode}`
-      })
+      const previewCode = util.generateProductCode(mainZone, subZone, 'XXXX', qty, statusCode)
+      this.setData({ previewCode })
     } else {
       this.setData({ previewCode: '' })
     }
@@ -160,17 +157,57 @@ Page({
       content: `目录: ${inventory.name}\n商品: ${this.data.name}\n数量: ${this.data.quantity}`,
       success: (res) => {
         if (res.confirm) {
+          const mainZone = this.data.mainZones[this.data.mainZoneIndex]
+          const subZone = this.data.subZones[this.data.subZoneIndex]
+          const statusCode = this.data.statusCodes[this.data.statusCodeIndex].code
+          const qty = parseInt(this.data.quantity)
+
+          // 生成序号：自动分配（支持回收空缺）
+          const seqNumber = util.getNextSeqNumber(mockData.products, inventory._id, mainZone, subZone)
+          const code = util.generateProductCode(mainZone, subZone, seqNumber, qty, statusCode)
+
+          // 创建商品
+          const newProduct = {
+            _id: 'prod_' + Date.now(),
+            inventory_id: inventory._id,
+            code,
+            main_zone: mainZone,
+            sub_zone: subZone,
+            seq_number: seqNumber,
+            quantity: qty,
+            reserved_quantity: 0,
+            status_code: statusCode,
+            name: this.data.name.trim(),
+            original_price: parseFloat(this.data.originalPrice) || 0,
+            market_price: parseFloat(this.data.marketPrice) || 0,
+            expected_price: parseFloat(this.data.expectedPrice) || 0,
+            remark: this.data.remark.trim(),
+            storage_location: this.data.storageLocation.trim(),
+            image_url: this.data.imageUrl || '',
+            tags: [...this.data.selectedTagIds],
+            owner_openid: 'user_001',
+            created_at: new Date().toLocaleString(),
+            updated_at: new Date().toLocaleString()
+          }
+          mockData.products.push(newProduct)
+
+          // 生成入库单号
+          const prefix = inventory.name.substring(0, 2).toUpperCase()
+          const orderNo = util.generateOrderNo(prefix)
+
           // 创建入库记录
           const newLog = {
             _id: 'inlog_' + Date.now(),
             inventory_id: inventory._id,
+            order_no: orderNo,
             type: 'single',
+            remark: this.data.remark.trim(),
             items: [{
-              product_id: '',
-              product_name: this.data.name.trim(),
-              product_code: this.data.previewCode || '',
-              quantity: parseInt(this.data.quantity),
-              image_url: this.data.imageUrl || ''
+              product_id: newProduct._id,
+              product_name: newProduct.name,
+              product_code: code,
+              quantity: qty,
+              image_url: newProduct.image_url
             }],
             owner_openid: 'user_001',
             created_at: new Date().toLocaleString()

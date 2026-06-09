@@ -21,11 +21,6 @@
   color: #333333;
 }
 
-.log-time {
-  font-size: 24rpx;
-  color: #999999;
-}
-
 .log-inventory {
   display: flex;
   align-items: center;
@@ -42,6 +37,15 @@
   font-size: 24rpx;
   color: #1890ff;
   font-weight: 500;
+}
+
+.log-meta {
+  margin-top: 8rpx;
+}
+
+.log-time {
+  font-size: 24rpx;
+  color: #999999;
 }
 
 .section-title {
@@ -108,4 +112,172 @@
   border: 2rpx solid #1890ff;
   color: #1890ff;
   background: #ffffff;
+}
+
+/* 信息行 */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+}
+
+.info-row .label {
+  color: #999999;
+  font-size: 26rpx;
+}
+
+.info-row .value {
+  color: #333333;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+/* 弹窗遮罩 */
+.picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* 编辑面板 */
+.edit-panel {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 24rpx 24rpx 0 0;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.edit-panel-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.edit-panel-close {
+  font-size: 32rpx;
+  color: #999999;
+  padding: 8rpx;
+}
+
+.edit-panel-body {
+  flex: 1;
+  padding: 24rpx 32rpx;
+  max-height: 60vh;
+}
+
+.edit-item {
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.edit-item:last-of-type {
+  border-bottom: none;
+}
+
+.edit-item-info {
+  margin-bottom: 12rpx;
+}
+
+.edit-item-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333333;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.edit-item-code {
+  font-size: 22rpx;
+  color: #999999;
+  font-family: 'Courier New', monospace;
+}
+
+.edit-qty-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.edit-qty-btn {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 8rpx;
+  background: #f5f5f5;
+  text-align: center;
+  line-height: 56rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+  flex-shrink: 0;
+}
+
+.edit-qty-input {
+  width: 100rpx;
+  height: 56rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+.edit-item-remove {
+  font-size: 24rpx;
+  color: #ff4d4f;
+  padding: 8rpx 12rpx;
+  margin-left: auto;
+}
+
+.edit-remark-group {
+  margin-top: 24rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx solid #f0f0f0;
+}
+
+.form-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.form-textarea {
+  width: 100%;
+  height: 140rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  padding: 16rpx 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.edit-panel-footer {
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  border-top: 2rpx solid #f0f0f0;
+}
+
+.edit-panel-footer .btn {
+  flex: 1;
+  text-align: center;
 }

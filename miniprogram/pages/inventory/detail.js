@@ -145,12 +145,31 @@ Page({
   },
 
   onDelete() {
+    const product = this.data.product
     wx.showModal({
       title: '确认删除',
-      content: `确定删除「${this.data.product.name}」吗？`,
+      content: `确定删除「${product.name}」吗？删除后编码序号可被回收复用。`,
       confirmColor: '#ff4d4f',
       success: (res) => {
         if (res.confirm) {
+          // 检查是否有未完成的出库单关联该商品
+          const pendingOrders = mockData.outboundOrders.filter(o =>
+            o.status !== 'cancelled' && o.status !== 'confirmed' &&
+            o.items.some(i => i.product_id === product._id)
+          )
+          if (pendingOrders.length > 0) {
+            wx.showModal({
+              title: '无法删除',
+              content: `该商品有 ${pendingOrders.length} 个未完成的出库/预留单，请先处理相关订单`,
+              showCancel: false
+            })
+            return
+          }
+          // 从商品列表中移除
+          const idx = mockData.products.findIndex(p => p._id === product._id)
+          if (idx > -1) {
+            mockData.products.splice(idx, 1)
+          }
           wx.showToast({ title: '删除成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }
