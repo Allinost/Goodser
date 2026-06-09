@@ -34,6 +34,9 @@ Page({
   },
 
   onLoad(options) {
+    wx.enableAlertBeforeUnload({
+      message: '当前页面有未保存的修改，确定要离开吗？'
+    })
     const product = mockData.products.find(p => p._id === options.id)
     if (!product) {
       wx.showToast({ title: '商品不存在', icon: 'none' })

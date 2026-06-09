@@ -10,10 +10,16 @@ Page({
     orderRemark: '',
     searchResults: [],
     showSearchResults: false,
-    selectedItems: []
+    selectedItems: [],
+    // 多选模式
+    multiSelectMode: false,
+    checkedProductIds: []
   },
 
   onLoad() {
+    wx.enableAlertBeforeUnload({
+      message: '当前页面有未保存的修改，确定要离开吗？'
+    })
     const inventories = mockData.inventories
     const inventoryNames = inventories.map(i => i.name)
     this.setData({ inventories, inventoryNames })
@@ -43,6 +49,25 @@ Page({
 
   onAddProduct(e) {
     const product = e.currentTarget.dataset.product
+    if (this.data.multiSelectMode) {
+      // 多选模式：切换勾选
+      const checkedProductIds = [...this.data.checkedProductIds]
+      const idx = checkedProductIds.indexOf(product._id)
+      if (idx > -1) {
+        checkedProductIds.splice(idx, 1)
+      } else {
+        const exists = this.data.selectedItems.find(i => i.product_id === product._id)
+        if (exists) {
+          wx.showToast({ title: '该商品已添加', icon: 'none' })
+          return
+        }
+        checkedProductIds.push(product._id)
+      }
+      this.setData({ checkedProductIds })
+      return
+    }
+
+    // 单选模式
     const exists = this.data.selectedItems.find(i => i.product_id === product._id)
     if (exists) {
       wx.showToast({ title: '已添加该商品', icon: 'none' })
@@ -60,6 +85,37 @@ Page({
       selectedItems: [...this.data.selectedItems, newItem],
       showSearchResults: false
     })
+  },
+
+  onToggleMultiSelect() {
+    this.setData({ multiSelectMode: !this.data.multiSelectMode, checkedProductIds: [] })
+  },
+
+  onConfirmMultiSelect() {
+    const newItems = []
+    this.data.checkedProductIds.forEach(pid => {
+      const product = this.data.searchResults.find(p => p._id === pid)
+      if (!product) return
+      const exists = this.data.selectedItems.find(i => i.product_id === pid)
+      if (exists) return
+      newItems.push({
+        product_id: product._id,
+        product_name: product.name,
+        product_code: product.code,
+        quantity: 1,
+        stock: product.quantity,
+        image_url: product.image_url
+      })
+    })
+    this.setData({
+      selectedItems: [...this.data.selectedItems, ...newItems],
+      showSearchResults: false,
+      multiSelectMode: false,
+      checkedProductIds: []
+    })
+    if (newItems.length > 0) {
+      wx.showToast({ title: `已添加 ${newItems.length} 种商品`, icon: 'success' })
+    }
   },
 
   onIncreaseQty(e) {

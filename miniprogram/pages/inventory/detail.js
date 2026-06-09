@@ -1,6 +1,11 @@
 const mockData = require('../../utils/mock-data')
 const util = require('../../utils/util')
 
+const COLOR_OPTIONS = [
+  '#ff4d4f', '#ff7a45', '#faad14', '#52c41a', '#13c2c2',
+  '#1890ff', '#2f54eb', '#722ed1', '#eb2f96', '#666666'
+]
+
 Page({
   data: {
     product: {},
@@ -10,7 +15,10 @@ Page({
     showTagPicker: false,
     tagSearchKeyword: '',
     availableTags: [],
-    isExistingTag: false
+    showNewTagDialog: false,
+    newTagName: '',
+    newTagColor: COLOR_OPTIONS[0],
+    colorOptions: COLOR_OPTIONS
   },
 
   onLoad(options) {
@@ -49,7 +57,6 @@ Page({
       tagSearchKeyword: '',
       availableTags: [...mockData.tags]
     })
-    this.checkExistingTag()
   },
 
   hideTagPicker() {
@@ -63,39 +70,6 @@ Page({
       ? mockData.tags.filter(t => t.name.includes(keyword))
       : [...mockData.tags]
     this.setData({ availableTags: filtered })
-    this.checkExistingTag()
-  },
-
-  checkExistingTag() {
-    const keyword = this.data.tagSearchKeyword
-    const exists = mockData.tags.some(t => t.name === keyword)
-    this.setData({ isExistingTag: exists })
-  },
-
-  onCreateTag() {
-    const name = this.data.tagSearchKeyword.trim()
-    if (!name) return
-    // 检查重名
-    if (mockData.tags.some(t => t.name === name)) {
-      wx.showToast({ title: '标签已存在', icon: 'none' })
-      return
-    }
-    const newTag = {
-      _id: 'tag_' + Date.now(),
-      name,
-      color: '#1890ff',
-      owner_openid: 'user_001',
-      created_at: new Date().toLocaleString()
-    }
-    mockData.tags.push(newTag)
-    // 直接选中新标签
-    this.addTagToProduct(newTag._id)
-    this.setData({
-      showTagPicker: false,
-      tagSearchKeyword: ''
-    })
-    this.loadProductTags()
-    wx.showToast({ title: '标签已创建', icon: 'success' })
   },
 
   onToggleTag(e) {
@@ -115,6 +89,51 @@ Page({
 
   isTagSelected(tagId) {
     return (this.data.product.tags || []).includes(tagId)
+  },
+
+  // 新建标签弹窗
+  onShowNewTagDialog() {
+    this.setData({ showNewTagDialog: true, newTagName: '', newTagColor: COLOR_OPTIONS[0] })
+  },
+
+  hideNewTagDialog() {
+    this.setData({ showNewTagDialog: false })
+  },
+
+  onNewTagNameInput(e) {
+    this.setData({ newTagName: e.detail.value })
+  },
+
+  onSelectColor(e) {
+    this.setData({ newTagColor: e.currentTarget.dataset.color })
+  },
+
+  onConfirmNewTag() {
+    const name = this.data.newTagName.trim()
+    if (!name) {
+      wx.showToast({ title: '请输入标签名称', icon: 'none' })
+      return
+    }
+    if (mockData.tags.some(t => t.name === name)) {
+      wx.showToast({ title: '标签已存在', icon: 'none' })
+      return
+    }
+    const newTag = {
+      _id: 'tag_' + Date.now(),
+      name,
+      color: this.data.newTagColor,
+      owner_openid: 'user_001',
+      created_at: new Date().toLocaleString()
+    }
+    mockData.tags.push(newTag)
+    // 自动选中新标签
+    this.addTagToProduct(newTag._id)
+    this.setData({
+      showNewTagDialog: false,
+      availableTags: [...mockData.tags]
+    })
+    this.loadProductTags()
+    wx.showToast({ title: '标签已创建', icon: 'success' })
   },
 
   onRemoveTag(e) {

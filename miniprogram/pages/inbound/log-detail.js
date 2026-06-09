@@ -15,7 +15,10 @@ Page({
     editRemark: '',
     editSearchKeyword: '',
     editSearchResults: [],
-    showEditSearch: false
+    showEditSearch: false,
+    // 多选模式
+    editMultiSelectMode: false,
+    editCheckedIds: []
   },
 
   onLoad(options) {
@@ -65,7 +68,28 @@ Page({
   },
 
   hideEditModal() {
-    this.setData({ showEditModal: false })
+    const log = this.data.log
+    const hasChanges = this.data.editItems.length !== log.items.length ||
+      this.data.editItems.some((item, i) => {
+        const orig = log.items.find(o => o.product_id === item.product_id)
+        return !orig || orig.quantity !== item.quantity
+      }) ||
+      (this.data.editRemark || '').trim() !== (log.remark || '').trim()
+
+    if (hasChanges) {
+      wx.showModal({
+        title: '提示',
+        content: '编辑内容尚未保存，确定要放弃修改吗？',
+        confirmColor: '#ff4d4f',
+        success: (res) => {
+          if (res.confirm) {
+            this.setData({ showEditModal: false })
+          }
+        }
+      })
+    } else {
+      this.setData({ showEditModal: false })
+    }
   },
 
   onEditRemarkInput(e) {
@@ -129,6 +153,26 @@ Page({
 
   onEditAddProduct(e) {
     const product = e.currentTarget.dataset.product
+
+    // 多选模式
+    if (this.data.editMultiSelectMode) {
+      const editCheckedIds = [...this.data.editCheckedIds]
+      const idx = editCheckedIds.indexOf(product._id)
+      if (idx > -1) {
+        editCheckedIds.splice(idx, 1)
+      } else {
+        const exists = this.data.editItems.find(i => i.product_id === product._id)
+        if (exists) {
+          wx.showToast({ title: '该商品已添加', icon: 'none' })
+          return
+        }
+        editCheckedIds.push(product._id)
+      }
+      this.setData({ editCheckedIds })
+      return
+    }
+
+    // 单选模式
     const newItem = {
       product_id: product._id,
       product_name: product.name,
@@ -143,6 +187,41 @@ Page({
       editSearchKeyword: ''
     })
     wx.showToast({ title: '已添加', icon: 'success' })
+  },
+
+  onToggleEditMultiSelect() {
+    this.setData({
+      editMultiSelectMode: !this.data.editMultiSelectMode,
+      editCheckedIds: []
+    })
+  },
+
+  onConfirmEditMultiSelect() {
+    const newItems = []
+    this.data.editCheckedIds.forEach(pid => {
+      const product = this.data.editSearchResults.find(p => p._id === pid)
+      if (!product) return
+      const exists = this.data.editItems.find(i => i.product_id === pid)
+      if (exists) return
+      newItems.push({
+        product_id: product._id,
+        product_name: product.name,
+        product_code: product.code,
+        quantity: 1,
+        image_url: product.image_url || ''
+      })
+    })
+    this.setData({
+      editItems: [...this.data.editItems, ...newItems],
+      editSearchResults: [],
+      showEditSearch: false,
+      editSearchKeyword: '',
+      editMultiSelectMode: false,
+      editCheckedIds: []
+    })
+    if (newItems.length > 0) {
+      wx.showToast({ title: `已添加 ${newItems.length} 种商品`, icon: 'success' })
+    }
   },
 
   onSaveEdit() {

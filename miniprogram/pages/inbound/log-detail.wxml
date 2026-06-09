@@ -68,10 +68,21 @@
           </view>
           <!-- 搜索结果 -->
           <view class="edit-search-results" wx:if="{{showEditSearch && editSearchResults.length > 0}}">
-            <view class="edit-search-item" wx:for="{{editSearchResults}}" wx:key="_id" bindtap="onEditAddProduct" data-product="{{item}}">
+            <view class="edit-multi-bar">
+              <text class="edit-multi-toggle" bindtap="onToggleEditMultiSelect">
+                {{editMultiSelectMode ? '取消多选' : '多选'}}
+              </text>
+              <view class="edit-multi-confirm" wx:if="{{editMultiSelectMode && editCheckedIds.length > 0}}" bindtap="onConfirmEditMultiSelect">
+                确认添加 ({{editCheckedIds.length}})
+              </view>
+            </view>
+            <view class="edit-search-item {{editMultiSelectMode && editCheckedIds.indexOf(item._id) > -1 ? 'edit-search-item-checked' : ''}}" wx:for="{{editSearchResults}}" wx:key="_id" bindtap="onEditAddProduct" data-product="{{item}}">
+              <view class="edit-multi-checkbox" wx:if="{{editMultiSelectMode}}">
+                <view class="edit-checkbox-inner {{editCheckedIds.indexOf(item._id) > -1 ? 'edit-checkbox-checked' : ''}}"></view>
+              </view>
               <text class="edit-search-name">{{item.name}}</text>
               <text class="edit-search-code">{{item.code}}</text>
-              <text class="edit-search-add">+ 添加</text>
+              <text class="edit-search-add" wx:if="{{!editMultiSelectMode}}">+ 添加</text>
             </view>
           </view>
           <view class="edit-search-empty" wx:elif="{{showEditSearch && editSearchResults.length === 0}}">

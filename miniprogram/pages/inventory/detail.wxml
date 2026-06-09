@@ -95,8 +95,7 @@
       </view>
       <view class="tag-picker-content">
         <view class="tag-picker-search">
-          <input class="tag-search-input" placeholder="搜索或新建标签..." value="{{tagSearchKeyword}}" bindinput="onTagSearchInput" bindconfirm="onCreateTag" />
-          <view class="tag-create-btn" wx:if="{{tagSearchKeyword && !isExistingTag}}" bindtap="onCreateTag">新建</view>
+          <input class="tag-search-input" placeholder="搜索标签..." value="{{tagSearchKeyword}}" bindinput="onTagSearchInput" />
         </view>
         <view class="tag-picker-list">
           <view
@@ -111,9 +110,38 @@
             <text class="tag-picker-check" wx:if="{{isTagSelected(item._id)}}">✓</text>
           </view>
         </view>
+        <view class="tag-picker-bottom-action" bindtap="onShowNewTagDialog">+ 新建标签</view>
       </view>
       <view class="filter-footer">
         <view class="btn btn-primary" bindtap="hideTagPicker">完成</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 新建标签弹窗 -->
+  <view class="picker-mask" wx:if="{{showNewTagDialog}}" bindtap="hideNewTagDialog">
+    <view class="dialog" catchtap="">
+      <view class="dialog-title">新建标签</view>
+      <view class="form-group">
+        <text class="form-label">标签名称</text>
+        <input class="dialog-input" placeholder="输入标签名称" value="{{newTagName}}" bindinput="onNewTagNameInput" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">标签颜色</text>
+        <view class="color-options">
+          <view
+            class="color-dot {{newTagColor === item ? 'color-dot-active' : ''}}"
+            wx:for="{{colorOptions}}"
+            wx:key="*this"
+            style="background: {{item}}"
+            bindtap="onSelectColor"
+            data-color="{{item}}"
+          ></view>
+        </view>
+      </view>
+      <view class="dialog-actions">
+        <view class="btn btn-ghost" bindtap="hideNewTagDialog">取消</view>
+        <view class="btn btn-primary" bindtap="onConfirmNewTag">创建</view>
       </view>
     </view>
   </view>

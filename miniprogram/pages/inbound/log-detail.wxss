@@ -373,3 +373,54 @@
   background: #f0f0f0;
   margin: 16rpx 0;
 }
+
+/* 编辑弹窗多选 */
+.edit-multi-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  background: #fafafa;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.edit-multi-toggle {
+  font-size: 24rpx;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.edit-multi-confirm {
+  font-size: 24rpx;
+  color: #ffffff;
+  background: #1890ff;
+  padding: 6rpx 20rpx;
+  border-radius: 6rpx;
+  font-weight: 500;
+}
+
+.edit-search-item-checked {
+  background: #f0f7ff;
+}
+
+.edit-multi-checkbox {
+  width: 36rpx;
+  height: 36rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 6rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10rpx;
+  flex-shrink: 0;
+}
+
+.edit-checkbox-inner {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 4rpx;
+}
+
+.edit-checkbox-checked {
+  background: #1890ff;
+}

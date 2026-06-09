@@ -36,6 +36,9 @@ Page({
   },
 
   onLoad() {
+    wx.enableAlertBeforeUnload({
+      message: '当前页面有未保存的修改，确定要离开吗？'
+    })
     const inventories = mockData.inventories
     const inventoryNames = inventories.map(i => i.name)
     this.setData({

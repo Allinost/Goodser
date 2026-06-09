@@ -22,27 +22,67 @@
 
     <!-- 搜索结果 -->
     <view class="search-results" wx:if="{{searchResults.length > 0}}">
+      <view class="multi-select-bar">
+        <text class="multi-select-toggle" bindtap="onToggleMultiSelect">
+          {{multiSelectMode ? '取消多选' : '多选'}}
+        </text>
+        <view class="multi-select-confirm-btn" wx:if="{{multiSelectMode && checkedProductIds.length > 0}}" bindtap="onConfirmMultiSelect">
+          确认选择 ({{checkedProductIds.length}})
+        </view>
+      </view>
       <view
-        class="search-item {{selectedProduct && selectedProduct._id === item._id ? 'search-item-active' : ''}}"
+        class="search-item {{(!multiSelectMode && selectedProduct && selectedProduct._id === item._id) || (multiSelectMode && checkedProductIds.indexOf(item._id) > -1) ? 'search-item-active' : ''}}"
         wx:for="{{searchResults}}"
         wx:key="_id"
         bindtap="onSelectProduct"
         data-product="{{item}}"
       >
+        <view class="multi-checkbox" wx:if="{{multiSelectMode}}">
+          <view class="checkbox-inner {{checkedProductIds.indexOf(item._id) > -1 ? 'checkbox-checked' : ''}}"></view>
+        </view>
         <image class="search-item-image" src="{{item.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
         <view class="search-item-info">
           <text class="search-item-name">{{item.name}}</text>
           <text class="search-item-code">{{item.code}}</text>
           <text class="search-item-stock">当前库存: {{item.quantity}}</text>
         </view>
-        <text class="search-item-check" wx:if="{{selectedProduct && selectedProduct._id === item._id}}">✓</text>
+        <text class="search-item-check" wx:if="{{!multiSelectMode && selectedProduct && selectedProduct._id === item._id}}">✓</text>
       </view>
     </view>
     <empty-state wx:elif="{{searched && searchResults.length === 0}}" icon="🔍" title="未找到商品" description="请尝试其他关键词" />
   </view>
 
-  <!-- 入库设置 -->
-  <view class="card" wx:if="{{selectedProduct}}">
+  <!-- 多选模式：已选商品列表 -->
+  <view class="card" wx:if="{{selectedProducts.length > 0}}">
+    <view class="section-header">
+      <text class="section-title">已选 {{selectedProducts.length}} 种商品</text>
+    </view>
+    <view class="multi-selected-list">
+      <view class="multi-selected-item" wx:for="{{selectedProducts}}" wx:key="_id">
+        <view class="msi-info">
+          <text class="msi-name">{{item.name}}</text>
+          <text class="msi-code">{{item.code}} | 库存: {{item.currentStock}}</text>
+        </view>
+        <view class="msi-qty-row">
+          <input class="msi-qty-input" type="number" placeholder="数量" value="{{item.quantity}}" bindinput="onMultiQtyInput" data-index="{{index}}" />
+          <text class="msi-remove" bindtap="onRemoveSelectedProduct" data-index="{{index}}">✕</text>
+        </view>
+      </view>
+    </view>
+    <view class="divider"></view>
+    <view class="form-group">
+      <text class="form-label">状态编码</text>
+      <picker range="{{statusCodeLabels}}" value="{{statusCodeIndex}}" bindchange="onStatusCodeChange">
+        <view class="form-picker">
+          <text>{{statusCodeLabels[statusCodeIndex]}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 单选模式：入库设置 -->
+  <view class="card" wx:if="{{!multiSelectMode && selectedProduct}}">
     <view class="selected-product-info">
       <image class="sp-image" src="{{selectedProduct.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
       <view class="sp-info">
@@ -73,7 +113,7 @@
   </view>
 
   <!-- 底部按钮 -->
-  <view class="bottom-bar" wx:if="{{selectedProduct}}">
+  <view class="bottom-bar" wx:if="{{!multiSelectMode && (selectedProduct || selectedProducts.length > 0)}}">
     <view class="btn btn-primary btn-block" bindtap="onSubmit">确认导入入库</view>
   </view>
 </view>
