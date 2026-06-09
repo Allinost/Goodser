@@ -6,7 +6,7 @@
       <text class="tag {{statusTagClass}}">{{statusLabel}}</text>
     </view>
     <view class="order-meta">
-      <text class="meta-item">{{order.type === 'outbound' ? '出库单' : '预留单'}}</text>
+      <text class="order-type-tag {{order.type === 'reserve' ? 'order-type-tag-orange' : 'order-type-tag-blue'}}">{{order.type === 'outbound' ? '出库单' : '预留单'}}</text>
       <text class="meta-item">{{order.created_at}}</text>
     </view>
     <view class="info-row" wx:if="{{order.order_info}}">

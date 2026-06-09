@@ -23,8 +23,26 @@
 
 .order-meta {
   display: flex;
-  gap: 24rpx;
+  align-items: center;
+  gap: 16rpx;
   margin-bottom: 16rpx;
+}
+
+.order-type-tag {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+  font-weight: 500;
+}
+
+.order-type-tag-blue {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.order-type-tag-orange {
+  background: #fff7e6;
+  color: #fa8c16;
 }
 
 .meta-item {

@@ -16,7 +16,8 @@ Component({
     statusLabel: '',
     statusTagClass: '',
     totalQuantity: 0,
-    typeLabel: ''
+    typeLabel: '',
+    typeTagClass: 'order-type-tag-blue'
   },
   observers: {
     'order': function(order) {
@@ -27,7 +28,8 @@ Component({
         statusLabel: status.label,
         statusTagClass: status.tagClass,
         totalQuantity,
-        typeLabel: order._typeLabel || ''
+        typeLabel: order._typeLabel || '',
+        typeTagClass: order.type === 'reserve' ? 'order-type-tag-orange' : 'order-type-tag-blue'
       })
     }
   },

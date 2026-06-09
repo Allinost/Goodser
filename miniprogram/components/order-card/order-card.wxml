@@ -2,7 +2,7 @@
   <view class="order-header">
     <view class="order-info-left">
       <view class="order-no-row">
-        <text class="order-type-tag" wx:if="{{typeLabel}}">{{typeLabel}}</text>
+        <text class="order-type-tag {{typeTagClass}}" wx:if="{{typeLabel}}">{{typeLabel}}</text>
         <text class="order-no">{{order.order_no}}</text>
       </view>
       <text class="order-time">{{order.created_at}}</text>

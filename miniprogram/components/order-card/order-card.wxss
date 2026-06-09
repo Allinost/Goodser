@@ -29,9 +29,17 @@
   font-size: 20rpx;
   padding: 2rpx 10rpx;
   border-radius: 4rpx;
+  font-weight: 500;
+}
+
+.order-type-tag-blue {
   background: #e6f7ff;
   color: #1890ff;
-  font-weight: 500;
+}
+
+.order-type-tag-orange {
+  background: #fff7e6;
+  color: #fa8c16;
 }
 
 .order-time {

@@ -102,11 +102,14 @@
 }
 
 .tab-active {
-  color: #1890ff;
   font-weight: 600;
 }
 
-.tab-active::after {
+.tab-active-blue {
+  color: #1890ff;
+}
+
+.tab-active-blue::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -115,6 +118,22 @@
   width: 48rpx;
   height: 6rpx;
   background: #1890ff;
+  border-radius: 3rpx;
+}
+
+.tab-active-orange {
+  color: #fa8c16;
+}
+
+.tab-active-orange::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 6rpx;
+  background: #fa8c16;
   border-radius: 3rpx;
 }
 

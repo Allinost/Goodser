@@ -29,17 +29,17 @@
   <view class="tab-bar">
     <view class="tab-left">
       <view
-        class="tab-item {{activeTab === 'all' ? 'tab-active' : ''}}"
+        class="tab-item {{activeTab === 'all' ? 'tab-active tab-active-blue' : ''}}"
         bindtap="onTabChange"
         data-tab="all"
       >全部</view>
       <view
-        class="tab-item {{activeTab === 'outbound' ? 'tab-active' : ''}}"
+        class="tab-item {{activeTab === 'outbound' ? 'tab-active tab-active-blue' : ''}}"
         bindtap="onTabChange"
         data-tab="outbound"
       >出库单</view>
       <view
-        class="tab-item {{activeTab === 'reserve' ? 'tab-active' : ''}}"
+        class="tab-item {{activeTab === 'reserve' ? 'tab-active tab-active-orange' : ''}}"
         bindtap="onTabChange"
         data-tab="reserve"
       >预留单</view>
