@@ -14,7 +14,16 @@ Page({
   },
 
   onLoad(options) {
-    const product = mockData.products.find(p => p._id === options.id)
+    this._productId = options.id
+    this.loadProduct()
+  },
+
+  onShow() {
+    if (this._productId) this.loadProduct()
+  },
+
+  loadProduct() {
+    const product = mockData.products.find(p => p._id === this._productId)
     if (product) {
       this.setData({
         product,
@@ -132,7 +141,7 @@ Page({
   },
 
   onEdit() {
-    wx.showToast({ title: '编辑功能开发中', icon: 'none' })
+    wx.navigateTo({ url: `/pages/inventory/edit?id=${this.data.product._id}` })
   },
 
   onDelete() {

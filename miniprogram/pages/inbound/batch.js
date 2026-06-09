@@ -3,6 +3,9 @@ const mockData = require('../../utils/mock-data')
 
 Page({
   data: {
+    inventories: [],
+    inventoryNames: [],
+    inventoryIndex: 0,
     items: [],
     mainZones: util.ZONES,
     subZones: util.ZONES,
@@ -26,7 +29,17 @@ Page({
   },
 
   onLoad() {
-    this.setData({ allTags: [...mockData.tags] })
+    const inventories = mockData.inventories
+    const inventoryNames = inventories.map(i => i.name)
+    this.setData({
+      inventories,
+      inventoryNames,
+      allTags: [...mockData.tags]
+    })
+  },
+
+  onInventoryChange(e) {
+    this.setData({ inventoryIndex: e.detail.value })
   },
 
   // 表单输入
@@ -149,11 +162,29 @@ Page({
       wx.showToast({ title: '请添加商品', icon: 'none' })
       return
     }
+    const inventory = this.data.inventories[this.data.inventoryIndex]
     wx.showModal({
       title: '确认批量入库',
-      content: `共 ${this.data.items.length} 件商品`,
+      content: `目录: ${inventory.name}\n共 ${this.data.items.length} 件商品`,
       success: (res) => {
         if (res.confirm) {
+          // 创建入库记录
+          const logItems = this.data.items.map(item => ({
+            product_id: '',
+            product_name: item.name,
+            product_code: `${item.mainZone}-${item.subZone}-XXXX-${String(item.quantity).padStart(4, '0')}-${item.statusCode}`,
+            quantity: item.quantity,
+            image_url: ''
+          }))
+          const newLog = {
+            _id: 'inlog_' + Date.now(),
+            inventory_id: inventory._id,
+            type: 'batch',
+            items: logItems,
+            owner_openid: 'user_001',
+            created_at: new Date().toLocaleString()
+          }
+          mockData.inboundLogs.push(newLog)
           wx.showToast({ title: '入库成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

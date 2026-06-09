@@ -3,11 +3,24 @@ const util = require('../../utils/util')
 
 Page({
   data: {
+    inventories: [],
+    inventoryNames: [],
+    inventoryIndex: 0,
     orderInfo: '',
     orderRemark: '',
     searchResults: [],
     showSearchResults: false,
     selectedItems: []
+  },
+
+  onLoad() {
+    const inventories = mockData.inventories
+    const inventoryNames = inventories.map(i => i.name)
+    this.setData({ inventories, inventoryNames })
+  },
+
+  onInventoryChange(e) {
+    this.setData({ inventoryIndex: e.detail.value })
   },
 
   onProductSearch(e) {
@@ -16,8 +29,9 @@ Page({
       this.setData({ searchResults: [], showSearchResults: false })
       return
     }
+    const inventory = this.data.inventories[this.data.inventoryIndex]
     const results = mockData.products.filter(p =>
-      p.inventory_id === 'inv_001' &&
+      p.inventory_id === inventory._id &&
       (p.name.toLowerCase().includes(keyword) || p.code.toLowerCase().includes(keyword))
     )
     this.setData({ searchResults: results, showSearchResults: true })
@@ -86,11 +100,37 @@ Page({
       wx.showToast({ title: '请添加出库商品', icon: 'none' })
       return
     }
+    const inventory = this.data.inventories[this.data.inventoryIndex]
     wx.showModal({
       title: '确认新建出库单',
-      content: `共 ${this.data.selectedItems.length} 种商品`,
+      content: `目录: ${inventory.name}\n共 ${this.data.selectedItems.length} 种商品`,
       success: (res) => {
         if (res.confirm) {
+          // 生成单号：用目录名缩写替代OUT
+          const prefix = inventory.name.substring(0, 2).toUpperCase()
+          const orderNo = util.generateOrderNo(prefix)
+          const newOrder = {
+            _id: 'out_' + Date.now(),
+            inventory_id: inventory._id,
+            order_no: orderNo,
+            type: 'outbound',
+            status: 'pending',
+            order_info: this.data.orderInfo,
+            remark: this.data.orderRemark,
+            items: this.data.selectedItems.map(i => ({
+              product_id: i.product_id,
+              product_name: i.product_name,
+              product_code: i.product_code,
+              quantity: i.quantity,
+              image_url: i.image_url
+            })),
+            owner_openid: 'user_001',
+            created_at: new Date().toLocaleString(),
+            updated_at: new Date().toLocaleString(),
+            confirmed_at: null,
+            cancelled_at: null
+          }
+          mockData.outboundOrders.push(newOrder)
           wx.showToast({ title: '创建成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

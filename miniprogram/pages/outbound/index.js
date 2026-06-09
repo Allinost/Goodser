@@ -2,12 +2,22 @@ const mockData = require('../../utils/mock-data')
 
 Page({
   data: {
+    inventories: [],
+    inventoryNames: [],
+    currentInventoryId: '',
     orders: [],
     filteredOrders: [],
     activeTab: 'all'
   },
 
   onLoad() {
+    const inventories = mockData.inventories
+    const inventoryNames = inventories.map(i => i.name)
+    this.setData({
+      inventories,
+      inventoryNames,
+      currentInventoryId: inventories[0]._id
+    })
     this.loadOrders()
   },
 
@@ -16,8 +26,13 @@ Page({
   },
 
   loadOrders() {
-    const orders = mockData.outboundOrders.filter(o => o.inventory_id === 'inv_001')
-    this.setData({ orders })
+    const orders = mockData.outboundOrders.filter(o => o.inventory_id === this.data.currentInventoryId)
+    // 附加库存名称
+    const ordersWithInv = orders.map(o => {
+      const inv = mockData.inventories.find(i => i._id === o.inventory_id)
+      return { ...o, _inventoryName: inv ? inv.name : '' }
+    })
+    this.setData({ orders: ordersWithInv })
     this.filterOrders()
   },
 

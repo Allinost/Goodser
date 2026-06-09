@@ -1,19 +1,19 @@
 <view class="product-card" bindtap="onTap">
   <image class="product-image" src="{{product.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
   <view class="product-info">
-    <view class="product-code">{{product.code}}</view>
-    <view class="product-name">{{product.name}}</view>
-    <view class="product-tags" wx:if="{{productTags.length > 0}}">
-      <text class="product-tag" wx:for="{{productTags}}" wx:key="_id" style="background: {{item.color}}20; color: {{item.color}}">{{item.name}}</text>
+    <view class="product-row">
+      <text class="product-code">{{product.code}}</text>
+      <text class="tag {{statusTagClass}}">{{statusLabel}}</text>
     </view>
-    <view class="product-meta">
-      <text class="product-quantity">
-        库存: {{product.quantity}}{{product.reserved_quantity > 0 ? ' + ' + product.reserved_quantity : ''}}
-      </text>
+    <view class="product-row">
+      <text class="product-name">{{product.name}}</text>
       <text class="product-location" wx:if="{{product.storage_location}}">{{product.storage_location}}</text>
     </view>
-  </view>
-  <view class="product-status">
-    <text class="tag {{statusTagClass}}">{{statusLabel}}</text>
+    <view class="product-row">
+      <view class="product-tags" wx:if="{{productTags.length > 0}}">
+        <text class="product-tag" wx:for="{{productTags}}" wx:key="_id" style="background: {{item.color}}20; color: {{item.color}}">{{item.name}}</text>
+      </view>
+      <text class="product-quantity">库存: {{product.quantity}}{{product.reserved_quantity > 0 ? ' + ' + product.reserved_quantity : ''}}</text>
+    </view>
   </view>
 </view>

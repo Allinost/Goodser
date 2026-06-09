@@ -138,6 +138,13 @@
   box-sizing: border-box;
 }
 
+.form-hint {
+  font-size: 24rpx;
+  color: #ff4d4f;
+  margin-top: 8rpx;
+  display: block;
+}
+
 .dialog-actions {
   display: flex;
   gap: 16rpx;

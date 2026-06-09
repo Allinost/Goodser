@@ -2,6 +2,7 @@
   "pages": [
     "pages/inventory/index",
     "pages/inventory/detail",
+    "pages/inventory/edit",
     "pages/outbound/index",
     "pages/outbound/detail",
     "pages/outbound/create",
@@ -10,6 +11,7 @@
     "pages/inbound/single",
     "pages/inbound/batch",
     "pages/inbound/search-import",
+    "pages/inbound/log-detail",
     "pages/settings/index",
     "pages/settings/whitelist",
     "pages/settings/status-codes",

@@ -57,14 +57,13 @@ function formatQuantity(product) {
   return String(product.quantity)
 }
 
-function generateOrderNo(type) {
+function generateOrderNo(prefix) {
   const now = new Date()
   const dateStr = [
     now.getFullYear(),
     String(now.getMonth() + 1).padStart(2, '0'),
     String(now.getDate()).padStart(2, '0')
   ].join('')
-  const prefix = type === 'reserve' ? 'RSV' : 'OUT'
   const seq = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')
   return `${prefix}${dateStr}${seq}`
 }

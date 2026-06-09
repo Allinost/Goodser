@@ -1,17 +1,4 @@
-<view class="page-single-inbound">
-  <!-- 选择库存目录 -->
-  <view class="card">
-    <view class="form-group">
-      <text class="form-label">入库目录 <text class="required">*</text></text>
-      <picker range="{{inventoryNames}}" value="{{inventoryIndex}}" bindchange="onInventoryChange">
-        <view class="form-picker">
-          <text>{{inventoryNames[inventoryIndex] || '请选择'}}</text>
-          <text class="picker-arrow">▼</text>
-        </view>
-      </picker>
-    </view>
-  </view>
-
+<view class="page-edit">
   <!-- 商品图片 -->
   <view class="card image-card">
     <text class="form-label">商品头图</text>
@@ -19,7 +6,7 @@
       <image class="upload-preview" wx:if="{{imageUrl}}" src="{{imageUrl}}" mode="aspectFill" />
       <view class="upload-placeholder" wx:else>
         <text class="upload-icon">📷</text>
-        <text class="upload-text">上传图片</text>
+        <text class="upload-text">更换图片</text>
       </view>
     </view>
   </view>
@@ -58,7 +45,7 @@
     </view>
   </view>
 
-  <!-- 分区与状态选择 -->
+  <!-- 分区与状态 -->
   <view class="card">
     <view class="form-group">
       <text class="form-label">主分区 <text class="required">*</text></text>
@@ -87,12 +74,6 @@
         </view>
       </picker>
     </view>
-
-    <!-- 编码预览 -->
-    <view class="code-preview" wx:if="{{previewCode}}">
-      <text class="code-label">生成编码</text>
-      <text class="code-value">{{previewCode}}</text>
-    </view>
   </view>
 
   <!-- 标签选择 -->
@@ -118,7 +99,7 @@
 
   <!-- 底部按钮 -->
   <view class="bottom-bar">
-    <view class="btn btn-primary btn-block" bindtap="onSubmit">确认入库</view>
+    <view class="btn btn-primary btn-block" bindtap="onSave">保存修改</view>
   </view>
 
   <!-- 新建标签弹窗 -->

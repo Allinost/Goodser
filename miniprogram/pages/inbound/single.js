@@ -3,6 +3,9 @@ const mockData = require('../../utils/mock-data')
 
 Page({
   data: {
+    inventories: [],
+    inventoryNames: [],
+    inventoryIndex: 0,
     imageUrl: '',
     name: '',
     originalPrice: '',
@@ -26,7 +29,18 @@ Page({
   },
 
   onLoad() {
-    this.setData({ allTags: [...mockData.tags] })
+    const inventories = mockData.inventories
+    const inventoryNames = inventories.map(i => i.name)
+    this.setData({
+      inventories,
+      inventoryNames,
+      allTags: [...mockData.tags]
+    })
+  },
+
+  onInventoryChange(e) {
+    this.setData({ inventoryIndex: e.detail.value })
+    this.updatePreview()
   },
 
   onChooseImage() {
@@ -140,11 +154,28 @@ Page({
       wx.showToast({ title: '请输入库存数量', icon: 'none' })
       return
     }
+    const inventory = this.data.inventories[this.data.inventoryIndex]
     wx.showModal({
       title: '确认入库',
-      content: `商品: ${this.data.name}\n数量: ${this.data.quantity}`,
+      content: `目录: ${inventory.name}\n商品: ${this.data.name}\n数量: ${this.data.quantity}`,
       success: (res) => {
         if (res.confirm) {
+          // 创建入库记录
+          const newLog = {
+            _id: 'inlog_' + Date.now(),
+            inventory_id: inventory._id,
+            type: 'single',
+            items: [{
+              product_id: '',
+              product_name: this.data.name.trim(),
+              product_code: this.data.previewCode || '',
+              quantity: parseInt(this.data.quantity),
+              image_url: this.data.imageUrl || ''
+            }],
+            owner_openid: 'user_001',
+            created_at: new Date().toLocaleString()
+          }
+          mockData.inboundLogs.push(newLog)
           wx.showToast({ title: '入库成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

@@ -12,12 +12,16 @@
       <text class="tag {{statusTagClass}}">{{statusLabel}}</text>
     </view>
     <!-- Tags -->
-    <view class="detail-tags" wx:if="{{productTags.length > 0 || true}}">
-      <view class="tag-item" wx:for="{{productTags}}" wx:key="_id" style="background: {{item.color}}20; color: {{item.color}}; border-color: {{item.color}}40">
-        <text>{{item.name}}</text>
-        <text class="tag-remove" bindtap="onRemoveTag" data-id="{{item._id}}">✕</text>
+    <view class="detail-tags">
+      <view class="detail-tag-item" wx:for="{{productTags}}" wx:key="_id" style="background: {{item.color}}18; border-color: {{item.color}}50">
+        <view class="detail-tag-dot" style="background: {{item.color}}"></view>
+        <text class="detail-tag-name" style="color: {{item.color}}">{{item.name}}</text>
+        <text class="detail-tag-remove" bindtap="onRemoveTag" data-id="{{item._id}}">✕</text>
       </view>
-      <view class="tag-add-btn" bindtap="onAddTag">+ 标签</view>
+      <view class="detail-tag-add" bindtap="onAddTag">
+        <text class="detail-tag-add-icon">+</text>
+        <text class="detail-tag-add-text">标签</text>
+      </view>
     </view>
   </view>
 

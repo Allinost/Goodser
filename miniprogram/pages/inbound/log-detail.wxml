@@ -1,0 +1,38 @@
+<view class="page-log-detail">
+  <!-- 入库单头部 -->
+  <view class="card log-header-card">
+    <view class="log-header-row">
+      <text class="log-title">{{logTypeLabel}}</text>
+      <text class="log-time">{{log.created_at}}</text>
+    </view>
+    <view class="log-inventory" wx:if="{{inventoryName}}">
+      <text class="log-inv-label">库存目录:</text>
+      <text class="log-inv-name">{{inventoryName}}</text>
+    </view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="card">
+    <view class="section-title">入库商品</view>
+    <view class="item-list">
+      <view class="inbound-item" wx:for="{{log.items}}" wx:key="product_id">
+        <image class="item-image" src="{{item.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
+        <view class="item-info">
+          <text class="item-name">{{item.product_name}}</text>
+          <text class="item-code">{{item.product_code}}</text>
+        </view>
+        <view class="item-qty">+{{item.quantity}}</view>
+      </view>
+    </view>
+    <view class="divider"></view>
+    <view class="log-summary">
+      共 {{log.items.length}} 种商品，合计 {{totalQuantity}} 件
+    </view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="bottom-bar">
+    <view class="btn btn-ghost" bindtap="onEdit">编辑</view>
+    <view class="btn btn-danger" bindtap="onDelete">删除</view>
+  </view>
+</view>

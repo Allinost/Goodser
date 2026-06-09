@@ -24,12 +24,14 @@
       <view class="dialog-title">添加自定义状态编码</view>
       <view class="form-group">
         <text class="form-label">编码字母</text>
-        <picker range="{{availableCodes}}" value="{{selectedCodeIndex}}" bindchange="onCodeSelect">
-          <view class="form-picker">
-            <text>{{availableCodes[selectedCodeIndex] || '请选择'}}</text>
-            <text class="picker-arrow">▼</text>
-          </view>
-        </picker>
+        <input
+          class="dialog-input"
+          placeholder="输入单个大写字母 (A-Z)"
+          value="{{newCodeLetter}}"
+          bindinput="onCodeInput"
+          maxlength="1"
+        />
+        <text class="form-hint" wx:if="{{codeError}}">{{codeError}}</text>
       </view>
       <view class="form-group">
         <text class="form-label">状态名称</text>

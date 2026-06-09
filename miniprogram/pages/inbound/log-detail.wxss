@@ -1,0 +1,111 @@
+.page-log-detail {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 140rpx;
+}
+
+.log-header-card {
+  margin: 20rpx 24rpx;
+}
+
+.log-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.log-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333333;
+}
+
+.log-time {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.log-inventory {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 8rpx;
+}
+
+.log-inv-label {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.log-inv-name {
+  font-size: 24rpx;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 20rpx;
+}
+
+.inbound-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.inbound-item:last-child {
+  border-bottom: none;
+}
+
+.item-image {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 8rpx;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.item-info {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.item-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333333;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.item-code {
+  font-size: 22rpx;
+  color: #999999;
+  font-family: 'Courier New', monospace;
+}
+
+.item-qty {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #52c41a;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
+.log-summary {
+  text-align: center;
+  font-size: 26rpx;
+  color: #999999;
+  padding: 8rpx 0;
+}
+
+.bottom-bar .btn-ghost {
+  border: 2rpx solid #1890ff;
+  color: #1890ff;
+  background: #ffffff;
+}

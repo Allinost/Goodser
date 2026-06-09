@@ -132,3 +132,9 @@
   font-size: 22rpx;
   color: #999999;
 }
+
+.log-arrow {
+  font-size: 32rpx;
+  color: #cccccc;
+  margin-left: 8rpx;
+}

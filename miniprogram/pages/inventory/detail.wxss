@@ -53,31 +53,54 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12rpx;
-  margin-top: 16rpx;
+  margin-top: 20rpx;
 }
 
-.tag-item {
+.detail-tag-item {
   display: inline-flex;
   align-items: center;
-  gap: 6rpx;
-  padding: 6rpx 16rpx;
-  border-radius: 6rpx;
-  font-size: 24rpx;
-  font-weight: 500;
+  gap: 8rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 24rpx;
   border: 2rpx solid transparent;
 }
 
-.tag-remove {
-  font-size: 20rpx;
-  margin-left: 4rpx;
-  opacity: 0.7;
+.detail-tag-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 6rpx;
+  flex-shrink: 0;
 }
 
-.tag-add-btn {
-  padding: 6rpx 16rpx;
-  border: 2rpx dashed #d9d9d9;
-  border-radius: 6rpx;
+.detail-tag-name {
   font-size: 24rpx;
+  font-weight: 500;
+}
+
+.detail-tag-remove {
+  font-size: 18rpx;
+  opacity: 0.5;
+  margin-left: 2rpx;
+  padding: 4rpx;
+}
+
+.detail-tag-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  padding: 8rpx 18rpx;
+  border: 2rpx dashed #d9d9d9;
+  border-radius: 24rpx;
+}
+
+.detail-tag-add-icon {
+  font-size: 24rpx;
+  color: #999999;
+  font-weight: 600;
+}
+
+.detail-tag-add-text {
+  font-size: 22rpx;
   color: #999999;
 }
 

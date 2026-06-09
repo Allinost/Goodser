@@ -36,15 +36,15 @@
       <text class="section-title">最近入库记录</text>
     </view>
     <view class="log-list" wx:if="{{inboundLogs.length > 0}}">
-      <view class="log-item" wx:for="{{inboundLogs}}" wx:key="_id">
-        <view class="log-icon">{{item.type === 'single' ? '📝' : item.type === 'batch' ? '📋' : '🔍'}}</view>
+      <view class="log-item" wx:for="{{inboundLogs}}" wx:key="_id" bindtap="onLogTap" data-id="{{item._id}}">
         <view class="log-info">
-          <text class="log-type">{{item.type === 'single' ? '单独新增' : item.type === 'batch' ? '批量新增' : '搜索导入'}}</text>
-          <text class="log-products">{{item.items.map(i => i.product_name).join('、')}}</text>
+          <text class="log-type">{{item._typeLabel}}</text>
+          <text class="log-products">{{item._productNames}}</text>
         </view>
         <view class="log-right">
-          <text class="log-qty">+{{item.items.reduce((s, i) => s + i.quantity, 0)}}</text>
+          <text class="log-qty">+{{item._totalQty}}</text>
           <text class="log-time">{{item.created_at}}</text>
+          <text class="log-arrow">›</text>
         </view>
       </view>
     </view>
