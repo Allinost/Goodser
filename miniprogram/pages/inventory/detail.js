@@ -5,7 +5,12 @@ Page({
   data: {
     product: {},
     statusLabel: '',
-    statusTagClass: ''
+    statusTagClass: '',
+    productTags: [],
+    showTagPicker: false,
+    tagSearchKeyword: '',
+    availableTags: [],
+    isExistingTag: false
   },
 
   onLoad(options) {
@@ -16,7 +21,114 @@ Page({
         statusLabel: util.getStatusLabel(product.status_code),
         statusTagClass: util.getStatusTagClass(product.status_code)
       })
+      this.loadProductTags()
     }
+  },
+
+  loadProductTags() {
+    const product = this.data.product
+    const productTags = (product.tags || []).map(tid => {
+      return mockData.tags.find(t => t._id === tid)
+    }).filter(Boolean)
+    this.setData({ productTags })
+  },
+
+  // 标签选择
+  onAddTag() {
+    this.setData({
+      showTagPicker: true,
+      tagSearchKeyword: '',
+      availableTags: [...mockData.tags]
+    })
+    this.checkExistingTag()
+  },
+
+  hideTagPicker() {
+    this.setData({ showTagPicker: false })
+  },
+
+  onTagSearchInput(e) {
+    const keyword = e.detail.value.trim()
+    this.setData({ tagSearchKeyword: keyword })
+    const filtered = keyword
+      ? mockData.tags.filter(t => t.name.includes(keyword))
+      : [...mockData.tags]
+    this.setData({ availableTags: filtered })
+    this.checkExistingTag()
+  },
+
+  checkExistingTag() {
+    const keyword = this.data.tagSearchKeyword
+    const exists = mockData.tags.some(t => t.name === keyword)
+    this.setData({ isExistingTag: exists })
+  },
+
+  onCreateTag() {
+    const name = this.data.tagSearchKeyword.trim()
+    if (!name) return
+    // 检查重名
+    if (mockData.tags.some(t => t.name === name)) {
+      wx.showToast({ title: '标签已存在', icon: 'none' })
+      return
+    }
+    const newTag = {
+      _id: 'tag_' + Date.now(),
+      name,
+      color: '#1890ff',
+      owner_openid: 'user_001',
+      created_at: new Date().toLocaleString()
+    }
+    mockData.tags.push(newTag)
+    // 直接选中新标签
+    this.addTagToProduct(newTag._id)
+    this.setData({
+      showTagPicker: false,
+      tagSearchKeyword: ''
+    })
+    this.loadProductTags()
+    wx.showToast({ title: '标签已创建', icon: 'success' })
+  },
+
+  onToggleTag(e) {
+    const tagId = e.currentTarget.dataset.id
+    const product = this.data.product
+    if (!product.tags) product.tags = []
+
+    const idx = product.tags.indexOf(tagId)
+    if (idx > -1) {
+      product.tags.splice(idx, 1)
+    } else {
+      product.tags.push(tagId)
+    }
+    this.setData({ product })
+    this.loadProductTags()
+  },
+
+  isTagSelected(tagId) {
+    return (this.data.product.tags || []).includes(tagId)
+  },
+
+  onRemoveTag(e) {
+    const tagId = e.currentTarget.dataset.id
+    const product = this.data.product
+    if (product.tags) {
+      const idx = product.tags.indexOf(tagId)
+      if (idx > -1) {
+        product.tags.splice(idx, 1)
+        this.setData({ product })
+        this.loadProductTags()
+        wx.showToast({ title: '已移除标签', icon: 'success' })
+      }
+    }
+  },
+
+  addTagToProduct(tagId) {
+    const product = this.data.product
+    if (!product.tags) product.tags = []
+    if (!product.tags.includes(tagId)) {
+      product.tags.push(tagId)
+    }
+    this.setData({ product })
   },
 
   onEdit() {

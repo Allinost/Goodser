@@ -1,6 +1,8 @@
 const mockData = require('../../utils/mock-data')
 const util = require('../../utils/util')
 
+const PAGE_SIZE = 20
+
 Page({
   data: {
     inventories: [],
@@ -8,6 +10,7 @@ Page({
     currentInventory: {},
     products: [],
     filteredProducts: [],
+    pagedProducts: [],
     searchKeyword: '',
     sortBy: 'name',
     sortOrder: 'asc',
@@ -25,17 +28,31 @@ Page({
     newInventoryName: '',
     filterMainZone: '',
     filterStatus: '',
+    filterTags: [],
     mainZones: [],
-    statusCodeOptions: []
+    statusCodeOptions: [],
+    tagOptions: [],
+    // 统计
+    totalCount: 0,
+    totalStock: 0,
+    // 分页
+    currentPage: 1,
+    totalPages: 1
   },
 
   onLoad() {
     this.setData({
       inventories: mockData.inventories,
       statusCodeOptions: mockData.statusCodes,
-      mainZones: util.ZONES
+      mainZones: util.ZONES,
+      tagOptions: mockData.tags
     })
     this.setCurrentInventory()
+  },
+
+  onShow() {
+    // 刷新标签（可能从设置页新增了标签）
+    this.setData({ tagOptions: mockData.tags })
   },
 
   setCurrentInventory() {
@@ -56,12 +73,19 @@ Page({
     // 搜索
     if (this.data.searchKeyword) {
       const kw = this.data.searchKeyword.toLowerCase()
-      list = list.filter(p =>
-        p.name.toLowerCase().includes(kw) ||
-        p.code.toLowerCase().includes(kw) ||
-        p.remark.toLowerCase().includes(kw) ||
-        util.getStatusLabel(p.status_code).includes(kw)
-      )
+      list = list.filter(p => {
+        // 搜索标签名
+        const tagNames = (p.tags || []).map(tid => {
+          const tag = mockData.tags.find(t => t._id === tid)
+          return tag ? tag.name : ''
+        }).join(' ')
+
+        return p.name.toLowerCase().includes(kw) ||
+          p.code.toLowerCase().includes(kw) ||
+          (p.remark || '').toLowerCase().includes(kw) ||
+          util.getStatusLabel(p.status_code).includes(kw) ||
+          tagNames.toLowerCase().includes(kw)
+      })
     }
 
     // 筛选 - 主分区
@@ -72,6 +96,14 @@ Page({
     // 筛选 - 状态
     if (this.data.filterStatus) {
       list = list.filter(p => p.status_code === this.data.filterStatus)
+    }
+
+    // 筛选 - 标签（OR逻辑：匹配任一标签）
+    if (this.data.filterTags.length > 0) {
+      list = list.filter(p => {
+        const ptags = p.tags || []
+        return this.data.filterTags.some(ft => ptags.includes(ft))
+      })
     }
 
     // 排序
@@ -86,7 +118,46 @@ Page({
       return 0
     })
 
-    this.setData({ filteredProducts: list })
+    // 统计
+    const totalCount = this.data.products.length
+    const totalStock = list.reduce((sum, p) => sum + (p.quantity || 0), 0)
+    const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE))
+
+    // 分页重置到第1页
+    const currentPage = 1
+
+    this.setData({
+      filteredProducts: list,
+      totalCount,
+      totalStock,
+      totalPages,
+      currentPage
+    })
+    this.applyPagination()
+  },
+
+  applyPagination() {
+    const { filteredProducts, currentPage } = this.data
+    const start = (currentPage - 1) * PAGE_SIZE
+    const end = start + PAGE_SIZE
+    this.setData({
+      pagedProducts: filteredProducts.slice(start, end)
+    })
+  },
+
+  // 分页
+  onPrevPage() {
+    if (this.data.currentPage <= 1) return
+    this.setData({ currentPage: this.data.currentPage - 1 })
+    this.applyPagination()
+    wx.pageScrollTo({ scrollTop: 0, duration: 200 })
+  },
+
+  onNextPage() {
+    if (this.data.currentPage >= this.data.totalPages) return
+    this.setData({ currentPage: this.data.currentPage + 1 })
+    this.applyPagination()
+    wx.pageScrollTo({ scrollTop: 0, duration: 200 })
   },
 
   // 搜索
@@ -128,8 +199,24 @@ Page({
     this.setData({ filterStatus: e.currentTarget.dataset.val })
   },
 
+  onFilterTag(e) {
+    const tagId = e.currentTarget.dataset.id
+    const filterTags = [...this.data.filterTags]
+    const idx = filterTags.indexOf(tagId)
+    if (idx > -1) {
+      filterTags.splice(idx, 1)
+    } else {
+      filterTags.push(tagId)
+    }
+    this.setData({ filterTags })
+  },
+
+  onFilterTagClear() {
+    this.setData({ filterTags: [] })
+  },
+
   onResetFilter() {
-    this.setData({ filterMainZone: '', filterStatus: '' })
+    this.setData({ filterMainZone: '', filterStatus: '', filterTags: [] })
   },
 
   onApplyFilter() {

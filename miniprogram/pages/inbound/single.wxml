@@ -82,8 +82,44 @@
     </view>
   </view>
 
+  <!-- 标签选择 -->
+  <view class="card">
+    <view class="form-group">
+      <text class="form-label">商品标签</text>
+      <view class="tag-select-area">
+        <view
+          class="tag-select-item {{selectedTagIds.indexOf(item._id) > -1 ? 'tag-select-item-active' : ''}}"
+          wx:for="{{allTags}}"
+          wx:key="_id"
+          style="{{selectedTagIds.indexOf(item._id) > -1 ? 'background: ' + item.color + '20; color: ' + item.color + '; border-color: ' + item.color + '40' : ''}}"
+          bindtap="onToggleTag"
+          data-id="{{item._id}}"
+        >
+          <view class="tag-color-dot-sm" style="background: {{item.color}}"></view>
+          <text>{{item.name}}</text>
+        </view>
+        <view class="tag-inline-add" bindtap="onInlineAddTag">+ 新建</view>
+      </view>
+    </view>
+  </view>
+
   <!-- 底部按钮 -->
   <view class="bottom-bar">
     <view class="btn btn-primary btn-block" bindtap="onSubmit">确认入库</view>
+  </view>
+
+  <!-- 新建标签弹窗 -->
+  <view class="picker-mask" wx:if="{{showNewTagDialog}}" bindtap="hideNewTagDialog">
+    <view class="inline-dialog" catchtap="">
+      <view class="inline-dialog-title">新建标签</view>
+      <view class="form-group">
+        <text class="form-label">标签名称</text>
+        <input class="form-input" placeholder="输入标签名称" value="{{newTagName}}" bindinput="onNewTagNameInput" />
+      </view>
+      <view class="inline-dialog-actions">
+        <view class="btn btn-ghost" bindtap="hideNewTagDialog">取消</view>
+        <view class="btn btn-primary" bindtap="onConfirmNewTag">创建</view>
+      </view>
+    </view>
   </view>
 </view>

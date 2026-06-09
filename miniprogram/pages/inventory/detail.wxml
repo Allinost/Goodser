@@ -11,6 +11,14 @@
       <text class="detail-code">{{product.code}}</text>
       <text class="tag {{statusTagClass}}">{{statusLabel}}</text>
     </view>
+    <!-- Tags -->
+    <view class="detail-tags" wx:if="{{productTags.length > 0 || true}}">
+      <view class="tag-item" wx:for="{{productTags}}" wx:key="_id" style="background: {{item.color}}20; color: {{item.color}}; border-color: {{item.color}}40">
+        <text>{{item.name}}</text>
+        <text class="tag-remove" bindtap="onRemoveTag" data-id="{{item._id}}">✕</text>
+      </view>
+      <view class="tag-add-btn" bindtap="onAddTag">+ 标签</view>
+    </view>
   </view>
 
   <!-- 详细信息 -->
@@ -72,5 +80,37 @@
   <view class="bottom-bar">
     <view class="btn btn-ghost" bindtap="onEdit">编辑</view>
     <view class="btn btn-danger" bindtap="onDelete">删除</view>
+  </view>
+
+  <!-- 标签选择弹窗 -->
+  <view class="picker-mask" wx:if="{{showTagPicker}}" bindtap="hideTagPicker">
+    <view class="picker-panel tag-picker-panel" catchtap="">
+      <view class="picker-header">
+        <text class="picker-title">选择标签</text>
+        <text class="picker-close" bindtap="hideTagPicker">✕</text>
+      </view>
+      <view class="tag-picker-content">
+        <view class="tag-picker-search">
+          <input class="tag-search-input" placeholder="搜索或新建标签..." value="{{tagSearchKeyword}}" bindinput="onTagSearchInput" bindconfirm="onCreateTag" />
+          <view class="tag-create-btn" wx:if="{{tagSearchKeyword && !isExistingTag}}" bindtap="onCreateTag">新建</view>
+        </view>
+        <view class="tag-picker-list">
+          <view
+            class="tag-picker-item {{isTagSelected(item._id) ? 'tag-picker-item-selected' : ''}}"
+            wx:for="{{availableTags}}"
+            wx:key="_id"
+            bindtap="onToggleTag"
+            data-id="{{item._id}}"
+          >
+            <view class="tag-color-dot" style="background: {{item.color}}"></view>
+            <text class="tag-picker-name">{{item.name}}</text>
+            <text class="tag-picker-check" wx:if="{{isTagSelected(item._id)}}">✓</text>
+          </view>
+        </view>
+      </view>
+      <view class="filter-footer">
+        <view class="btn btn-primary" bindtap="hideTagPicker">完成</view>
+      </view>
+    </view>
   </view>
 </view>

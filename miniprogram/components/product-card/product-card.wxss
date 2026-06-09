@@ -34,10 +34,23 @@
   font-size: 30rpx;
   font-weight: 600;
   color: #333333;
-  margin-bottom: 8rpx;
+  margin-bottom: 6rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.product-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.product-tag {
+  font-size: 20rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 4rpx;
 }
 
 .product-meta {

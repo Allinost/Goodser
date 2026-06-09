@@ -8,6 +8,7 @@ Page({
     subZones: util.ZONES,
     statusCodes: mockData.statusCodes,
     statusCodeLabels: mockData.statusCodes.map(s => `${s.code} - ${s.label}`),
+    allTags: [],
     // 当前表单
     currentName: '',
     currentOriginalPrice: '',
@@ -18,7 +19,14 @@ Page({
     currentRemark: '',
     currentMainZoneIndex: 0,
     currentSubZoneIndex: 0,
-    currentStatusCodeIndex: 0
+    currentStatusCodeIndex: 0,
+    currentTagIds: [],
+    showNewTagDialog: false,
+    newTagName: ''
+  },
+
+  onLoad() {
+    this.setData({ allTags: [...mockData.tags] })
   },
 
   // 表单输入
@@ -33,6 +41,57 @@ Page({
   onCurrentSubZoneChange(e) { this.setData({ currentSubZoneIndex: e.detail.value }) },
   onCurrentStatusCodeChange(e) { this.setData({ currentStatusCodeIndex: e.detail.value }) },
 
+  // 标签
+  onToggleTag(e) {
+    const tagId = e.currentTarget.dataset.id
+    const currentTagIds = [...this.data.currentTagIds]
+    const idx = currentTagIds.indexOf(tagId)
+    if (idx > -1) {
+      currentTagIds.splice(idx, 1)
+    } else {
+      currentTagIds.push(tagId)
+    }
+    this.setData({ currentTagIds })
+  },
+
+  onInlineAddTag() {
+    this.setData({ showNewTagDialog: true, newTagName: '' })
+  },
+
+  hideNewTagDialog() {
+    this.setData({ showNewTagDialog: false })
+  },
+
+  onNewTagNameInput(e) {
+    this.setData({ newTagName: e.detail.value })
+  },
+
+  onConfirmNewTag() {
+    const name = this.data.newTagName.trim()
+    if (!name) {
+      wx.showToast({ title: '请输入标签名称', icon: 'none' })
+      return
+    }
+    if (mockData.tags.some(t => t.name === name)) {
+      wx.showToast({ title: '标签已存在', icon: 'none' })
+      return
+    }
+    const newTag = {
+      _id: 'tag_' + Date.now(),
+      name,
+      color: '#1890ff',
+      owner_openid: 'user_001',
+      created_at: new Date().toLocaleString()
+    }
+    mockData.tags.push(newTag)
+    this.setData({
+      allTags: [...mockData.tags],
+      currentTagIds: [...this.data.currentTagIds, newTag._id],
+      showNewTagDialog: false
+    })
+    wx.showToast({ title: '标签已创建', icon: 'success' })
+  },
+
   onAddToBatch() {
     if (!this.data.currentName.trim()) {
       wx.showToast({ title: '请输入商品名称', icon: 'none' })
@@ -42,6 +101,12 @@ Page({
       wx.showToast({ title: '请输入库存数量', icon: 'none' })
       return
     }
+    // 获取标签名
+    const tagNames = this.data.currentTagIds.map(tid => {
+      const tag = mockData.tags.find(t => t._id === tid)
+      return tag ? tag.name : ''
+    }).filter(Boolean)
+
     const item = {
       id: Date.now(),
       name: this.data.currentName,
@@ -53,7 +118,9 @@ Page({
       remark: this.data.currentRemark,
       mainZone: this.data.mainZones[this.data.currentMainZoneIndex],
       subZone: this.data.subZones[this.data.currentSubZoneIndex],
-      statusCode: this.data.statusCodes[this.data.currentStatusCodeIndex].code
+      statusCode: this.data.statusCodes[this.data.currentStatusCodeIndex].code,
+      tagIds: [...this.data.currentTagIds],
+      tagNames
     }
     this.setData({
       items: [...this.data.items, item],
@@ -64,7 +131,8 @@ Page({
       currentExpectedPrice: '',
       currentQuantity: '',
       currentStorageLocation: '',
-      currentRemark: ''
+      currentRemark: '',
+      currentTagIds: []
     })
     wx.showToast({ title: '已添加', icon: 'success' })
   },

@@ -13,6 +13,7 @@
     "pages/settings/index",
     "pages/settings/whitelist",
     "pages/settings/status-codes",
+    "pages/settings/tags",
     "pages/settings/nas-config"
   ],
   "window": {

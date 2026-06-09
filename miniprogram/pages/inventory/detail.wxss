@@ -47,6 +47,113 @@
   font-weight: 600;
 }
 
+/* Tags */
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.tag-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  border: 2rpx solid transparent;
+}
+
+.tag-remove {
+  font-size: 20rpx;
+  margin-left: 4rpx;
+  opacity: 0.7;
+}
+
+.tag-add-btn {
+  padding: 6rpx 16rpx;
+  border: 2rpx dashed #d9d9d9;
+  border-radius: 6rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+/* 标签选择弹窗 */
+.tag-picker-panel {
+  max-height: 80vh;
+}
+
+.tag-picker-content {
+  padding: 24rpx;
+}
+
+.tag-picker-search {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.tag-search-input {
+  flex: 1;
+  height: 72rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+}
+
+.tag-create-btn {
+  padding: 12rpx 24rpx;
+  background: #1890ff;
+  color: #ffffff;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+  flex-shrink: 0;
+}
+
+.tag-picker-list {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.tag-picker-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.tag-picker-item-selected {
+  background: #f0f7ff;
+  padding-left: 12rpx;
+  padding-right: 12rpx;
+  border-radius: 8rpx;
+}
+
+.tag-color-dot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 12rpx;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+}
+
+.tag-picker-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.tag-picker-check {
+  font-size: 28rpx;
+  color: #1890ff;
+  font-weight: 700;
+}
+
 .bottom-bar .btn-ghost {
   border: 2rpx solid #1890ff;
   background: #ffffff;

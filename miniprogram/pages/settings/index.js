@@ -4,6 +4,7 @@ Page({
   data: {
     whitelistCount: 0,
     statusCodeCount: 0,
+    tagCount: 0,
     nasConnected: false
   },
 
@@ -11,7 +12,8 @@ Page({
     this.setData({
       whitelistCount: mockData.whitelist.length,
       statusCodeCount: mockData.statusCodes.length,
-      nasConnected: false // Mock: NAS 未连接
+      tagCount: mockData.tags.length,
+      nasConnected: false
     })
   },
 
@@ -21,6 +23,10 @@ Page({
 
   onStatusCodes() {
     wx.navigateTo({ url: '/pages/settings/status-codes' })
+  },
+
+  onTags() {
+    wx.navigateTo({ url: '/pages/settings/tags' })
   },
 
   onNasConfig() {

@@ -1,3 +1,5 @@
+const mockData = require('../../utils/mock-data')
+
 const STATUS_MAP = {
   'A': { label: '正常', tagClass: 'tag-green' },
   'B': { label: '预留中', tagClass: 'tag-orange' },
@@ -16,14 +18,23 @@ Component({
   },
   data: {
     statusLabel: '',
-    statusTagClass: ''
+    statusTagClass: '',
+    productTags: []
   },
   observers: {
-    'product.status_code': function(code) {
+    'product': function(product) {
+      const code = product.status_code
       const status = STATUS_MAP[code] || { label: code, tagClass: 'tag-gray' }
+
+      // 解析标签
+      const productTags = (product.tags || []).map(tid => {
+        return mockData.tags.find(t => t._id === tid)
+      }).filter(Boolean)
+
       this.setData({
         statusLabel: status.label,
-        statusTagClass: status.tagClass
+        statusTagClass: status.tagClass,
+        productTags
       })
     }
   },

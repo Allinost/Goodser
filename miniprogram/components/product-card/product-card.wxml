@@ -3,6 +3,9 @@
   <view class="product-info">
     <view class="product-code">{{product.code}}</view>
     <view class="product-name">{{product.name}}</view>
+    <view class="product-tags" wx:if="{{productTags.length > 0}}">
+      <text class="product-tag" wx:for="{{productTags}}" wx:key="_id" style="background: {{item.color}}20; color: {{item.color}}">{{item.name}}</text>
+    </view>
     <view class="product-meta">
       <text class="product-quantity">
         库存: {{product.quantity}}{{product.reserved_quantity > 0 ? ' + ' + product.reserved_quantity : ''}}

@@ -19,6 +19,12 @@
     bind:clear="onClearSearch"
   />
 
+  <!-- 统计栏 -->
+  <view class="stats-bar" wx:if="{{filteredProducts.length > 0 || searchKeyword || filterMainZone || filterStatus || filterTags.length > 0}}">
+    <text class="stats-text">共 {{totalCount}} 件商品，当前显示 {{filteredProducts.length}} 件</text>
+    <text class="stats-stock" wx:if="{{totalStock > 0}}">总库存 {{totalStock}}</text>
+  </view>
+
   <!-- 排序筛选栏 -->
   <view class="sort-bar">
     <scroll-view class="sort-scroll" scroll-x="true">
@@ -39,13 +45,19 @@
   </view>
 
   <!-- 商品列表 -->
-  <view class="product-list" wx:if="{{filteredProducts.length > 0}}">
+  <view class="product-list" wx:if="{{pagedProducts.length > 0}}">
     <product-card
-      wx:for="{{filteredProducts}}"
+      wx:for="{{pagedProducts}}"
       wx:key="_id"
       product="{{item}}"
       bind:tap="onProductTap"
     />
+    <!-- 分页 -->
+    <view class="pagination" wx:if="{{totalPages > 1}}">
+      <view class="page-btn {{currentPage <= 1 ? 'page-btn-disabled' : ''}}" bindtap="onPrevPage">上一页</view>
+      <text class="page-info">{{currentPage}} / {{totalPages}}</text>
+      <view class="page-btn {{currentPage >= totalPages ? 'page-btn-disabled' : ''}}" bindtap="onNextPage">下一页</view>
+    </view>
   </view>
 
   <!-- 空状态 -->
@@ -114,6 +126,22 @@
               wx:key="code"
               bindtap="onFilterStatus"
               data-val="{{item.code}}">{{item.label}}</view>
+          </view>
+        </view>
+        <view class="filter-group">
+          <text class="filter-label">标签</text>
+          <view class="filter-tags">
+            <view
+              class="filter-tag {{filterTags.length === 0 ? 'filter-tag-active' : ''}}"
+              bindtap="onFilterTagClear">全部</view>
+            <view
+              class="filter-tag {{filterTags.indexOf(item._id) > -1 ? 'filter-tag-active' : ''}}"
+              wx:for="{{tagOptions}}"
+              wx:key="_id"
+              bindtap="onFilterTag"
+              data-id="{{item._id}}"
+              style="{{filterTags.indexOf(item._id) > -1 ? 'background: ' + item.color + '20; color: ' + item.color : ''}}"
+            >{{item.name}}</view>
           </view>
         </view>
       </view>
