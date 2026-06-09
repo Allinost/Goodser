@@ -105,56 +105,45 @@
 }
 
 /* 标签选择弹窗 */
-.tag-picker-panel {
-  max-height: 80vh;
-}
-
-.tag-picker-content {
-  padding: 24rpx;
-}
-
-.tag-picker-search {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  margin-bottom: 20rpx;
-}
-
-.tag-search-input {
-  flex: 1;
-  height: 72rpx;
-  border: 2rpx solid #d9d9d9;
-  border-radius: 8rpx;
-  padding: 0 20rpx;
-  font-size: 28rpx;
-}
-
-.tag-create-btn {
-  padding: 12rpx 24rpx;
-  background: #1890ff;
-  color: #ffffff;
-  border-radius: 8rpx;
-  font-size: 26rpx;
-  flex-shrink: 0;
-}
-
-.tag-picker-list {
-  max-height: 400rpx;
+.tag-dialog-list {
+  max-height: 480rpx;
   overflow-y: auto;
+  margin-bottom: 16rpx;
 }
 
-.tag-picker-item {
+.tag-dialog-item {
   display: flex;
   align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 2rpx solid #f5f5f5;
+  padding: 16rpx 12rpx;
+  border: 2rpx solid #f0f0f0;
+  border-radius: 8rpx;
+  margin-bottom: 8rpx;
 }
 
-.tag-picker-item-selected {
-  background: #f0f7ff;
-  padding-left: 12rpx;
-  padding-right: 12rpx;
-  border-radius: 8rpx;
+.tag-dialog-item-selected {
+  font-weight: 500;
+}
+
+.tag-dialog-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.tag-dialog-check {
+  font-size: 28rpx;
+  color: #1890ff;
+  font-weight: 700;
+}
+
+.tag-dialog-new {
+  text-align: center;
+  padding: 16rpx 0;
+  color: #1890ff;
+  font-size: 28rpx;
+  font-weight: 500;
+  border-top: 2rpx solid #f0f0f0;
+  margin-bottom: 8rpx;
 }
 
 .tag-color-dot {
@@ -165,32 +154,9 @@
   flex-shrink: 0;
 }
 
-.tag-picker-name {
-  flex: 1;
-  font-size: 28rpx;
-  color: #333333;
-}
-
-.tag-picker-check {
-  font-size: 28rpx;
-  color: #1890ff;
-  font-weight: 700;
-}
-
 .bottom-bar .btn-ghost {
   border: 2rpx solid #1890ff;
   background: #ffffff;
-}
-
-/* 标签选择器新建按钮 */
-.tag-picker-bottom-action {
-  text-align: center;
-  padding: 20rpx 0;
-  color: #1890ff;
-  font-size: 28rpx;
-  font-weight: 500;
-  border-top: 2rpx solid #f0f0f0;
-  margin-top: 12rpx;
 }
 
 /* 颜色选择 */
@@ -208,6 +174,20 @@
 
 .color-dot-active {
   box-shadow: 0 0 0 4rpx #ffffff, 0 0 0 8rpx currentColor;
+}
+
+/* 遮罩层 */
+.picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 弹窗样式 */

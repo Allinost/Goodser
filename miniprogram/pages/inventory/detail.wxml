@@ -88,32 +88,25 @@
 
   <!-- 标签选择弹窗 -->
   <view class="picker-mask" wx:if="{{showTagPicker}}" bindtap="hideTagPicker">
-    <view class="picker-panel tag-picker-panel" catchtap="">
-      <view class="picker-header">
-        <text class="picker-title">选择标签</text>
-        <text class="picker-close" bindtap="hideTagPicker">✕</text>
-      </view>
-      <view class="tag-picker-content">
-        <view class="tag-picker-search">
-          <input class="tag-search-input" placeholder="搜索标签..." value="{{tagSearchKeyword}}" bindinput="onTagSearchInput" />
+    <view class="dialog" catchtap="">
+      <view class="dialog-title">选择标签</view>
+      <view class="tag-dialog-list">
+        <view
+          class="tag-dialog-item {{isTagSelected(item._id) ? 'tag-dialog-item-selected' : ''}}"
+          wx:for="{{availableTags}}"
+          wx:key="_id"
+          bindtap="onToggleTag"
+          data-id="{{item._id}}"
+          style="{{isTagSelected(item._id) ? 'background: ' + item.color + '18; border-color: ' + item.color + '50' : ''}}"
+        >
+          <view class="tag-color-dot" style="background: {{item.color}}"></view>
+          <text class="tag-dialog-name" style="{{isTagSelected(item._id) ? 'color: ' + item.color : ''}}">{{item.name}}</text>
+          <text class="tag-dialog-check" wx:if="{{isTagSelected(item._id)}}">✓</text>
         </view>
-        <view class="tag-picker-list">
-          <view
-            class="tag-picker-item {{isTagSelected(item._id) ? 'tag-picker-item-selected' : ''}}"
-            wx:for="{{availableTags}}"
-            wx:key="_id"
-            bindtap="onToggleTag"
-            data-id="{{item._id}}"
-          >
-            <view class="tag-color-dot" style="background: {{item.color}}"></view>
-            <text class="tag-picker-name">{{item.name}}</text>
-            <text class="tag-picker-check" wx:if="{{isTagSelected(item._id)}}">✓</text>
-          </view>
-        </view>
-        <view class="tag-picker-bottom-action" bindtap="onShowNewTagDialog">+ 新建标签</view>
       </view>
-      <view class="filter-footer">
-        <view class="btn btn-primary" bindtap="hideTagPicker">完成</view>
+      <view class="tag-dialog-new" bindtap="onShowNewTagDialog">+ 新建标签</view>
+      <view class="dialog-actions">
+        <view class="btn btn-ghost" bindtap="hideTagPicker">完成</view>
       </view>
     </view>
   </view>

@@ -13,7 +13,6 @@ Page({
     statusTagClass: '',
     productTags: [],
     showTagPicker: false,
-    tagSearchKeyword: '',
     availableTags: [],
     showNewTagDialog: false,
     newTagName: '',
@@ -54,22 +53,12 @@ Page({
   onAddTag() {
     this.setData({
       showTagPicker: true,
-      tagSearchKeyword: '',
       availableTags: [...mockData.tags]
     })
   },
 
   hideTagPicker() {
     this.setData({ showTagPicker: false })
-  },
-
-  onTagSearchInput(e) {
-    const keyword = e.detail.value.trim()
-    this.setData({ tagSearchKeyword: keyword })
-    const filtered = keyword
-      ? mockData.tags.filter(t => t.name.includes(keyword))
-      : [...mockData.tags]
-    this.setData({ availableTags: filtered })
   },
 
   onToggleTag(e) {
