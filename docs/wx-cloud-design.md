@@ -82,7 +82,7 @@ App({
   onLaunch() {
     // 初始化云开发
     wx.cloud.init({
-      env: 'goodser-1a2b3c',      // 云环境 ID
+      env: 'cloud1-d4gnk8fbp407876d3',      // 云环境 ID
       traceUser: true              // 追踪用户访问
     });
   }
@@ -93,8 +93,10 @@ App({
 
 | 配置项 | 值 | 说明 |
 |--------|-----|------|
-| 环境 ID | `goodser-1a2b3c` | 在云开发控制台创建 |
-| 环境名称 | Goodser | — |
+| 环境 ID | `cloud1-d4gnk8fbp407876d3` | 在云开发控制台创建 |
+| 环境名称 | cloud1 | — |
+| 腾讯云账号 | 100049686507 | 云开发所属账号 |
+| 小程序 AppID | `wx7eaacca67fca69c0` | 微信小程序唯一标识 |
 | 套餐 | 基础版（免费额度） | 可按需升级 |
 | Node.js 版本 | 16.13+ / 18.x | 云函数运行时 |
 
@@ -1035,51 +1037,78 @@ exports.main = async (event, context) => {
 
 ## 9. 开发调试与部署
 
-### 9.1 开发流程
+### 9.1 部署流程
 
-```bash
-# 1. 在微信开发者工具中开启云开发
-#    云开发控制台 → 设置 → 环境设置 → 创建环境
+> **环境参数**：AppID `wx7eaacca67fca69c0`，环境 ID `cloud1-d4gnk8fbp407876d3`
 
-# 2. 安装云函数依赖
-cd cloudfunctions/product
-npm install
+**步骤 1：开通云开发**
+1. 微信开发者工具 → 云开发按钮 → 开通
+2. 创建环境，环境名称 `cloud1`，选择基础版套餐
 
-# 3. 上传并部署云函数
-#    微信开发者工具 → 右键云函数目录 → 上传并部署：云端安装依赖
-
-# 4. 数据库初始化
-#    app.js onLaunch 中调用 init 云函数（仅首次）
-wx.cloud.callFunction({ name: 'init', data: { action: 'setup' } });
-
-# 5. 上传安全规则
-#    云开发控制台 → 数据库 → 安全规则
+**步骤 2：部署云函数**
+云函数目录结构：
 ```
+cloudfunctions/
+├── init/          # 初始化云函数（种子数据 + 白名单）
+│   ├── index.js
+│   └── package.json
+└── goodser/       # 核心业务云函数（CRUD + 出入库）
+    ├── index.js
+    └── package.json
+```
+部署方式（二选一）：
+- **推荐**：微信开发者工具 → 右键 `cloudfunctions/init` → 「上传并部署：云端安装依赖」，同理部署 `goodser`
+- **CLI**：`tcb fn deploy init --envId cloud1-d4gnk8fbp407876d3`（需先安装 `@cloudbase/cli`）
+
+**步骤 3：创建云数据库集合**
+
+在微信开发者工具 → 云开发控制台 → 数据库，创建以下集合：
+
+| 集合名称 | 说明 | 权限 |
+|----------|------|------|
+| `products` | 商品 | 仅创建者可读写 |
+| `outbound_orders` | 出库单 | 仅创建者可读写 |
+| `inbound_logs` | 入库日志 | 仅创建者可读写 |
+| `inventories` | 库存目录 | 所有用户可读，仅创建者可写 |
+| `tags` | 标签 | 所有用户可读，仅创建者可写 |
+| `whitelist` | 白名单 | 所有用户可读，仅创建者可写 |
+| `status_codes` | 状态编码 | 所有用户可读，仅创建者可写 |
+| `seq_counters` | 序号计数器 | 所有用户可读，仅创建者可写 |
+| `recycled_seq_numbers` | 已回收序号 | 所有用户可读，仅创建者可写 |
+
+**步骤 4：执行初始化**
+
+启动小程序后，`app.js` 的 `checkCloudInit()` 会自动：
+1. 调用 `init/check` → 检查 `status_codes` 是否为空
+2. 若为空 → 调用 `init/setup` → 写入 7 个系统状态编码 + 6 个预设标签 + 默认仓库 + 将当前用户加入白名单
+
+**步骤 5：开通云存储 CDN**
+1. 云开发控制台 → 存储 → 开启云存储
+2. 上传文件后自动获得 CDN 加速 URL（域名格式 `https://cloud1-d4gnk8fbp407876d3.tcb.qcloud.la/`）
+3. 小程序后台 → 开发管理 → 服务器域名 → 将上述域名加入 downloadFile 白名单
 
 ### 9.2 环境管理
 
-| 环境 | 环境 ID | 用途 |
-|------|---------|------|
-| 开发环境 | `goodser-dev-xxx` | 日常开发调试 |
-| 生产环境 | `goodser-xxx` | 正式发布 |
+| 环境 | 环境 ID | AppID | 用途 |
+|------|---------|-------|------|
+| 当前环境 | `cloud1-d4gnk8fbp407876d3` | `wx7eaacca67fca69c0` | 开发 + 生产共用 |
 
-### 9.3 切换到云开发的 Checklist
+> 若需分离开发/生产，可在云开发控制台额外创建环境。
 
-- [ ] 云开发环境已创建并获取环境 ID
-- [ ] `app.js` 调用 `wx.cloud.init({ env })`
-- [ ] 所有云函数已创建并上传部署
-- [ ] 数据库集合已创建，索引已配置
+### 9.3 接入 Checklist
+
+- [x] 云开发环境已创建（ID: `cloud1-d4gnk8fbp407876d3`）
+- [x] `app.js` 已调用 `db.initCloud()`（通过 `utils/db.js`）
+- [ ] 云函数 `init` 和 `goodser` 已上传部署
+- [ ] 数据库集合已创建（9 个集合）
 - [ ] 安全规则已配置
-- [ ] `utils/db.js` 已替代 `utils/mock-data.js`
-- [ ] 所有页面 `require('../../utils/mock-data')` 改为 `require('../../utils/db')`
-- [ ] 所有页面 API 调用改为 `async/await` 模式
-- [ ] 初始化云函数已执行（种子数据）
+- [x] `utils/db.js` 已替代 `utils/mock-data.js`
+- [x] 所有页面 API 调用已改为 `async/await` 模式
+- [ ] 初始化云函数已执行（种子数据写入）
 - [ ] 首个管理员已加入白名单
-- [ ] 云存储目录结构已创建
+- [ ] 云存储已开通，CDN 域名已加入白名单
 - [ ] 图片上传改为 `wx.cloud.uploadFile()`
-- [ ] 商品详情页图片 URL 改为 `wx.cloud.getTempFileURL()`
 - [ ] 所有操作端到端测试通过
-- [ ] 灰度发布给核心用户试用的计划制定
 
 ---
 

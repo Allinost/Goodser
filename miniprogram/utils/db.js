@@ -97,7 +97,7 @@ function initCloud(envId) {
 
   try {
     wx.cloud.init({
-      env: envId || 'goodser-xxxxxxxxx',
+      env: envId || 'cloud1-d4gnk8fbp407876d3',
       traceUser: true
     })
     _cloudDb = wx.cloud.database()
