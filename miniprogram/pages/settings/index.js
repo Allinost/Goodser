@@ -126,7 +126,7 @@ Page({
     this.setData({ gradedTTL: enabled })
 
     wx.showToast({
-      title: enabled ? '分级 TTL 已开启' : '分级 TTL 已关闭（缓存永不过期）',
+      title: enabled ? '分级 TTL 已开启' : '分级 TTL 已关闭（缓存不会自动过期，可手动强制刷新）',
       icon: 'none'
     })
     this._refreshAll()

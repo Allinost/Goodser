@@ -777,6 +777,133 @@ const db = require('../../utils/db');
 
 所有 `mockData.getXxx()` 替换为 `db.getXxx()`，其余业务逻辑保持不变。
 
+### 6.4 前端本地缓存策略
+
+> 缓存层位于 `utils/db.js`（数据缓存）和 `utils/image-cache.js`（图片缓存），核心目标是**减少云数据库读取次数**以降低用量成本。
+
+#### 6.4.1 缓存架构总览
+
+```
+┌─────────────────────────────────────────────┐
+│                   前端请求                     │
+└──────────────────┬──────────────────────────┘
+                   ▼
+┌─────────────────────────────────────────────┐
+│  L1 内存缓存  <1ms                           │
+│  命中 → 直接返回                              │
+│  未命中 ↓                                    │
+├─────────────────────────────────────────────┤
+│  L2 wx.Storage 持久化缓存  ~5ms               │
+│  命中 → 恢复到 L1 → 返回                       │
+│  未命中 ↓                                    │
+├─────────────────────────────────────────────┤
+│  云数据库读取                                 │
+│  返回 → 写入 L1 + L2                          │
+│  失败 → 降级使用 L2 过期数据（容错）              │
+└─────────────────────────────────────────────┘
+```
+
+| 缓存层 | 存储位置 | 访问速度 | 生命周期 |
+|--------|----------|----------|----------|
+| L1 热缓存 | 内存变量 | <1ms | 应用运行期间 |
+| L2 温缓存 | wx.Storage | ~5ms | 持久化（重启后恢复至 L1） |
+| 云数据库 | CloudBase | ~200ms | 永久 |
+
+#### 6.4.2 四大缓存策略
+
+**策略一：分级 TTL（可开关）**
+
+按数据变更频率设置不同的自动过期时间。通过设置页 → 缓存管理 → 分级 TTL 开关控制：
+
+| 数据类型 | TTL | 变更频率 | 原因 |
+|----------|-----|---------|------|
+| statusCodes | 30 分钟 | 极低 | 系统预设编码几乎不变 |
+| tags | 10 分钟 | 低 | 偶尔增删改 |
+| whitelist | 10 分钟 | 低 | 偶尔添加/移除成员 |
+| inventories | 5 分钟 | 低 | 偶尔增删仓库 |
+| products | 2 分钟 | 中 | 出入库时变更频繁 |
+| outboundOrders | 30 秒 | 高 | 频繁创建/确认/取消 |
+| inboundLogs | 30 秒 | 高 | 频繁创建 |
+
+- **开启**：各类型按上述 TTL 自动过期，提升缓存新鲜度
+- **关闭（默认）**：缓存永不过期（`expireAt = Infinity`），仅在写操作时局部失效
+
+> ⚠️ TTL 关闭时，缓存不会自动过期，需要用户通过 **强制刷新按钮** 手动从云端全量重新拉取。强制刷新始终可用，**与 TTL 开关状态无关**。
+
+**策略二：wx.Storage 双层缓存**
+
+- 应用冷启动时自动从 L2 恢复到 L1（预热），避免首屏全部走云数据库
+- 每个 key 最大 1MB，总容量 10MB，Goodser 单仓库 200 件商品约 30-50KB，完全够用
+- 缓存 key 格式：`gs_cache_{type}_{inventoryId}`（如 `gs_cache_products_inv001`）
+
+**策略三：差量同步（商品列表）**
+
+首次全量拉取后记录 `lastSyncTime`（所有商品中 `updated_at` 最大值）。后续请求仅查：
+
+```javascript
+where({ updated_at: _.gt(lastSyncTime) })
+```
+
+只拉取变更过的记录与 L2 缓存合并。
+
+| 场景 | 读取量 | 节省 |
+|------|--------|------|
+| 全量同步（200 条） | 200 次数据库读 | — |
+| 差量同步（1 小时内 5 条变更） | 5 次数据库读 | **97.5%** |
+
+同步标记存储在 `wx.Storage` 的 `gs_sync_{inventoryId}` 中。设置页可查看每个仓库的**当前版本号**和**上次同步时间**。
+
+**策略四：图片本地缓存**
+
+`utils/image-cache.js` 独立模块，位于 `USER_DATA_PATH/gs_img/`：
+
+- product-card 组件展示时自动将远程图片下载到本地
+- 以 URL hash 命名文件，避免重复下载
+- 用户数据目录上限 200MB
+- 设置页提供：清理全部图片缓存 / 清理未引用图片
+
+#### 6.4.3 强制刷新机制
+
+设置页 → 缓存管理 → 强制刷新，点击后：
+
+1. `db.forceRefresh('all')` — 清除 L1 内存 + L2 Storage 中的所有缓存 key + 所有差量同步标记
+2. 重新从云数据库全量拉取 `inventories`、`tags`、`statusCodes`、`whitelist`
+3. 各页面下次 `loadProducts(inventoryId, true)` 触发全量同步（`forceRefresh=true` 跳过缓存）
+
+**强制刷新与 TTL 的关系**：
+- 强制刷新按钮始终可用，只需要云数据库已连接（`isCloudReady()`）
+- TTL 关闭时（缓存永不过期），强制刷新是用户主动从云端拉取最新数据的唯一方式
+- TTL 开启时，强制刷新可以在 TTL 未到期待手动提前刷新
+
+#### 6.4.4 缓存失效规则
+
+写操作（创建/更新/删除）后立即精确失效相关缓存：
+
+| 写操作 | 失效范围 |
+|--------|---------|
+| createProduct / updateProduct | `gs_cache_products_{inventoryId}` |
+| deleteProduct | 全部缓存（`_invalidateAllCache`） |
+| createOutbound / confirmOutbound / cancelOutbound | `gs_cache_outbound_{inventoryId}` |
+| createInboundLog / deleteInboundLog | `gs_cache_inbound_{inventoryId}` |
+| createTag / updateTag / deleteTag | `gs_cache_tags` |
+| addWhitelist / removeWhitelist | `gs_cache_whitelist` |
+| addStatusCode / removeStatusCode | `gs_cache_statusCodes` |
+
+> 写操作不等待缓存过期，**立即失效**对应的 L1 + L2 缓存 key，确保下次读取强制走云数据库。
+
+#### 6.4.5 设置页缓存管理 API
+
+| 功能 | 方法 | 说明 |
+|------|------|------|
+| 缓存统计 | `db.getCacheStats()` | 返回 L1 条目数 / L2 条目数 / L2 大小 KB / TTL 开关状态 |
+| 差量信息 | `db.getSyncInfo()` | 返回每个仓库的版本号和上次同步时间 |
+| 分级 TTL | `db.setGradedTTL(bool)` | 开启/关闭分级 TTL |
+| 清理全部 | `db.clearAllCache()` | 清除 L1 + L2 + 差量标记 |
+| 清理过期 | `db.clearStaleCache()` | 仅清除 TTL 到期的项 |
+| 图片统计 | `imgCache.getImageStats()` | 返回图片缓存张数和总大小 |
+| 清理图片 | `imgCache.clearAllImages()` | 删除全部本地图片缓存 |
+| 清理无用图片 | `imgCache.clearUnusedImages(usedUrls)` | 删除未被商品引用的冗余图片 |
+
 ---
 
 ## 7. 认证与权限
@@ -982,10 +1109,12 @@ wx.cloud.callFunction({ name: 'init', data: { action: 'setup' } });
 
 ### 10.3 成本优化建议
 
-1. **减少数据库读次数**：列表页设置合理的 `page_size`（20 条），避免一次加载过多
-2. **缓存热点数据**：状态编码列表、标签列表等变化少的用 `wx.setStorageSync` 做本地缓存
-3. **图片压缩**：上传前统一压缩到 ≤500KB，减少存储和下载流量
-4. **定时清理**：90 天清理不再需要的云存储文件
+1. **L1/L2 双层缓存**：所有云数据库读取先过内存（L1）→ Storage（L2）→ 云数据库，命中率可达 80%+
+2. **差量同步**：商品列表仅拉取 `updated_at` 变更记录，200 条商品 5 条变更时节省 97.5% 数据库读取
+3. **图片本地缓存**：商品图片自动下载到本地文件系统，减少云存储 CDN 下载流量
+4. **手动强制刷新**：TTL 关闭时通过设置页主动触发全量同步，按需使用而非定时轮询
+5. **图片压缩**：上传前统一压缩到 ≤500KB，减少存储和下载流量
+6. **定时清理**：90 天清理不再需要的云存储文件
 
 ---
 
