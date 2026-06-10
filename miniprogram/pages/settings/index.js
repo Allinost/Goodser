@@ -13,6 +13,10 @@ Page({
     cloudDbEnabled: false,
     cloudDbStatus: '未连接',
 
+    // NAS 私有云模式
+    nasEnabled: false,
+    nasStatus: '未连接',
+
     // 缓存管理
     gradedTTL: false,
     cacheL1Count: 0,
@@ -32,9 +36,14 @@ Page({
   },
 
   _refreshAll() {
-    var enabled = wx.getStorageSync('cloudDbEnabled') || false
-    var statusText = enabled
+    var cloudEnabled = wx.getStorageSync('cloudDbEnabled') || false
+    var cloudStatusText = cloudEnabled
       ? (db.isCloudReady() ? '已连接' : '连接中…')
+      : '未连接'
+
+    var nasEnabled = wx.getStorageSync('nasEnabled') || false
+    var nasStatusText = nasEnabled
+      ? (db.isNASReady() ? '已连接' : '未连接（请先配置 NAS 地址）')
       : '未连接'
 
     var cacheStats = db.getCacheStats()
@@ -45,9 +54,11 @@ Page({
       whitelistCount: db.whitelist.length,
       statusCodeCount: db.statusCodes.length,
       tagCount: db.tags.length,
-      nasConnected: false,
-      cloudDbEnabled: enabled,
-      cloudDbStatus: statusText,
+      nasConnected: db.isNASReady(),
+      cloudDbEnabled: cloudEnabled,
+      cloudDbStatus: cloudStatusText,
+      nasEnabled: nasEnabled,
+      nasStatus: nasStatusText,
       gradedTTL: cacheStats.gradedTTL,
       cacheL1Count: cacheStats.l1Count,
       cacheStorageCount: cacheStats.storageCount,
@@ -64,6 +75,61 @@ Page({
   onStatusCodes() { wx.navigateTo({ url: '/pages/settings/status-codes' }) },
   onTags() { wx.navigateTo({ url: '/pages/settings/tags' }) },
   onNasConfig() { wx.navigateTo({ url: '/pages/settings/nas-config' }) },
+
+  // ========== NAS 私有云模式开关 ==========
+
+  async onNASToggle(e) {
+    var enabled = e.detail.value
+    this.setData({ nasEnabled: enabled, nasStatus: enabled ? '连接中…' : '未连接' })
+    wx.setStorageSync('nasEnabled', enabled)
+
+    if (enabled) {
+      // 读取 NAS 配置
+      var nasConfig = {}
+      try {
+        var raw = wx.getStorageSync('nasConfig')
+        if (raw) nasConfig = JSON.parse(raw)
+      } catch (e) {
+        nasConfig = {}
+      }
+
+      if (!nasConfig.baseUrl) {
+        wx.showModal({
+          title: '请先配置 NAS',
+          content: '需要先配置 NAS + 私有云的连接信息。\n\n请在「NAS 存储配置」页面填写 NAS API 地址和密钥。',
+          showCancel: false,
+          success: () => {
+            this.setData({ nasEnabled: false, nasStatus: '未连接' })
+            wx.setStorageSync('nasEnabled', false)
+            wx.navigateTo({ url: '/pages/settings/nas-config' })
+          }
+        })
+        return
+      }
+
+      wx.showLoading({ title: '连接 NAS…' })
+      db.initNAS(nasConfig)
+      if (!db.isNASReady()) {
+        wx.hideLoading()
+        wx.showModal({
+          title: '连接失败',
+          content: '无法初始化 NAS 模式。\n\n请检查 NAS 地址和 API 密钥是否正确配置。',
+          showCancel: false
+        })
+        this.setData({ nasEnabled: false, nasStatus: '未连接' })
+        wx.setStorageSync('nasEnabled', false)
+        return
+      }
+
+      wx.hideLoading()
+      wx.showToast({ title: 'NAS 模式已连接', icon: 'success' })
+      this.setData({ nasStatus: '已连接', nasConnected: true })
+      this._refreshAll()
+    } else {
+      wx.showToast({ title: '已切换为本地数据', icon: 'none' })
+      this.setData({ nasStatus: '未连接', nasConnected: false })
+    }
+  },
 
   // ========== 云数据库开关 ==========
 

@@ -184,12 +184,13 @@ Page({
     wx.showModal({
       title: '确认新建出库单',
       content: `目录: ${inventory.name}\n共 ${this.data.selectedItems.length} 种商品`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
           // 生成单号：用目录名缩写替代OUT
           const prefix = inventory.name.substring(0, 2).toUpperCase()
           const orderNo = util.generateOrderNo(prefix)
-          const newOrder = {
+          // 通过 API 创建出库单（后端处理库存扣减）
+          await db.createOutboundOrder({
             _id: 'out_' + Date.now(),
             inventory_id: inventory._id,
             order_no: orderNo,
@@ -203,21 +204,7 @@ Page({
               product_code: i.product_code,
               quantity: i.quantity,
               image_url: i.image_url
-            })),
-            owner_openid: 'user_001',
-            created_at: new Date().toLocaleString(),
-            updated_at: new Date().toLocaleString(),
-            confirmed_at: null,
-            cancelled_at: null
-          }
-          db.outboundOrders.push(newOrder)
-          // 扣减实际库存
-          newOrder.items.forEach(item => {
-            const product = db.products.find(p => p._id === item.product_id)
-            if (product) {
-              product.quantity = Math.max(0, product.quantity - item.quantity)
-              product.updated_at = new Date().toLocaleString()
-            }
+            }))
           })
           wx.showToast({ title: '创建成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)

@@ -139,35 +139,24 @@ Page({
       wx.showModal({
         title: '确认导入入库',
         content: `目录: ${inventory.name}\n共 ${this.data.selectedProducts.length} 种商品，合计 ${totalQty} 件`,
-        success: (res) => {
+        success: async (res) => {
           if (res.confirm) {
-            const logItems = []
-            this.data.selectedProducts.forEach(sp => {
-              const product = db.products.find(p => p._id === sp._id)
-              if (product) {
-                product.quantity += parseInt(sp.quantity)
-                product.updated_at = new Date().toLocaleString()
-              }
-              logItems.push({
-                product_id: sp._id,
-                product_name: sp.name,
-                product_code: sp.code,
-                quantity: parseInt(sp.quantity),
-                image_url: sp.image_url || ''
-              })
-            })
             const prefix = inventory.name.substring(0, 2).toUpperCase()
             const orderNo = util.generateOrderNo(prefix)
-            const newLog = {
-              _id: 'inlog_' + Date.now(),
+            // 统一搜索导入（库存增加 + 入库日志）
+            await db.inboundSearchImport({
               inventory_id: inventory._id,
               order_no: orderNo,
-              type: 'search',
-              items: logItems,
-              owner_openid: 'user_001',
-              created_at: new Date().toLocaleString()
-            }
-            db.inboundLogs.push(newLog)
+              items: this.data.selectedProducts.map(function(sp) {
+                return {
+                  product_id: sp._id,
+                  product_name: sp.name,
+                  product_code: sp.code,
+                  quantity: parseInt(sp.quantity),
+                  image_url: sp.image_url || ''
+                }
+              })
+            })
             wx.showToast({ title: '导入成功', icon: 'success' })
             setTimeout(() => wx.navigateBack(), 1500)
           }
@@ -181,33 +170,26 @@ Page({
       wx.showToast({ title: '请输入新增数量', icon: 'none' })
       return
     }
-    const inventory = this.data.inventories[this.data.inventoryIndex]
+    const inventorySingle = this.data.inventories[this.data.inventoryIndex]
     wx.showModal({
       title: '确认导入入库',
-      content: `目录: ${inventory.name}\n商品: ${this.data.selectedProduct.name}\n新增数量: ${this.data.addQuantity}`,
-      success: (res) => {
+      content: `目录: ${inventorySingle.name}\n商品: ${this.data.selectedProduct.name}\n新增数量: ${this.data.addQuantity}`,
+      success: async (res) => {
         if (res.confirm) {
-          const newLog = {
-            _id: 'inlog_' + Date.now(),
-            inventory_id: inventory._id,
-            type: 'search',
+          const prefixSingle = inventorySingle.name.substring(0, 2).toUpperCase()
+          const orderNoSingle = util.generateOrderNo(prefixSingle)
+          // 统一搜索导入（库存增加 + 入库日志）
+          await db.inboundSearchImport({
+            inventory_id: inventorySingle._id,
+            order_no: orderNoSingle,
             items: [{
               product_id: this.data.selectedProduct._id,
               product_name: this.data.selectedProduct.name,
               product_code: this.data.selectedProduct.code,
               quantity: parseInt(this.data.addQuantity),
               image_url: this.data.selectedProduct.image_url || ''
-            }],
-            owner_openid: 'user_001',
-            created_at: new Date().toLocaleString()
-          }
-          // 增加商品库存
-          const product = db.products.find(p => p._id === this.data.selectedProduct._id)
-          if (product) {
-            product.quantity += parseInt(this.data.addQuantity)
-            product.updated_at = new Date().toLocaleString()
-          }
-          db.inboundLogs.push(newLog)
+            }]
+          })
           wx.showToast({ title: '导入成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

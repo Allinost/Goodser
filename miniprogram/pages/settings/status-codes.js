@@ -35,7 +35,7 @@ Page({
     this.setData({ newCodeLabel: e.detail.value })
   },
 
-  onConfirmAdd() {
+  async onConfirmAdd() {
     const code = this.data.newCodeLetter.trim().toUpperCase()
     const label = this.data.newCodeLabel.trim()
 
@@ -49,7 +49,7 @@ Page({
       return
     }
     // 检查是否已存在
-    if (this.data.statusCodes.some(s => s.code === code)) {
+    if (db.statusCodes.some(s => s.code === code)) {
       this.setData({ codeError: `编码 ${code} 已存在` })
       return
     }
@@ -58,16 +58,7 @@ Page({
       return
     }
 
-    const newCode = {
-      _id: 'sc_' + code + '_' + Date.now(),
-      code,
-      label,
-      is_system: false,
-      owner_openid: 'user_001',
-      created_at: new Date().toLocaleString()
-    }
-
-    db.statusCodes.push(newCode)
+    await db.addStatusCode({ code: code, label: label })
     this.setData({
       statusCodes: [...db.statusCodes],
       showAddDialog: false,
@@ -82,12 +73,9 @@ Page({
       title: '确认删除',
       content: '确定删除该状态编码吗？',
       confirmColor: '#ff4d4f',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          const idx = db.statusCodes.findIndex(s => s._id === id)
-          if (idx > -1) {
-            db.statusCodes.splice(idx, 1)
-          }
+          await db.removeStatusCode(id)
           this.setData({ statusCodes: [...db.statusCodes] })
           wx.showToast({ title: '已删除', icon: 'success' })
         }

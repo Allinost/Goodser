@@ -137,7 +137,7 @@ Page({
     this.setData({ newTagColor: e.currentTarget.dataset.color })
   },
 
-  onConfirmNewTag() {
+  async onConfirmNewTag() {
     const name = this.data.newTagName.trim()
     if (!name) {
       wx.showToast({ title: '请输入标签名称', icon: 'none' })
@@ -147,23 +147,20 @@ Page({
       wx.showToast({ title: '标签已存在', icon: 'none' })
       return
     }
-    const newTag = {
-      _id: 'tag_' + Date.now(),
-      name,
-      color: this.data.newTagColor,
-      owner_openid: 'user_001',
-      created_at: new Date().toLocaleString()
-    }
-    db.tags.push(newTag)
+    const result = await db.createTag({
+      name: name,
+      color: this.data.newTagColor
+    })
+    const newTagId = result ? result._id : ('tag_' + Date.now())
     this.setData({
       allTags: [...db.tags],
-      selectedTagIds: [...this.data.selectedTagIds, newTag._id],
+      selectedTagIds: [...this.data.selectedTagIds, newTagId],
       showNewTagDialog: false
     })
     wx.showToast({ title: '标签已创建', icon: 'success' })
   },
 
-  onSave() {
+  async onSave() {
     if (!this.data.name.trim()) {
       wx.showToast({ title: '请输入商品名称', icon: 'none' })
       return
@@ -184,23 +181,22 @@ Page({
     // 更新编码（序号保持不变，其他部分根据修改更新）
     const code = util.generateProductCode(mainZone, subZone, product.seq_number, qty, statusCode)
 
-    // 更新 mock 数据
-    product.name = this.data.name.trim()
-    product.original_price = parseFloat(this.data.originalPrice) || 0
-    product.market_price = parseFloat(this.data.marketPrice) || 0
-    product.expected_price = parseFloat(this.data.expectedPrice) || 0
-    product.quantity = qty
-    product.storage_location = this.data.storageLocation
-    product.remark = this.data.remark
-    product.main_zone = mainZone
-    product.sub_zone = subZone
-    product.status_code = statusCode
-    product.code = code
-    product.tags = [...this.data.selectedTagIds]
-    product.updated_at = new Date().toLocaleString()
-    if (this.data.imageUrl) {
-      product.image_url = this.data.imageUrl
-    }
+    // 通过 API 持久化更新
+    await db.updateProduct(this.data.productId, {
+      name: this.data.name.trim(),
+      original_price: parseFloat(this.data.originalPrice) || 0,
+      market_price: parseFloat(this.data.marketPrice) || 0,
+      expected_price: parseFloat(this.data.expectedPrice) || 0,
+      quantity: qty,
+      storage_location: this.data.storageLocation,
+      remark: this.data.remark,
+      main_zone: mainZone,
+      sub_zone: subZone,
+      status_code: statusCode,
+      code: code,
+      tags: [...this.data.selectedTagIds],
+      image_url: this.data.imageUrl || product.image_url || ''
+    })
 
     wx.showToast({ title: '保存成功', icon: 'success' })
     setTimeout(() => wx.navigateBack(), 1500)

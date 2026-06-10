@@ -37,10 +37,10 @@ Page({
       title: '确认删除',
       content: '确定移除该成员吗？',
       confirmColor: '#ff4d4f',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          const whitelist = this.data.whitelist.filter(w => w._id !== id)
-          this.setData({ whitelist })
+          await db.removeWhitelist(id)
+          this.setData({ whitelist: [...db.whitelist] })
           wx.showToast({ title: '已移除', icon: 'success' })
         }
       }

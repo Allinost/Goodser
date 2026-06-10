@@ -238,52 +238,30 @@ Page({
     const log = db.inboundLogs.find(l => l._id === this._logId)
     if (!log) return
 
-    // 计算库存差异并调整
-    this.data.editItems.forEach(editItem => {
-      const originalItem = log.items.find(i => i.product_id === editItem.product_id)
-      const diff = editItem.quantity - (originalItem ? originalItem.quantity : 0)
-
-      // 更新商品库存
-      if (editItem.product_id && diff !== 0) {
-        const product = db.products.find(p => p._id === editItem.product_id)
-        if (product) {
-          product.quantity = Math.max(0, product.quantity + diff)
-          product.updated_at = new Date().toLocaleString()
-        }
-      }
-    })
-
-    // 处理被移除的商品项（回退库存）
-    log.items.forEach(originalItem => {
-      const stillExists = this.data.editItems.find(i => i.product_id === originalItem.product_id)
-      if (!stillExists && originalItem.product_id) {
-        const product = db.products.find(p => p._id === originalItem.product_id)
-        if (product) {
-          product.quantity = Math.max(0, product.quantity - originalItem.quantity)
-          product.updated_at = new Date().toLocaleString()
-        }
-      }
-    })
-
-    // 更新入库记录
-    log.items = this.data.editItems.map(i => ({
+    // 构建新的 items 数组
+    const newItems = this.data.editItems.map(i => ({
       product_id: i.product_id,
       product_name: i.product_name,
       product_code: i.product_code,
       quantity: i.quantity,
       image_url: i.image_url
     }))
-    log.remark = this.data.editRemark.trim()
-    log.updated_at = new Date().toLocaleString()
 
+    // 通过 API 更新入库记录（后端处理库存调整）
+    await db.updateInboundLog(this._logId, {
+      items: newItems,
+      remark: this.data.editRemark.trim()
+    })
+
+    // 重新加载展示
+    const updatedLog = db.inboundLogs.find(l => l._id === this._logId) || log
+    const totalQuantity = updatedLog.items.reduce((sum, item) => sum + item.quantity, 0)
     this.setData({
       showEditModal: false,
-      log: { ...log },
-      editRemark: log.remark
+      log: { ...updatedLog },
+      editRemark: updatedLog.remark || '',
+      totalQuantity: totalQuantity
     })
-    // 重新计算总量
-    const totalQuantity = log.items.reduce((sum, item) => sum + item.quantity, 0)
-    this.setData({ totalQuantity })
 
     wx.showToast({ title: '已保存', icon: 'success' })
   },
@@ -293,29 +271,11 @@ Page({
       title: '确认删除',
       content: '删除入库记录后，对应商品库存将回退。确定删除吗？',
       confirmColor: '#ff4d4f',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          this._revertInventory()
-          const idx = db.inboundLogs.findIndex(l => l._id === this._logId)
-          if (idx > -1) {
-            db.inboundLogs.splice(idx, 1)
-          }
+          await db.deleteInboundLog(this._logId)
           wx.showToast({ title: '已删除', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
-        }
-      }
-    })
-  },
-
-  _revertInventory() {
-    const log = this.data.log
-    if (!log || !log.items) return
-    log.items.forEach(item => {
-      if (item.product_id) {
-        const product = db.products.find(p => p._id === item.product_id)
-        if (product) {
-          product.quantity = Math.max(0, product.quantity - item.quantity)
-          product.updated_at = new Date().toLocaleString()
         }
       }
     })

@@ -261,22 +261,15 @@ Page({
     this.setData({ newInventoryName: e.detail.value })
   },
 
-  onConfirmAddInventory() {
+  async onConfirmAddInventory() {
     const name = this.data.newInventoryName.trim()
     if (!name) {
       wx.showToast({ title: '请输入名称', icon: 'none' })
       return
     }
-    const newInv = {
-      _id: 'inv_' + Date.now(),
-      name,
-      owner_openid: 'user_001',
-      sort_order: this.data.inventories.length,
-      created_at: new Date().toLocaleString(),
-      updated_at: new Date().toLocaleString()
-    }
-    const inventories = [...this.data.inventories, newInv]
-    this.setData({ inventories, showAddDialog: false, currentInventoryId: newInv._id })
+    const result = await db.createInventory({ name: name })
+    const newInvId = result ? result._id : ('inv_' + Date.now())
+    this.setData({ showAddDialog: false, currentInventoryId: newInvId })
     this.setCurrentInventory()
     wx.showToast({ title: '创建成功', icon: 'success' })
   },
@@ -292,10 +285,11 @@ Page({
       title: '确认删除',
       content: `确定删除「${this.data.currentInventory.name}」吗？`,
       confirmColor: '#ff4d4f',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          const inventories = this.data.inventories.filter(i => i._id !== this.data.currentInventoryId)
-          this.setData({ inventories, currentInventoryId: inventories[0]._id })
+          await db.deleteInventory(this.data.currentInventoryId)
+          var newId = db.inventories.length > 0 ? db.inventories[0]._id : this.data.currentInventoryId
+          this.setData({ currentInventoryId: newId })
           this.setCurrentInventory()
           wx.showToast({ title: '删除成功', icon: 'success' })
         }
@@ -316,20 +310,15 @@ Page({
     this.setData({ renameInventoryName: e.detail.value })
   },
 
-  onConfirmRename() {
+  async onConfirmRename() {
     const name = this.data.renameInventoryName.trim()
     if (!name) {
       wx.showToast({ title: '请输入名称', icon: 'none' })
       return
     }
-    const inv = this.data.inventories.find(i => i._id === this.data.currentInventoryId)
-    if (inv) {
-      inv.name = name
-      inv.updated_at = new Date().toLocaleString()
-      this.setData({ inventories: [...this.data.inventories], currentInventory: { ...inv } })
-      wx.showToast({ title: '重命名成功', icon: 'success' })
-    }
+    await db.updateInventory(this.data.currentInventoryId, { name: name })
     this.setData({ showRenameDialog: false })
+    wx.showToast({ title: '重命名成功', icon: 'success' })
   },
 
   // 商品点击

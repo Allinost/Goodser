@@ -171,11 +171,12 @@ Page({
     wx.showModal({
       title: '确认新建预留单',
       content: `目录: ${inventory.name}\n共 ${this.data.selectedItems.length} 种商品，预留后库存将锁定`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
           const prefix = inventory.name.substring(0, 2).toUpperCase()
           const orderNo = util.generateOrderNo(prefix)
-          const newOrder = {
+          // 通过 API 创建预留单（后端处理预留锁定）
+          await db.createOutboundOrder({
             _id: 'rsv_' + Date.now(),
             inventory_id: inventory._id,
             order_no: orderNo,
@@ -189,21 +190,7 @@ Page({
               product_code: i.product_code,
               quantity: i.quantity,
               image_url: i.image_url
-            })),
-            owner_openid: 'user_001',
-            created_at: new Date().toLocaleString(),
-            updated_at: new Date().toLocaleString(),
-            confirmed_at: null,
-            cancelled_at: null
-          }
-          db.outboundOrders.push(newOrder)
-          // 锁定预留库存
-          newOrder.items.forEach(item => {
-            const product = db.products.find(p => p._id === item.product_id)
-            if (product) {
-              product.reserved_quantity = (product.reserved_quantity || 0) + item.quantity
-              product.updated_at = new Date().toLocaleString()
-            }
+            }))
           })
           wx.showToast({ title: '创建成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)

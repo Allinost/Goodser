@@ -93,7 +93,7 @@ Page({
     this.setData({ newTagColor: e.currentTarget.dataset.color })
   },
 
-  onConfirmNewTag() {
+  async onConfirmNewTag() {
     const name = this.data.newTagName.trim()
     if (!name) {
       wx.showToast({ title: '请输入标签名称', icon: 'none' })
@@ -103,17 +103,14 @@ Page({
       wx.showToast({ title: '标签已存在', icon: 'none' })
       return
     }
-    const newTag = {
-      _id: 'tag_' + Date.now(),
-      name,
-      color: this.data.newTagColor,
-      owner_openid: 'user_001',
-      created_at: new Date().toLocaleString()
-    }
-    db.tags.push(newTag)
+    const result = await db.createTag({
+      name: name,
+      color: this.data.newTagColor
+    })
+    const newTagId = result ? result._id : ('tag_' + Date.now())
     this.setData({
       allTags: [...db.tags],
-      currentTagIds: [...this.data.currentTagIds, newTag._id],
+      currentTagIds: [...this.data.currentTagIds, newTagId],
       showNewTagDialog: false
     })
     wx.showToast({ title: '标签已创建', icon: 'success' })
@@ -180,22 +177,19 @@ Page({
     wx.showModal({
       title: '确认批量入库',
       content: `目录: ${inventory.name}\n共 ${this.data.items.length} 件商品`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          const logItems = []
-          this.data.items.forEach(item => {
-            const seqNumber = util.getNextSeqNumber(db.products, inventory._id, item.mainZone, item.subZone)
-            const code = util.generateProductCode(item.mainZone, item.subZone, seqNumber, item.quantity, item.statusCode)
-            // 创建商品记录
-            const newProduct = {
-              _id: 'prod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-              inventory_id: inventory._id,
-              code,
+          const prefix = inventory.name.substring(0, 2).toUpperCase()
+          const orderNo = util.generateOrderNo(prefix)
+          // 构建批量入库数据
+          var batchItems = this.data.items.map(function(item) {
+            var seqNumber = util.getNextSeqNumber(db.products, inventory._id, item.mainZone, item.subZone)
+            return {
+              code: util.generateProductCode(item.mainZone, item.subZone, seqNumber, item.quantity, item.statusCode),
               main_zone: item.mainZone,
               sub_zone: item.subZone,
               seq_number: seqNumber,
               quantity: item.quantity,
-              reserved_quantity: 0,
               status_code: item.statusCode,
               name: item.name,
               original_price: parseFloat(item.originalPrice) || 0,
@@ -204,33 +198,15 @@ Page({
               remark: item.remark || '',
               storage_location: item.storageLocation || '',
               image_url: '',
-              tags: [...item.tagIds],
-              owner_openid: 'user_001',
-              created_at: new Date().toLocaleString(),
-              updated_at: new Date().toLocaleString()
+              tags: item.tagIds || []
             }
-            db.products.push(newProduct)
-            logItems.push({
-              product_id: newProduct._id,
-              product_name: item.name,
-              product_code: code,
-              quantity: item.quantity,
-              image_url: ''
-            })
           })
-          // 创建入库记录
-          const prefix = inventory.name.substring(0, 2).toUpperCase()
-          const orderNo = util.generateOrderNo(prefix)
-          const newLog = {
-            _id: 'inlog_' + Date.now(),
+          // 统一入库（产品创建 + 入库日志）
+          await db.inboundBatch({
             inventory_id: inventory._id,
             order_no: orderNo,
-            type: 'batch',
-            items: logItems,
-            owner_openid: 'user_001',
-            created_at: new Date().toLocaleString()
-          }
-          db.inboundLogs.push(newLog)
+            items: batchItems
+          })
           wx.showToast({ title: '入库成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

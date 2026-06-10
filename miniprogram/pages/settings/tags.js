@@ -63,10 +63,9 @@ Page({
       title: '确认删除',
       content: `确定删除标签「${tag.name}」吗？`,
       confirmColor: '#ff4d4f',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          const idx = db.tags.findIndex(t => t._id === id)
-          if (idx > -1) db.tags.splice(idx, 1)
+          await db.deleteTag(id)
           this.loadTags()
           wx.showToast({ title: '已删除', icon: 'success' })
         }
@@ -86,7 +85,7 @@ Page({
     this.setData({ selectedColor: e.currentTarget.dataset.color })
   },
 
-  onConfirmSave() {
+  async onConfirmSave() {
     const name = this.data.tagName.trim()
     if (!name) {
       wx.showToast({ title: '请输入标签名称', icon: 'none' })
@@ -102,20 +101,16 @@ Page({
     }
 
     if (this.data.editingTagId) {
-      // 编辑
-      const tag = db.tags.find(t => t._id === this.data.editingTagId)
-      if (tag) {
-        tag.name = name
-        tag.color = this.data.selectedColor
-      }
+      // 编辑 — 通过 API 持久化
+      await db.updateTag(this.data.editingTagId, {
+        name: name,
+        color: this.data.selectedColor
+      })
     } else {
-      // 新增
-      db.tags.push({
-        _id: 'tag_' + Date.now(),
-        name,
-        color: this.data.selectedColor,
-        owner_openid: 'user_001',
-        created_at: new Date().toLocaleString()
+      // 新增 — 通过 API 持久化
+      await db.createTag({
+        name: name,
+        color: this.data.selectedColor
       })
     }
     this.setData({ showDialog: false })

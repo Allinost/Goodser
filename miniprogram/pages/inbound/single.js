@@ -130,7 +130,7 @@ Page({
     this.setData({ newTagColor: e.currentTarget.dataset.color })
   },
 
-  onConfirmNewTag() {
+  async onConfirmNewTag() {
     const name = this.data.newTagName.trim()
     if (!name) {
       wx.showToast({ title: '请输入标签名称', icon: 'none' })
@@ -140,17 +140,14 @@ Page({
       wx.showToast({ title: '标签已存在', icon: 'none' })
       return
     }
-    const newTag = {
-      _id: 'tag_' + Date.now(),
-      name,
-      color: this.data.newTagColor,
-      owner_openid: 'user_001',
-      created_at: new Date().toLocaleString()
-    }
-    db.tags.push(newTag)
+    const result = await db.createTag({
+      name: name,
+      color: this.data.newTagColor
+    })
+    const newTagId = result ? result._id : ('tag_' + Date.now())
     this.setData({
       allTags: [...db.tags],
-      selectedTagIds: [...this.data.selectedTagIds, newTag._id],
+      selectedTagIds: [...this.data.selectedTagIds, newTagId],
       showNewTagDialog: false
     })
     wx.showToast({ title: '标签已创建', icon: 'success' })
@@ -169,27 +166,29 @@ Page({
     wx.showModal({
       title: '确认入库',
       content: `目录: ${inventory.name}\n商品: ${this.data.name}\n数量: ${this.data.quantity}`,
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
           const mainZone = this.data.mainZones[this.data.mainZoneIndex]
           const subZone = this.data.subZones[this.data.subZoneIndex]
           const statusCode = this.data.statusCodes[this.data.statusCodeIndex].code
           const qty = parseInt(this.data.quantity)
 
-          // 生成序号：自动分配（支持回收空缺）
+          // 生成序号和编码
           const seqNumber = util.getNextSeqNumber(db.products, inventory._id, mainZone, subZone)
           const code = util.generateProductCode(mainZone, subZone, seqNumber, qty, statusCode)
 
-          // 创建商品
-          const newProduct = {
-            _id: 'prod_' + Date.now(),
+          // 生成入库单号
+          const prefix = inventory.name.substring(0, 2).toUpperCase()
+          const orderNo = util.generateOrderNo(prefix)
+
+          // 统一入库（产品创建 + 入库日志）
+          await db.inboundSingle({
             inventory_id: inventory._id,
-            code,
+            code: code,
             main_zone: mainZone,
             sub_zone: subZone,
             seq_number: seqNumber,
             quantity: qty,
-            reserved_quantity: 0,
             status_code: statusCode,
             name: this.data.name.trim(),
             original_price: parseFloat(this.data.originalPrice) || 0,
@@ -199,34 +198,8 @@ Page({
             storage_location: this.data.storageLocation.trim(),
             image_url: this.data.imageUrl || '',
             tags: [...this.data.selectedTagIds],
-            owner_openid: 'user_001',
-            created_at: new Date().toLocaleString(),
-            updated_at: new Date().toLocaleString()
-          }
-          db.products.push(newProduct)
-
-          // 生成入库单号
-          const prefix = inventory.name.substring(0, 2).toUpperCase()
-          const orderNo = util.generateOrderNo(prefix)
-
-          // 创建入库记录
-          const newLog = {
-            _id: 'inlog_' + Date.now(),
-            inventory_id: inventory._id,
-            order_no: orderNo,
-            type: 'single',
-            remark: this.data.remark.trim(),
-            items: [{
-              product_id: newProduct._id,
-              product_name: newProduct.name,
-              product_code: code,
-              quantity: qty,
-              image_url: newProduct.image_url
-            }],
-            owner_openid: 'user_001',
-            created_at: new Date().toLocaleString()
-          }
-          db.inboundLogs.push(newLog)
+            order_no: orderNo
+          })
           wx.showToast({ title: '入库成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

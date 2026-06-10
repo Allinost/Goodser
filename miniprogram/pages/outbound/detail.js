@@ -41,22 +41,13 @@ Page({
       title: `确认${action}`,
       content: `${action}后库存将恢复，确定继续吗？`,
       confirmColor: '#ff4d4f',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
-          // 恢复库存
+          // 通过 API 取消（后端恢复库存 + 更新状态）
           if (order.type === 'outbound') {
-            // 出库单取消：恢复实际库存
-            this._restoreQuantity(order)
+            await db.cancelOutbound(order._id)
           } else {
-            // 预留单取消：恢复预留库存
-            this._restoreReserved(order)
-          }
-          // 更新订单状态
-          const mockOrder = db.outboundOrders.find(o => o._id === order._id)
-          if (mockOrder) {
-            mockOrder.status = 'cancelled'
-            mockOrder.cancelled_at = new Date().toLocaleString()
-            mockOrder.updated_at = new Date().toLocaleString()
+            await db.cancelReserve(order._id)
           }
           wx.showToast({ title: `${action}成功`, icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
@@ -72,19 +63,19 @@ Page({
     wx.showModal({
       title: `确认${action}`,
       content: isOutbound ? '确认出库后将扣减库存并归档此出库单' : '准备出库后将生成对应的出库单并扣减库存',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
           if (isOutbound) {
-            // 确认出库：实际库存已在创建时扣减，标记归档
-            const mockOrder = db.outboundOrders.find(o => o._id === order._id)
-            if (mockOrder) {
-              mockOrder.status = 'confirmed'
-              mockOrder.confirmed_at = new Date().toLocaleString()
-              mockOrder.updated_at = new Date().toLocaleString()
-            }
+            // 通过 API 确认出库
+            await db.confirmOutbound(order._id)
           } else {
-            // 预留单确认出库：从预留转为实际出库，扣减实际库存
-            this._convertReserveToOutbound(order)
+            // 预留单转为实际出库
+            await db.reserveToOutbound(order._id, {
+              inventory_id: order.inventory_id,
+              order_info: order.order_info || '',
+              remark: order.remark || '',
+              items: order.items || []
+            })
           }
           wx.showToast({ title: `${action}成功`, icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)

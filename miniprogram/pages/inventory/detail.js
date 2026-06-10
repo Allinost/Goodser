@@ -61,7 +61,7 @@ Page({
     this.setData({ showTagPicker: false })
   },
 
-  onToggleTag(e) {
+  async onToggleTag(e) {
     const tagId = e.currentTarget.dataset.id
     const product = this.data.product
     if (!product.tags) product.tags = []
@@ -72,6 +72,8 @@ Page({
     } else {
       product.tags.push(tagId)
     }
+    // 持久化标签变更
+    await db.updateProduct(product._id, { tags: [...product.tags] })
     this.setData({ product })
     this.loadProductTags()
   },
@@ -97,7 +99,7 @@ Page({
     this.setData({ newTagColor: e.currentTarget.dataset.color })
   },
 
-  onConfirmNewTag() {
+  async onConfirmNewTag() {
     const name = this.data.newTagName.trim()
     if (!name) {
       wx.showToast({ title: '请输入标签名称', icon: 'none' })
@@ -107,31 +109,33 @@ Page({
       wx.showToast({ title: '标签已存在', icon: 'none' })
       return
     }
-    const newTag = {
-      _id: 'tag_' + Date.now(),
-      name,
-      color: this.data.newTagColor,
-      owner_openid: 'user_001',
-      created_at: new Date().toLocaleString()
-    }
-    db.tags.push(newTag)
-    // 自动选中新标签
-    this.addTagToProduct(newTag._id)
+    const result = await db.createTag({
+      name: name,
+      color: this.data.newTagColor
+    })
+    const newTagId = result ? result._id : ('tag_' + Date.now())
+    // 自动选中新标签并持久化
+    const product = this.data.product
+    if (!product.tags) product.tags = []
+    product.tags.push(newTagId)
+    await db.updateProduct(product._id, { tags: [...product.tags] })
     this.setData({
       showNewTagDialog: false,
-      availableTags: [...db.tags]
+      availableTags: [...db.tags],
+      product: product
     })
     this.loadProductTags()
     wx.showToast({ title: '标签已创建', icon: 'success' })
   },
 
-  onRemoveTag(e) {
+  async onRemoveTag(e) {
     const tagId = e.currentTarget.dataset.id
     const product = this.data.product
     if (product.tags) {
       const idx = product.tags.indexOf(tagId)
       if (idx > -1) {
         product.tags.splice(idx, 1)
+        await db.updateProduct(product._id, { tags: [...product.tags] })
         this.setData({ product })
         this.loadProductTags()
         wx.showToast({ title: '已移除标签', icon: 'success' })
@@ -158,7 +162,7 @@ Page({
       title: '确认删除',
       content: `确定删除「${product.name}」吗？删除后编码序号可被回收复用。`,
       confirmColor: '#ff4d4f',
-      success: (res) => {
+      success: async (res) => {
         if (res.confirm) {
           // 检查是否有未完成的出库单关联该商品
           const pendingOrders = db.outboundOrders.filter(o =>
@@ -173,11 +177,8 @@ Page({
             })
             return
           }
-          // 从商品列表中移除
-          const idx = db.products.findIndex(p => p._id === product._id)
-          if (idx > -1) {
-            db.products.splice(idx, 1)
-          }
+          // 通过 API 持久化删除
+          await db.deleteProduct(product._id)
           wx.showToast({ title: '删除成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }
