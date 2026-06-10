@@ -157,7 +157,7 @@
   <view class="picker-mask" wx:if="{{showAddDialog}}" bindtap="hideAddDialog">
     <view class="dialog" catchtap="">
       <view class="dialog-title">新增库存目录</view>
-      <input class="dialog-input" placeholder="请输入目录名称" value="{{newInventoryName}}" bindinput="onNewNameInput" />
+      <input class="dialog-input" placeholder="请输入目录名称" value="{{newInventoryName}}" bindinput="onNewNameInput" adjust-position="{{false}}" />
       <view class="dialog-actions">
         <view class="btn btn-ghost" bindtap="hideAddDialog">取消</view>
         <view class="btn btn-primary" bindtap="onConfirmAddInventory">确认</view>
@@ -169,7 +169,7 @@
   <view class="picker-mask" wx:if="{{showRenameDialog}}" bindtap="hideRenameDialog">
     <view class="dialog" catchtap="">
       <view class="dialog-title">重命名库存目录</view>
-      <input class="dialog-input" placeholder="请输入新名称" value="{{renameInventoryName}}" bindinput="onRenameInput" />
+      <input class="dialog-input" placeholder="请输入新名称" value="{{renameInventoryName}}" bindinput="onRenameInput" adjust-position="{{false}}" />
       <view class="dialog-actions">
         <view class="btn btn-ghost" bindtap="hideRenameDialog">取消</view>
         <view class="btn btn-primary" bindtap="onConfirmRename">确认</view>

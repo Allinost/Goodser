@@ -25,7 +25,7 @@
     <view class="dialog" catchtap="">
       <view class="dialog-title">添加成员</view>
       <view class="dialog-desc">输入对方微信号搜索添加，或分享小程序邀请对方加入</view>
-      <input class="dialog-input" placeholder="请输入微信号" value="{{searchKeyword}}" bindinput="onSearchInput" />
+      <input class="dialog-input" placeholder="请输入微信号" value="{{searchKeyword}}" bindinput="onSearchInput" adjust-position="{{false}}" />
       <view class="dialog-actions">
         <view class="btn btn-ghost" bindtap="hideAddDialog">取消</view>
         <view class="btn btn-primary" bindtap="onSearchUser">搜索</view>

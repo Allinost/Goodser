@@ -63,6 +63,7 @@
               value="{{editSearchKeyword}}"
               bindinput="onEditSearchInput"
               bindconfirm="onEditSearch"
+              adjust-position="{{false}}"
             />
             <view class="edit-search-btn" bindtap="onEditSearch">搜索</view>
           </view>
@@ -100,7 +101,7 @@
           </view>
           <view class="edit-qty-row">
             <text class="edit-qty-btn" bindtap="onEditDecreaseQty" data-index="{{index}}">-</text>
-            <input class="edit-qty-input" type="number" value="{{item.quantity}}" bindinput="onEditQtyInput" data-index="{{index}}" />
+            <input class="edit-qty-input" type="number" value="{{item.quantity}}" bindinput="onEditQtyInput" data-index="{{index}}" adjust-position="{{false}}" />
             <text class="edit-qty-btn" bindtap="onEditIncreaseQty" data-index="{{index}}">+</text>
             <text class="edit-item-remove" bindtap="onEditRemoveItem" data-index="{{index}}">✕</text>
           </view>
@@ -108,10 +109,10 @@
         <!-- 备注 -->
         <view class="edit-remark-group">
           <text class="form-label">备注</text>
-          <textarea class="form-textarea" placeholder="请输入备注" value="{{editRemark}}" bindinput="onEditRemarkInput" maxlength="200" />
+          <textarea class="form-textarea" placeholder="请输入备注" value="{{editRemark}}" bindinput="onEditRemarkInput" maxlength="200" adjust-position="{{false}}" />
         </view>
       </scroll-view>
-      <view class="edit-panel-footer">
+      <view class="edit-panel-footer" style="padding-bottom: calc(24rpx + env(safe-area-inset-bottom) + {{keyboardHeight}}px)">
         <view class="btn btn-ghost" bindtap="hideEditModal">取消</view>
         <view class="btn btn-primary" bindtap="onSaveEdit">保存</view>
       </view>

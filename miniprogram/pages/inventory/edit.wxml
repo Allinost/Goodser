@@ -114,7 +114,7 @@
       <view class="inline-dialog-title">新建标签</view>
       <view class="form-group">
         <text class="form-label">标签名称</text>
-        <input class="form-input" placeholder="输入标签名称" value="{{newTagName}}" bindinput="onNewTagNameInput" />
+        <input class="form-input" placeholder="输入标签名称" value="{{newTagName}}" bindinput="onNewTagNameInput" adjust-position="{{false}}" />
       </view>
       <view class="form-group">
         <text class="form-label">标签颜色</text>

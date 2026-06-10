@@ -30,12 +30,13 @@
           value="{{newCodeLetter}}"
           bindinput="onCodeInput"
           maxlength="1"
+          adjust-position="{{false}}"
         />
         <text class="form-hint" wx:if="{{codeError}}">{{codeError}}</text>
       </view>
       <view class="form-group">
         <text class="form-label">状态名称</text>
-        <input class="dialog-input" placeholder="如: 维修中" value="{{newCodeLabel}}" bindinput="onLabelInput" />
+        <input class="dialog-input" placeholder="如: 维修中" value="{{newCodeLabel}}" bindinput="onLabelInput" adjust-position="{{false}}" />
       </view>
       <view class="dialog-actions">
         <view class="btn btn-ghost" bindtap="hideAddDialog">取消</view>

@@ -18,12 +18,22 @@ Page({
     showEditSearch: false,
     // 多选模式
     editMultiSelectMode: false,
-    editCheckedIds: []
+    editCheckedIds: [],
+    // 键盘高度（px），用于底部面板上移
+    keyboardHeight: 0
   },
 
   onLoad(options) {
     this._logId = options.id
     this.loadLog()
+  },
+
+  onUnload() {
+    // 清理键盘监听，防止页面卸载后残留
+    if (this._keyboardListener) {
+      wx.offKeyboardHeightChange(this._keyboardListener)
+      this._keyboardListener = null
+    }
   },
 
   loadLog() {
@@ -65,6 +75,11 @@ Page({
       editSearchResults: [],
       showEditSearch: false
     })
+    // 监听键盘高度变化，动态调整底部面板位置
+    this._keyboardListener = (res) => {
+      this.setData({ keyboardHeight: res.height })
+    }
+    wx.onKeyboardHeightChange(this._keyboardListener)
   },
 
   hideEditModal() {
@@ -76,6 +91,15 @@ Page({
       }) ||
       (this.data.editRemark || '').trim() !== (log.remark || '').trim()
 
+    const doHide = () => {
+      // 移除键盘监听
+      if (this._keyboardListener) {
+        wx.offKeyboardHeightChange(this._keyboardListener)
+        this._keyboardListener = null
+      }
+      this.setData({ showEditModal: false, keyboardHeight: 0 })
+    }
+
     if (hasChanges) {
       wx.showModal({
         title: '提示',
@@ -83,12 +107,12 @@ Page({
         confirmColor: '#ff4d4f',
         success: (res) => {
           if (res.confirm) {
-            this.setData({ showEditModal: false })
+            doHide()
           }
         }
       })
     } else {
-      this.setData({ showEditModal: false })
+      doHide()
     }
   },
 
@@ -224,7 +248,7 @@ Page({
     }
   },
 
-  onSaveEdit() {
+  async onSaveEdit() {
     if (this.data.editItems.length === 0) {
       wx.showToast({ title: '至少保留一项商品', icon: 'none' })
       return
@@ -256,8 +280,14 @@ Page({
     // 重新加载展示
     const updatedLog = db.inboundLogs.find(l => l._id === this._logId) || log
     const totalQuantity = updatedLog.items.reduce((sum, item) => sum + item.quantity, 0)
+    // 移除键盘监听
+    if (this._keyboardListener) {
+      wx.offKeyboardHeightChange(this._keyboardListener)
+      this._keyboardListener = null
+    }
     this.setData({
       showEditModal: false,
+      keyboardHeight: 0,
       log: { ...updatedLog },
       editRemark: updatedLog.remark || '',
       totalQuantity: totalQuantity

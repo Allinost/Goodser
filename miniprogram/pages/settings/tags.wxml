@@ -30,7 +30,7 @@
       <view class="dialog-title">{{editingTagId ? '编辑标签' : '添加标签'}}</view>
       <view class="form-group">
         <text class="form-label">标签名称</text>
-        <input class="dialog-input" placeholder="如: 热销、新品" value="{{tagName}}" bindinput="onNameInput" />
+        <input class="dialog-input" placeholder="如: 热销、新品" value="{{tagName}}" bindinput="onNameInput" adjust-position="{{false}}" />
       </view>
       <view class="form-group">
         <text class="form-label">标签颜色</text>
