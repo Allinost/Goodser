@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 
 Page({
   data: {
@@ -8,7 +8,7 @@ Page({
   },
 
   onLoad() {
-    this.setData({ whitelist: mockData.whitelist })
+    this.setData({ whitelist: db.whitelist })
   },
 
   onAddMember() {

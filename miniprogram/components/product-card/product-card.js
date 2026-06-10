@@ -1,4 +1,5 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
+const imgCache = require('../../utils/image-cache')
 
 const STATUS_MAP = {
   'A': { label: '正常', tagClass: 'tag-green' },
@@ -19,23 +20,42 @@ Component({
   data: {
     statusLabel: '',
     statusTagClass: '',
-    productTags: []
+    productTags: [],
+    displayImage: '/images/placeholder.png'
   },
   observers: {
     'product': function(product) {
-      const code = product.status_code
-      const status = STATUS_MAP[code] || { label: code, tagClass: 'tag-gray' }
+      if (!product) return
+
+      var code = product.status_code
+      var status = STATUS_MAP[code] || { label: code, tagClass: 'tag-gray' }
 
       // 解析标签
-      const productTags = (product.tags || []).map(tid => {
-        return mockData.tags.find(t => t._id === tid)
+      var productTags = (product.tags || []).map(function(tid) {
+        return db.tags.find(function(t) { return t._id === tid })
       }).filter(Boolean)
+
+      // 图片缓存：已有本地缓存则直接用，否则异步下载
+      var imageUrl = product.image_url || ''
+      var displayImage = imgCache.getLocalPath(imageUrl) || imageUrl || '/images/placeholder.png'
 
       this.setData({
         statusLabel: status.label,
         statusTagClass: status.tagClass,
-        productTags
+        productTags: productTags,
+        displayImage: displayImage
       })
+
+      // 异步下载图片（如果不在缓存中）
+      if (imageUrl && displayImage === imageUrl) {
+        var that = this
+        var refKey = product._id || ''
+        imgCache.cacheImage(imageUrl, refKey).then(function(localPath) {
+          if (localPath && localPath !== imageUrl) {
+            that.setData({ displayImage: localPath })
+          }
+        })
+      }
     }
   },
   methods: {

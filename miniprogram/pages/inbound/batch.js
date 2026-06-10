@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 const util = require('../../utils/util')
 
 const COLOR_OPTIONS = [
@@ -14,8 +14,8 @@ Page({
     items: [],
     mainZones: util.ZONES,
     subZones: util.ZONES,
-    statusCodes: mockData.statusCodes,
-    statusCodeLabels: mockData.statusCodes.map(s => `${s.code} - ${s.label}`),
+    statusCodes: db.statusCodes,
+    statusCodeLabels: db.statusCodes.map(s => `${s.code} - ${s.label}`),
     allTags: [],
     // 当前表单
     currentName: '',
@@ -39,12 +39,12 @@ Page({
     wx.enableAlertBeforeUnload({
       message: '当前页面有未保存的修改，确定要离开吗？'
     })
-    const inventories = mockData.inventories
+    const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     this.setData({
       inventories,
       inventoryNames,
-      allTags: [...mockData.tags]
+      allTags: [...db.tags]
     })
   },
 
@@ -99,7 +99,7 @@ Page({
       wx.showToast({ title: '请输入标签名称', icon: 'none' })
       return
     }
-    if (mockData.tags.some(t => t.name === name)) {
+    if (db.tags.some(t => t.name === name)) {
       wx.showToast({ title: '标签已存在', icon: 'none' })
       return
     }
@@ -110,9 +110,9 @@ Page({
       owner_openid: 'user_001',
       created_at: new Date().toLocaleString()
     }
-    mockData.tags.push(newTag)
+    db.tags.push(newTag)
     this.setData({
-      allTags: [...mockData.tags],
+      allTags: [...db.tags],
       currentTagIds: [...this.data.currentTagIds, newTag._id],
       showNewTagDialog: false
     })
@@ -130,7 +130,7 @@ Page({
     }
     // 获取标签名
     const tagNames = this.data.currentTagIds.map(tid => {
-      const tag = mockData.tags.find(t => t._id === tid)
+      const tag = db.tags.find(t => t._id === tid)
       return tag ? tag.name : ''
     }).filter(Boolean)
 
@@ -184,7 +184,7 @@ Page({
         if (res.confirm) {
           const logItems = []
           this.data.items.forEach(item => {
-            const seqNumber = util.getNextSeqNumber(mockData.products, inventory._id, item.mainZone, item.subZone)
+            const seqNumber = util.getNextSeqNumber(db.products, inventory._id, item.mainZone, item.subZone)
             const code = util.generateProductCode(item.mainZone, item.subZone, seqNumber, item.quantity, item.statusCode)
             // 创建商品记录
             const newProduct = {
@@ -209,7 +209,7 @@ Page({
               created_at: new Date().toLocaleString(),
               updated_at: new Date().toLocaleString()
             }
-            mockData.products.push(newProduct)
+            db.products.push(newProduct)
             logItems.push({
               product_id: newProduct._id,
               product_name: item.name,
@@ -230,7 +230,7 @@ Page({
             owner_openid: 'user_001',
             created_at: new Date().toLocaleString()
           }
-          mockData.inboundLogs.push(newLog)
+          db.inboundLogs.push(newLog)
           wx.showToast({ title: '入库成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

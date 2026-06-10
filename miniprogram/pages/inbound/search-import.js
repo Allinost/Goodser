@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 const util = require('../../utils/util')
 
 Page({
@@ -10,7 +10,7 @@ Page({
     searched: false,
     selectedProduct: null,
     addQuantity: '',
-    statusCodeLabels: mockData.statusCodes.map(s => `${s.code} - ${s.label}`),
+    statusCodeLabels: db.statusCodes.map(s => `${s.code} - ${s.label}`),
     statusCodeIndex: 0,
     // 多选模式
     multiSelectMode: false,
@@ -23,7 +23,7 @@ Page({
     wx.enableAlertBeforeUnload({
       message: '当前页面有未保存的修改，确定要离开吗？'
     })
-    const inventories = mockData.inventories
+    const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     this.setData({ inventories, inventoryNames })
   },
@@ -39,7 +39,7 @@ Page({
       return
     }
     const inventory = this.data.inventories[this.data.inventoryIndex]
-    const results = mockData.products.filter(p =>
+    const results = db.products.filter(p =>
       p.inventory_id === inventory._id &&
       (p.name.toLowerCase().includes(keyword) || p.code.toLowerCase().includes(keyword))
     )
@@ -143,7 +143,7 @@ Page({
           if (res.confirm) {
             const logItems = []
             this.data.selectedProducts.forEach(sp => {
-              const product = mockData.products.find(p => p._id === sp._id)
+              const product = db.products.find(p => p._id === sp._id)
               if (product) {
                 product.quantity += parseInt(sp.quantity)
                 product.updated_at = new Date().toLocaleString()
@@ -167,7 +167,7 @@ Page({
               owner_openid: 'user_001',
               created_at: new Date().toLocaleString()
             }
-            mockData.inboundLogs.push(newLog)
+            db.inboundLogs.push(newLog)
             wx.showToast({ title: '导入成功', icon: 'success' })
             setTimeout(() => wx.navigateBack(), 1500)
           }
@@ -202,12 +202,12 @@ Page({
             created_at: new Date().toLocaleString()
           }
           // 增加商品库存
-          const product = mockData.products.find(p => p._id === this.data.selectedProduct._id)
+          const product = db.products.find(p => p._id === this.data.selectedProduct._id)
           if (product) {
             product.quantity += parseInt(this.data.addQuantity)
             product.updated_at = new Date().toLocaleString()
           }
-          mockData.inboundLogs.push(newLog)
+          db.inboundLogs.push(newLog)
           wx.showToast({ title: '导入成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 
 // WXML 不支持三元表达式和数组方法，在此处预处理
 const TYPE_MAP = { single: '📝 单独新增', batch: '📋 批量新增', search: '🔍 搜索导入' }
@@ -24,7 +24,7 @@ Page({
   },
 
   onLoad() {
-    const inventories = mockData.inventories
+    const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     this.setData({
       inventories,
@@ -48,7 +48,7 @@ Page({
   },
 
   loadLogs() {
-    const logs = mockData.inboundLogs
+    const logs = db.inboundLogs
       .filter(l => l.inventory_id === this.data.currentInventoryId)
       .map(formatLog)
     this.setData({ inboundLogs: logs })

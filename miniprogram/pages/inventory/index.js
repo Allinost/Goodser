@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 const util = require('../../utils/util')
 
 const PAGE_SIZE = 20
@@ -44,17 +44,17 @@ Page({
 
   onLoad() {
     this.setData({
-      inventories: mockData.inventories,
-      statusCodeOptions: mockData.statusCodes,
+      inventories: db.inventories,
+      statusCodeOptions: db.statusCodes,
       mainZones: util.ZONES,
-      tagOptions: mockData.tags
+      tagOptions: db.tags
     })
     this.setCurrentInventory()
   },
 
   onShow() {
     // 刷新标签（可能从设置页新增了标签）
-    this.setData({ tagOptions: mockData.tags })
+    this.setData({ tagOptions: db.tags })
   },
 
   setCurrentInventory() {
@@ -64,7 +64,7 @@ Page({
   },
 
   loadProducts() {
-    const products = mockData.products.filter(p => p.inventory_id === this.data.currentInventoryId)
+    const products = db.products.filter(p => p.inventory_id === this.data.currentInventoryId)
     this.setData({ products })
     this.applyFilters()
   },
@@ -78,7 +78,7 @@ Page({
       list = list.filter(p => {
         // 搜索标签名
         const tagNames = (p.tags || []).map(tid => {
-          const tag = mockData.tags.find(t => t._id === tid)
+          const tag = db.tags.find(t => t._id === tid)
           return tag ? tag.name : ''
         }).join(' ')
 
@@ -283,7 +283,7 @@ Page({
 
   // 删除库存目录
   onDeleteInventory() {
-    const hasProducts = mockData.products.some(p => p.inventory_id === this.data.currentInventoryId)
+    const hasProducts = db.products.some(p => p.inventory_id === this.data.currentInventoryId)
     if (hasProducts) {
       wx.showToast({ title: '该目录下存在商品，无法删除', icon: 'none' })
       return

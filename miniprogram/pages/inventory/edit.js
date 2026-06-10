@@ -1,5 +1,5 @@
 const util = require('../../utils/util')
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 
 const COLOR_OPTIONS = [
   '#ff4d4f', '#ff7a45', '#faad14', '#52c41a', '#13c2c2',
@@ -21,8 +21,8 @@ Page({
     subZones: util.ZONES,
     mainZoneIndex: 0,
     subZoneIndex: 0,
-    statusCodes: mockData.statusCodes,
-    statusCodeLabels: mockData.statusCodes.map(s => `${s.code} - ${s.label}`),
+    statusCodes: db.statusCodes,
+    statusCodeLabels: db.statusCodes.map(s => `${s.code} - ${s.label}`),
     statusCodeIndex: 0,
     previewCode: '',
     allTags: [],
@@ -37,7 +37,7 @@ Page({
     wx.enableAlertBeforeUnload({
       message: '当前页面有未保存的修改，确定要离开吗？'
     })
-    const product = mockData.products.find(p => p._id === options.id)
+    const product = db.products.find(p => p._id === options.id)
     if (!product) {
       wx.showToast({ title: '商品不存在', icon: 'none' })
       setTimeout(() => wx.navigateBack(), 1500)
@@ -46,7 +46,7 @@ Page({
 
     const mainZoneIndex = util.ZONES.indexOf(product.main_zone)
     const subZoneIndex = util.ZONES.indexOf(product.sub_zone)
-    const statusCodeIndex = mockData.statusCodes.findIndex(s => s.code === product.status_code)
+    const statusCodeIndex = db.statusCodes.findIndex(s => s.code === product.status_code)
 
     this.setData({
       productId: product._id,
@@ -61,7 +61,7 @@ Page({
       mainZoneIndex: mainZoneIndex > -1 ? mainZoneIndex : 0,
       subZoneIndex: subZoneIndex > -1 ? subZoneIndex : 0,
       statusCodeIndex: statusCodeIndex > -1 ? statusCodeIndex : 0,
-      allTags: [...mockData.tags],
+      allTags: [...db.tags],
       selectedTagIds: [...(product.tags || [])]
     })
 
@@ -93,7 +93,7 @@ Page({
   onStatusCodeChange(e) { this.setData({ statusCodeIndex: e.detail.value }); this.updatePreview() },
 
   updatePreview() {
-    const product = mockData.products.find(p => p._id === this.data.productId)
+    const product = db.products.find(p => p._id === this.data.productId)
     const mainZone = this.data.mainZones[this.data.mainZoneIndex]
     const subZone = this.data.subZones[this.data.subZoneIndex]
     const qty = parseInt(this.data.quantity) || 0
@@ -143,7 +143,7 @@ Page({
       wx.showToast({ title: '请输入标签名称', icon: 'none' })
       return
     }
-    if (mockData.tags.some(t => t.name === name)) {
+    if (db.tags.some(t => t.name === name)) {
       wx.showToast({ title: '标签已存在', icon: 'none' })
       return
     }
@@ -154,9 +154,9 @@ Page({
       owner_openid: 'user_001',
       created_at: new Date().toLocaleString()
     }
-    mockData.tags.push(newTag)
+    db.tags.push(newTag)
     this.setData({
-      allTags: [...mockData.tags],
+      allTags: [...db.tags],
       selectedTagIds: [...this.data.selectedTagIds, newTag._id],
       showNewTagDialog: false
     })
@@ -173,7 +173,7 @@ Page({
       return
     }
 
-    const product = mockData.products.find(p => p._id === this.data.productId)
+    const product = db.products.find(p => p._id === this.data.productId)
     if (!product) return
 
     const mainZone = this.data.mainZones[this.data.mainZoneIndex]

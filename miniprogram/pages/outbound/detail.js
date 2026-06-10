@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 const util = require('../../utils/util')
 
 Page({
@@ -15,7 +15,7 @@ Page({
   },
 
   loadOrder() {
-    const order = mockData.outboundOrders.find(o => o._id === this._orderId)
+    const order = db.outboundOrders.find(o => o._id === this._orderId)
     if (order) {
       const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0)
       this.setData({
@@ -52,7 +52,7 @@ Page({
             this._restoreReserved(order)
           }
           // 更新订单状态
-          const mockOrder = mockData.outboundOrders.find(o => o._id === order._id)
+          const mockOrder = db.outboundOrders.find(o => o._id === order._id)
           if (mockOrder) {
             mockOrder.status = 'cancelled'
             mockOrder.cancelled_at = new Date().toLocaleString()
@@ -76,7 +76,7 @@ Page({
         if (res.confirm) {
           if (isOutbound) {
             // 确认出库：实际库存已在创建时扣减，标记归档
-            const mockOrder = mockData.outboundOrders.find(o => o._id === order._id)
+            const mockOrder = db.outboundOrders.find(o => o._id === order._id)
             if (mockOrder) {
               mockOrder.status = 'confirmed'
               mockOrder.confirmed_at = new Date().toLocaleString()
@@ -96,7 +96,7 @@ Page({
   // 出库创建时扣减库存
   _deductQuantity(order) {
     order.items.forEach(item => {
-      const product = mockData.products.find(p => p._id === item.product_id)
+      const product = db.products.find(p => p._id === item.product_id)
       if (product) {
         product.quantity = Math.max(0, product.quantity - item.quantity)
         product.updated_at = new Date().toLocaleString()
@@ -107,7 +107,7 @@ Page({
   // 出库取消时恢复库存
   _restoreQuantity(order) {
     order.items.forEach(item => {
-      const product = mockData.products.find(p => p._id === item.product_id)
+      const product = db.products.find(p => p._id === item.product_id)
       if (product) {
         product.quantity += item.quantity
         product.updated_at = new Date().toLocaleString()
@@ -118,7 +118,7 @@ Page({
   // 预留时锁定库存（增加 reserved_quantity，减少可用 quantity）
   _lockReserved(order) {
     order.items.forEach(item => {
-      const product = mockData.products.find(p => p._id === item.product_id)
+      const product = db.products.find(p => p._id === item.product_id)
       if (product) {
         product.reserved_quantity = (product.reserved_quantity || 0) + item.quantity
         product.updated_at = new Date().toLocaleString()
@@ -129,7 +129,7 @@ Page({
   // 取消预留时恢复
   _restoreReserved(order) {
     order.items.forEach(item => {
-      const product = mockData.products.find(p => p._id === item.product_id)
+      const product = db.products.find(p => p._id === item.product_id)
       if (product) {
         product.reserved_quantity = Math.max(0, (product.reserved_quantity || 0) - item.quantity)
         product.updated_at = new Date().toLocaleString()
@@ -139,11 +139,11 @@ Page({
 
   // 预留单转出库：先释放预留，再扣减实际库存
   _convertReserveToOutbound(order) {
-    const mockOrder = mockData.outboundOrders.find(o => o._id === order._id)
+    const mockOrder = db.outboundOrders.find(o => o._id === order._id)
     if (mockOrder) {
       // 释放预留
       order.items.forEach(item => {
-        const product = mockData.products.find(p => p._id === item.product_id)
+        const product = db.products.find(p => p._id === item.product_id)
         if (product) {
           product.reserved_quantity = Math.max(0, (product.reserved_quantity || 0) - item.quantity)
           product.quantity = Math.max(0, product.quantity - item.quantity)

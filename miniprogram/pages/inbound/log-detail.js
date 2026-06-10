@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 const util = require('../../utils/util')
 
 const TYPE_MAP = { single: '单独新增入库', batch: '批量新增入库', search: '搜索导入入库' }
@@ -27,14 +27,14 @@ Page({
   },
 
   loadLog() {
-    const log = mockData.inboundLogs.find(l => l._id === this._logId)
+    const log = db.inboundLogs.find(l => l._id === this._logId)
     if (!log) {
       wx.showToast({ title: '记录不存在', icon: 'none' })
       setTimeout(() => wx.navigateBack(), 1500)
       return
     }
     const totalQuantity = log.items.reduce((sum, item) => sum + item.quantity, 0)
-    const inv = mockData.inventories.find(i => i._id === log.inventory_id)
+    const inv = db.inventories.find(i => i._id === log.inventory_id)
     const orderNo = log.order_no || this._generateInboundNo(inv, log)
     this.setData({
       log,
@@ -139,7 +139,7 @@ Page({
       return
     }
     const log = this.data.log
-    const results = mockData.products.filter(p =>
+    const results = db.products.filter(p =>
       p.inventory_id === log.inventory_id &&
       (p.name.toLowerCase().includes(keyword) || p.code.toLowerCase().includes(keyword)) &&
       !this.data.editItems.find(i => i.product_id === p._id)
@@ -235,7 +235,7 @@ Page({
       return
     }
 
-    const log = mockData.inboundLogs.find(l => l._id === this._logId)
+    const log = db.inboundLogs.find(l => l._id === this._logId)
     if (!log) return
 
     // 计算库存差异并调整
@@ -245,7 +245,7 @@ Page({
 
       // 更新商品库存
       if (editItem.product_id && diff !== 0) {
-        const product = mockData.products.find(p => p._id === editItem.product_id)
+        const product = db.products.find(p => p._id === editItem.product_id)
         if (product) {
           product.quantity = Math.max(0, product.quantity + diff)
           product.updated_at = new Date().toLocaleString()
@@ -257,7 +257,7 @@ Page({
     log.items.forEach(originalItem => {
       const stillExists = this.data.editItems.find(i => i.product_id === originalItem.product_id)
       if (!stillExists && originalItem.product_id) {
-        const product = mockData.products.find(p => p._id === originalItem.product_id)
+        const product = db.products.find(p => p._id === originalItem.product_id)
         if (product) {
           product.quantity = Math.max(0, product.quantity - originalItem.quantity)
           product.updated_at = new Date().toLocaleString()
@@ -296,9 +296,9 @@ Page({
       success: (res) => {
         if (res.confirm) {
           this._revertInventory()
-          const idx = mockData.inboundLogs.findIndex(l => l._id === this._logId)
+          const idx = db.inboundLogs.findIndex(l => l._id === this._logId)
           if (idx > -1) {
-            mockData.inboundLogs.splice(idx, 1)
+            db.inboundLogs.splice(idx, 1)
           }
           wx.showToast({ title: '已删除', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
@@ -312,7 +312,7 @@ Page({
     if (!log || !log.items) return
     log.items.forEach(item => {
       if (item.product_id) {
-        const product = mockData.products.find(p => p._id === item.product_id)
+        const product = db.products.find(p => p._id === item.product_id)
         if (product) {
           product.quantity = Math.max(0, product.quantity - item.quantity)
           product.updated_at = new Date().toLocaleString()

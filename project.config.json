@@ -44,6 +44,7 @@
   "libVersion": "3.3.4",
   "appid": "wxd1234567890abcde",
   "projectname": "Goodser",
+  "cloudfunctionRoot": "cloudfunctions/",
   "condition": {},
   "editorSetting": {
     "tabIndent": "insertSpaces",

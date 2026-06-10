@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 
 Page({
   data: {
@@ -10,7 +10,7 @@ Page({
   },
 
   onLoad() {
-    this.setData({ statusCodes: mockData.statusCodes })
+    this.setData({ statusCodes: db.statusCodes })
   },
 
   onAddCode() {
@@ -67,9 +67,9 @@ Page({
       created_at: new Date().toLocaleString()
     }
 
-    mockData.statusCodes.push(newCode)
+    db.statusCodes.push(newCode)
     this.setData({
-      statusCodes: [...mockData.statusCodes],
+      statusCodes: [...db.statusCodes],
       showAddDialog: false,
       codeError: ''
     })
@@ -84,11 +84,11 @@ Page({
       confirmColor: '#ff4d4f',
       success: (res) => {
         if (res.confirm) {
-          const idx = mockData.statusCodes.findIndex(s => s._id === id)
+          const idx = db.statusCodes.findIndex(s => s._id === id)
           if (idx > -1) {
-            mockData.statusCodes.splice(idx, 1)
+            db.statusCodes.splice(idx, 1)
           }
-          this.setData({ statusCodes: [...mockData.statusCodes] })
+          this.setData({ statusCodes: [...db.statusCodes] })
           wx.showToast({ title: '已删除', icon: 'success' })
         }
       }

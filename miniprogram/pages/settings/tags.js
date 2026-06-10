@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 
 const COLOR_OPTIONS = [
   '#ff4d4f', '#ff7a45', '#faad14', '#52c41a', '#13c2c2',
@@ -21,8 +21,8 @@ Page({
 
   loadTags() {
     // 统计每个标签下的商品数量
-    const tags = mockData.tags.map(tag => {
-      const productCount = mockData.products.filter(p =>
+    const tags = db.tags.map(tag => {
+      const productCount = db.products.filter(p =>
         p.tags && p.tags.includes(tag._id)
       ).length
       return { ...tag, productCount }
@@ -65,8 +65,8 @@ Page({
       confirmColor: '#ff4d4f',
       success: (res) => {
         if (res.confirm) {
-          const idx = mockData.tags.findIndex(t => t._id === id)
-          if (idx > -1) mockData.tags.splice(idx, 1)
+          const idx = db.tags.findIndex(t => t._id === id)
+          if (idx > -1) db.tags.splice(idx, 1)
           this.loadTags()
           wx.showToast({ title: '已删除', icon: 'success' })
         }
@@ -93,7 +93,7 @@ Page({
       return
     }
     // 检查重名
-    const duplicate = mockData.tags.find(t =>
+    const duplicate = db.tags.find(t =>
       t.name === name && t._id !== this.data.editingTagId
     )
     if (duplicate) {
@@ -103,14 +103,14 @@ Page({
 
     if (this.data.editingTagId) {
       // 编辑
-      const tag = mockData.tags.find(t => t._id === this.data.editingTagId)
+      const tag = db.tags.find(t => t._id === this.data.editingTagId)
       if (tag) {
         tag.name = name
         tag.color = this.data.selectedColor
       }
     } else {
       // 新增
-      mockData.tags.push({
+      db.tags.push({
         _id: 'tag_' + Date.now(),
         name,
         color: this.data.selectedColor,

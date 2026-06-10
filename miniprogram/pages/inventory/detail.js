@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 const util = require('../../utils/util')
 
 const COLOR_OPTIONS = [
@@ -30,7 +30,7 @@ Page({
   },
 
   loadProduct() {
-    const product = mockData.products.find(p => p._id === this._productId)
+    const product = db.products.find(p => p._id === this._productId)
     if (product) {
       this.setData({
         product,
@@ -44,7 +44,7 @@ Page({
   loadProductTags() {
     const product = this.data.product
     const productTags = (product.tags || []).map(tid => {
-      return mockData.tags.find(t => t._id === tid)
+      return db.tags.find(t => t._id === tid)
     }).filter(Boolean)
     this.setData({ productTags })
   },
@@ -53,7 +53,7 @@ Page({
   onAddTag() {
     this.setData({
       showTagPicker: true,
-      availableTags: [...mockData.tags]
+      availableTags: [...db.tags]
     })
   },
 
@@ -103,7 +103,7 @@ Page({
       wx.showToast({ title: '请输入标签名称', icon: 'none' })
       return
     }
-    if (mockData.tags.some(t => t.name === name)) {
+    if (db.tags.some(t => t.name === name)) {
       wx.showToast({ title: '标签已存在', icon: 'none' })
       return
     }
@@ -114,12 +114,12 @@ Page({
       owner_openid: 'user_001',
       created_at: new Date().toLocaleString()
     }
-    mockData.tags.push(newTag)
+    db.tags.push(newTag)
     // 自动选中新标签
     this.addTagToProduct(newTag._id)
     this.setData({
       showNewTagDialog: false,
-      availableTags: [...mockData.tags]
+      availableTags: [...db.tags]
     })
     this.loadProductTags()
     wx.showToast({ title: '标签已创建', icon: 'success' })
@@ -161,7 +161,7 @@ Page({
       success: (res) => {
         if (res.confirm) {
           // 检查是否有未完成的出库单关联该商品
-          const pendingOrders = mockData.outboundOrders.filter(o =>
+          const pendingOrders = db.outboundOrders.filter(o =>
             o.status !== 'cancelled' && o.status !== 'confirmed' &&
             o.items.some(i => i.product_id === product._id)
           )
@@ -174,9 +174,9 @@ Page({
             return
           }
           // 从商品列表中移除
-          const idx = mockData.products.findIndex(p => p._id === product._id)
+          const idx = db.products.findIndex(p => p._id === product._id)
           if (idx > -1) {
-            mockData.products.splice(idx, 1)
+            db.products.splice(idx, 1)
           }
           wx.showToast({ title: '删除成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)

@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 const util = require('../../utils/util')
 
 const PAGE_SIZE = 10
@@ -29,7 +29,7 @@ Page({
   },
 
   onLoad() {
-    const inventories = mockData.inventories
+    const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     this.setData({
       inventories,
@@ -54,9 +54,9 @@ Page({
   },
 
   loadOrders() {
-    const orders = mockData.outboundOrders.filter(o => o.inventory_id === this.data.currentInventoryId)
+    const orders = db.outboundOrders.filter(o => o.inventory_id === this.data.currentInventoryId)
     const ordersWithType = orders.map(o => {
-      const inv = mockData.inventories.find(i => i._id === o.inventory_id)
+      const inv = db.inventories.find(i => i._id === o.inventory_id)
       const typeLabel = o.type === 'reserve' ? '预留' : '出库'
       const statusLabel = util.getOrderStatusLabel(o.status)
       return { ...o, _inventoryName: inv ? inv.name : '', _typeLabel: typeLabel, _statusLabel: statusLabel }

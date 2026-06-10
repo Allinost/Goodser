@@ -1,5 +1,5 @@
 const util = require('../../utils/util')
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 
 const COLOR_OPTIONS = [
   '#ff4d4f', '#ff7a45', '#faad14', '#52c41a', '#13c2c2',
@@ -23,8 +23,8 @@ Page({
     subZones: util.ZONES,
     mainZoneIndex: 0,
     subZoneIndex: 0,
-    statusCodes: mockData.statusCodes,
-    statusCodeLabels: mockData.statusCodes.map(s => `${s.code} - ${s.label}`),
+    statusCodes: db.statusCodes,
+    statusCodeLabels: db.statusCodes.map(s => `${s.code} - ${s.label}`),
     statusCodeIndex: 0,
     previewCode: '',
     allTags: [],
@@ -39,12 +39,12 @@ Page({
     wx.enableAlertBeforeUnload({
       message: '当前页面有未保存的修改，确定要离开吗？'
     })
-    const inventories = mockData.inventories
+    const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     this.setData({
       inventories,
       inventoryNames,
-      allTags: [...mockData.tags]
+      allTags: [...db.tags]
     })
   },
 
@@ -136,7 +136,7 @@ Page({
       wx.showToast({ title: '请输入标签名称', icon: 'none' })
       return
     }
-    if (mockData.tags.some(t => t.name === name)) {
+    if (db.tags.some(t => t.name === name)) {
       wx.showToast({ title: '标签已存在', icon: 'none' })
       return
     }
@@ -147,9 +147,9 @@ Page({
       owner_openid: 'user_001',
       created_at: new Date().toLocaleString()
     }
-    mockData.tags.push(newTag)
+    db.tags.push(newTag)
     this.setData({
-      allTags: [...mockData.tags],
+      allTags: [...db.tags],
       selectedTagIds: [...this.data.selectedTagIds, newTag._id],
       showNewTagDialog: false
     })
@@ -177,7 +177,7 @@ Page({
           const qty = parseInt(this.data.quantity)
 
           // 生成序号：自动分配（支持回收空缺）
-          const seqNumber = util.getNextSeqNumber(mockData.products, inventory._id, mainZone, subZone)
+          const seqNumber = util.getNextSeqNumber(db.products, inventory._id, mainZone, subZone)
           const code = util.generateProductCode(mainZone, subZone, seqNumber, qty, statusCode)
 
           // 创建商品
@@ -203,7 +203,7 @@ Page({
             created_at: new Date().toLocaleString(),
             updated_at: new Date().toLocaleString()
           }
-          mockData.products.push(newProduct)
+          db.products.push(newProduct)
 
           // 生成入库单号
           const prefix = inventory.name.substring(0, 2).toUpperCase()
@@ -226,7 +226,7 @@ Page({
             owner_openid: 'user_001',
             created_at: new Date().toLocaleString()
           }
-          mockData.inboundLogs.push(newLog)
+          db.inboundLogs.push(newLog)
           wx.showToast({ title: '入库成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
         }

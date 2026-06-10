@@ -1,4 +1,4 @@
-const mockData = require('../../utils/mock-data')
+const db = require('../../utils/db')
 const util = require('../../utils/util')
 
 Page({
@@ -20,7 +20,7 @@ Page({
     wx.enableAlertBeforeUnload({
       message: '当前页面有未保存的修改，确定要离开吗？'
     })
-    const inventories = mockData.inventories
+    const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     this.setData({ inventories, inventoryNames })
   },
@@ -36,7 +36,7 @@ Page({
       return
     }
     const inventory = this.data.inventories[this.data.inventoryIndex]
-    const results = mockData.products.filter(p =>
+    const results = db.products.filter(p =>
       p.inventory_id === inventory._id &&
       (p.name.toLowerCase().includes(keyword) || p.code.toLowerCase().includes(keyword))
     )
@@ -158,7 +158,7 @@ Page({
     }
     // 检查可用库存是否充足（总量 - 已预留）
     const insufficient = this.data.selectedItems.find(i => {
-      const product = mockData.products.find(p => p._id === i.product_id)
+      const product = db.products.find(p => p._id === i.product_id)
       if (!product) return true
       const available = product.quantity - (product.reserved_quantity || 0)
       return i.quantity > available
@@ -196,10 +196,10 @@ Page({
             confirmed_at: null,
             cancelled_at: null
           }
-          mockData.outboundOrders.push(newOrder)
+          db.outboundOrders.push(newOrder)
           // 锁定预留库存
           newOrder.items.forEach(item => {
-            const product = mockData.products.find(p => p._id === item.product_id)
+            const product = db.products.find(p => p._id === item.product_id)
             if (product) {
               product.reserved_quantity = (product.reserved_quantity || 0) + item.quantity
               product.updated_at = new Date().toLocaleString()

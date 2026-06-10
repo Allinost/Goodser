@@ -35,9 +35,24 @@
   color: #999999;
 }
 
+/* 分组标题 */
+.section-title {
+  margin: 32rpx 24rpx 12rpx;
+  font-size: 24rpx;
+  color: #999999;
+  letter-spacing: 2rpx;
+}
+
+/* 分组内嵌标题（差量同步） */
+.section-inner-title {
+  padding: 16rpx 24rpx 8rpx;
+  font-size: 22rpx;
+  color: #bbbbbb;
+}
+
 /* 设置列表 */
 .settings-group {
-  margin: 20rpx 24rpx;
+  margin: 0 24rpx 20rpx;
   background: #ffffff;
   border-radius: 16rpx;
   overflow: hidden;
@@ -63,11 +78,14 @@
 .settings-left {
   display: flex;
   align-items: center;
+  flex: 1;
+  min-width: 0;
 }
 
 .settings-icon {
   font-size: 36rpx;
   margin-right: 16rpx;
+  flex-shrink: 0;
 }
 
 .settings-label {
@@ -78,6 +96,8 @@
 .settings-right {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+  margin-left: 16rpx;
 }
 
 .settings-value {
@@ -97,15 +117,22 @@
 .settings-label-group {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .settings-hint {
   font-size: 22rpx;
   color: #999999;
   margin-top: 4rpx;
+  line-height: 1.4;
 }
 
 .settings-arrow {
   font-size: 32rpx;
   color: #cccccc;
+}
+
+/* 缓存统计项（非可点击） */
+.cache-stats:active {
+  background: transparent;
 }
