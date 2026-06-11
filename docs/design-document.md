@@ -1087,3 +1087,88 @@ function formatQuantity(product) {
 | L-9 | `inbound/single` | 编码预览序号用 XXXX 占位，可加提示"提交时自动分配" |
 | L-10 | `settings/nas-config` | 密钥输入无显示/隐藏切换 |
 | L-11 | `settings/index` | 用户信息硬编码（管理员/admin），未接入微信用户信息 |
+
+---
+
+## 后续开发方向
+
+以下为已规划但尚未实现的方向：
+
+### 1. NAS API 服务端实现
+
+实现 Node.js 服务（Fastify/Koa），处理 `db.js` 中 `_nasRequest()` 发出的所有 HTTP 端点。
+
+**端点清单：**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/loadProducts` | 全量加载商品列表 |
+| POST | `/api/loadInventories` | 全量加载库存列表 |
+| POST | `/api/loadOutboundOrders` | 全量加载出库订单 |
+| POST | `/api/loadInboundLogs` | 全量加载入库日志 |
+| POST | `/api/loadWhitelist` | 全量加载白名单 |
+| POST | `/api/loadStatusCodes` | 全量加载状态码 |
+| POST | `/api/loadTags` | 全量加载标签 |
+| POST | `/api/createProduct` | 创建商品 |
+| POST | `/api/updateProduct` | 更新商品 |
+| POST | `/api/deleteProduct` | 删除商品 |
+| POST | `/api/createInventory` | 创建库存目录 |
+| POST | `/api/updateInventory` | 更新库存目录 |
+| POST | `/api/deleteInventory` | 删除库存目录 |
+| POST | `/api/createOutboundOrder` | 创建出库订单 |
+| POST | `/api/updateOutboundOrder` | 更新出库订单 |
+| POST | `/api/createTag` | 创建标签 |
+| POST | `/api/updateTag` | 更新标签 |
+| POST | `/api/deleteTag` | 删除标签 |
+| POST | `/api/addStatusCode` | 添加状态码 |
+| POST | `/api/removeStatusCode` | 删除状态码 |
+| POST | `/api/addWhitelist` | 添加白名单 |
+| POST | `/api/removeWhitelist` | 删除白名单 |
+| POST | `/api/allocateSeqNumber` | 分配商品序号 |
+| POST | `/api/inboundSingle` | 单品入库 |
+| POST | `/api/inboundBatch` | 批量入库 |
+| POST | `/api/inboundSearchImport` | 搜索导入入库 |
+| POST | `/api/updateInboundLog` | 更新入库记录 |
+| POST | `/api/deleteInboundLog` | 删除入库记录 |
+| POST | `/api/uploadImage` | 上传图片 |
+
+**响应格式：** `{ code: 0, data: {...} }`
+
+**数据库：** NAS 上运行 MySQL，通过 Node.js API 层访问。
+
+---
+
+### 2. 设置页 NAS 开关 UI
+
+`settings/index.js` 已实现 `onNASToggle()` 逻辑和 `nasEnabled`/`nasStatus` 数据字段，但 `settings/index.wxml` 尚未添加对应的开关 UI 组件。
+
+**需要实现：**
+- 在设置页添加 NAS 模式开关（switch 组件）
+- 开关打开时引导用户先配置 NAS 连接信息
+- 显示 NAS 连接状态（已连接/未连接/连接中）
+
+---
+
+### 3. RustIO 图片直传
+
+NAS + 私有云模式下，实现 S3 兼容的预签名 URL（Pre-signed URL）直接上传图片到 RustIO。
+
+**需要实现：**
+- 修改 `image-cache.js`：NAS 模式下通过 NAS API 获取预签名上传 URL
+- 服务端生成 AWS Signature V4 签名的 PUT URL
+- 前端使用 `wx.uploadFile()` 直传到 RustIO
+- 存储 Object Key 到数据库
+
+---
+
+### 4. 清理死代码
+
+以下文件包含已不再被调用的旧辅助方法，可安全删除：
+
+**`pages/outbound/detail.js`：**
+- `_deductQuantity()` — 已被 `db.confirmOutbound()` 取代
+- `_restoreQuantity()` — 已被 `db.cancelOutbound()` 取代
+- `_lockReserved()` — 已被 `db.reserveToOutbound()` 取代
+- `_restoreReserved()` — 已被 `db.cancelReserve()` 取代
+- `_convertReserveToOutbound()` — 已被 `db.reserveToOutbound()` 取代
+

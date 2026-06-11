@@ -170,6 +170,11 @@
   justify-content: center;
 }
 
+/* 居中对话框遮罩 - 覆盖 picker-mask 的 flex-end 对齐 */
+.dialog-mask {
+  align-items: center;
+}
+
 .picker-panel {
   width: 100%;
   background: #ffffff;
@@ -266,17 +271,12 @@
   text-align: center;
 }
 
-/* 对话框 */
+/* 对话框 - 作为 flex 子元素由 dialog-mask 居中 */
 .dialog {
   width: 600rpx;
   background: #ffffff;
   border-radius: 16rpx;
   padding: 40rpx 32rpx;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1001;
 }
 
 .dialog-title {

@@ -154,7 +154,7 @@
   </view>
 
   <!-- 新增库存目录弹窗 -->
-  <view class="picker-mask" wx:if="{{showAddDialog}}" bindtap="hideAddDialog">
+  <view class="picker-mask dialog-mask" wx:if="{{showAddDialog}}" bindtap="hideAddDialog">
     <view class="dialog" catchtap="">
       <view class="dialog-title">新增库存目录</view>
       <input class="dialog-input" placeholder="请输入目录名称" value="{{newInventoryName}}" bindinput="onNewNameInput" adjust-position="{{false}}" />
@@ -166,7 +166,7 @@
   </view>
 
   <!-- 重命名库存目录弹窗 -->
-  <view class="picker-mask" wx:if="{{showRenameDialog}}" bindtap="hideRenameDialog">
+  <view class="picker-mask dialog-mask" wx:if="{{showRenameDialog}}" bindtap="hideRenameDialog">
     <view class="dialog" catchtap="">
       <view class="dialog-title">重命名库存目录</view>
       <input class="dialog-input" placeholder="请输入新名称" value="{{renameInventoryName}}" bindinput="onRenameInput" adjust-position="{{false}}" />

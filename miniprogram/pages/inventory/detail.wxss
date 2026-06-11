@@ -208,11 +208,26 @@
 }
 
 .dialog-input {
+  width: 100%;
   height: 80rpx;
   border: 2rpx solid #d9d9d9;
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+/* 新建标签弹窗内表单样式 */
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 12rpx;
+  display: block;
 }
 
 .dialog-actions {
