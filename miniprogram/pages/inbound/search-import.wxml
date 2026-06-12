@@ -110,10 +110,57 @@
         </view>
       </picker>
     </view>
+    <!-- 标签选择 -->
+    <view class="form-group">
+      <text class="form-label">商品标签</text>
+      <view class="tag-select-area">
+        <view
+          class="tag-select-item {{selectedTagIds.indexOf(item._id) > -1 ? 'tag-select-item-active' : ''}}"
+          wx:for="{{allTags}}"
+          wx:key="_id"
+          style="{{selectedTagIds.indexOf(item._id) > -1 ? 'background: ' + item.color + '20; color: ' + item.color + '; border-color: ' + item.color + '' : ''}}"
+          bindtap="onToggleTag"
+          data-id="{{item._id}}"
+        >
+          <view class="tag-color-dot-sm" style="background: {{item.color}}"></view>
+          <text>{{item.name}}</text>
+          <text class="tag-checkmark" wx:if="{{selectedTagIds.indexOf(item._id) > -1}}">✓</text>
+        </view>
+        <view class="tag-inline-add" bindtap="onInlineAddTag">+ 新建</view>
+      </view>
+    </view>
   </view>
 
   <!-- 底部按钮 -->
   <view class="bottom-bar" wx:if="{{!multiSelectMode && (selectedProduct || selectedProducts.length > 0)}}">
     <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="{{submitting ? '' : 'onSubmit'}}">{{submitting ? '导入中...' : '确认导入入库'}}</view>
+  </view>
+
+  <!-- 新建标签弹窗 -->
+  <view class="picker-mask" wx:if="{{showNewTagDialog}}" bindtap="hideNewTagDialog">
+    <view class="inline-dialog" catchtap="onDialogTap">
+      <view class="inline-dialog-title">新建标签</view>
+      <view class="form-group">
+        <text class="form-label">标签名称</text>
+        <input class="form-input" placeholder="输入标签名称" value="{{newTagName}}" bindinput="onNewTagNameInput" adjust-position="{{false}}" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">标签颜色</text>
+        <view class="color-options">
+          <view
+            class="color-dot {{newTagColor === item ? 'color-dot-active' : ''}}"
+            wx:for="{{colorOptions}}"
+            wx:key="*this"
+            style="background: {{item}}"
+            bindtap="onSelectColor"
+            data-color="{{item}}"
+          ></view>
+        </view>
+      </view>
+      <view class="inline-dialog-actions">
+        <view class="btn btn-ghost" bindtap="hideNewTagDialog">取消</view>
+        <view class="btn btn-primary" bindtap="onConfirmNewTag">创建</view>
+      </view>
+    </view>
   </view>
 </view>

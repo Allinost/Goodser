@@ -1,6 +1,11 @@
 const db = require('../../utils/db')
 const util = require('../../utils/util')
 
+const COLOR_OPTIONS = [
+  '#ff4d4f', '#ff7a45', '#faad14', '#52c41a', '#13c2c2',
+  '#1890ff', '#2f54eb', '#722ed1', '#eb2f96', '#666666'
+]
+
 Page({
   data: {
     inventories: [],
@@ -18,6 +23,13 @@ Page({
     checkedProductIds: [],
     // 多选商品列表（选中后的商品+数量）
     selectedProducts: [],
+    // 标签
+    allTags: [],
+    selectedTagIds: [],
+    showNewTagDialog: false,
+    newTagName: '',
+    newTagColor: COLOR_OPTIONS[0],
+    colorOptions: COLOR_OPTIONS,
     submitting: false
   },
 
@@ -42,6 +54,7 @@ Page({
     this.setData({
       inventories,
       inventoryNames,
+      allTags: [...db.tags],
       statusCodes: statusCodes,
       statusCodeLabels: statusCodes.map(s => `${s.code} - ${s.label}`)
     })
@@ -167,6 +180,69 @@ Page({
     this.setData({ statusCodeIndex: e.detail.value })
   },
 
+  // 标签选择
+  onToggleTag(e) {
+    const tagId = e.currentTarget.dataset.id
+    const selectedTagIds = [...this.data.selectedTagIds]
+    const idx = selectedTagIds.indexOf(tagId)
+    if (idx > -1) {
+      selectedTagIds.splice(idx, 1)
+    } else {
+      selectedTagIds.push(tagId)
+    }
+    this.setData({ selectedTagIds })
+    this.enableUnloadAlert()
+  },
+
+  onInlineAddTag() {
+    this.setData({ showNewTagDialog: true, newTagName: '', newTagColor: COLOR_OPTIONS[0] })
+  },
+
+  hideNewTagDialog() {
+    this.setData({ showNewTagDialog: false })
+  },
+
+  onNewTagNameInput(e) {
+    this.setData({ newTagName: e.detail.value })
+  },
+
+  onSelectColor(e) {
+    this.setData({ newTagColor: e.currentTarget.dataset.color })
+  },
+
+  async onConfirmNewTag() {
+    const name = this.data.newTagName.trim()
+    if (!name) {
+      wx.showToast({ title: '请输入标签名称', icon: 'none' })
+      return
+    }
+    if (db.tags.some(t => t.name === name)) {
+      wx.showToast({ title: '标签已存在', icon: 'none' })
+      return
+    }
+    wx.showLoading({ title: '创建中...' })
+    try {
+      const result = await db.createTag({
+        name: name,
+        color: this.data.newTagColor
+      })
+      const newTagId = result ? result._id : ('tag_' + Date.now())
+      this.setData({
+        allTags: [...db.tags],
+        selectedTagIds: [...this.data.selectedTagIds, newTagId],
+        showNewTagDialog: false
+      })
+      wx.hideLoading()
+      wx.showToast({ title: '标签已创建', icon: 'success' })
+    } catch (err) {
+      wx.hideLoading()
+      wx.showToast({ title: '创建标签失败: ' + err.message, icon: 'none' })
+    }
+  },
+
+  // 阻止弹窗内点击冒泡到遮罩层
+  onDialogTap() {},
+
   async onSubmit() {
     if (this.data.submitting) return
     // 多选提交
@@ -205,7 +281,8 @@ Page({
                   quantity: parseInt(sp.quantity),
                   image_url: sp.image_url || ''
                 }
-              })
+              }),
+              tags: [...this.data.selectedTagIds]
             })
             if (this._disableAlert) {
               this._disableAlert()
@@ -260,7 +337,8 @@ Page({
               product_code: this.data.selectedProduct.code,
               quantity: parseInt(this.data.addQuantity),
               image_url: this.data.selectedProduct.image_url || ''
-            }]
+            }],
+            tags: [...this.data.selectedTagIds]
           })
           if (this._disableAlert) {
             this._disableAlert()

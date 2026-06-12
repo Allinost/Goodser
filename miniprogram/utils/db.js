@@ -1391,11 +1391,23 @@ async function inboundSearchImport(data) {
   if (!isBackendMode()) {
     // Mock 模式：更新现有商品数量 + 创建入库日志
     var logItems = []
+    // 如果有传入标签，应用到搜索导入的商品上
+    var incomingTags = data.tags || []
     data.items.forEach(function(item) {
       var product = products.find(function(p) { return p._id === item.product_id })
       if (product) {
         product.quantity += item.quantity
         product.updated_at = new Date().toLocaleString()
+        // 合并标签：保留已有标签，追加新标签（去重）
+        if (incomingTags.length > 0) {
+          var existingTags = product.tags || []
+          incomingTags.forEach(function(tid) {
+            if (existingTags.indexOf(tid) === -1) {
+              existingTags.push(tid)
+            }
+          })
+          product.tags = existingTags
+        }
       }
       logItems.push({
         product_id: item.product_id,

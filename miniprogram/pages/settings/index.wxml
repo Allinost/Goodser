@@ -108,13 +108,16 @@
     </view>
 
     <!-- 上次同步时间 -->
-    <view class="settings-item cache-stats" wx:if="{{lastSyncTime}}">
+    <view class="settings-item sync-detail-item" wx:if="{{lastSyncTime}}" bindtap="onViewLastSyncDetail">
       <view class="settings-left">
         <text class="settings-icon">🕐</text>
         <view class="settings-label-group">
           <text class="settings-label">上次全量同步</text>
           <text class="settings-hint">{{lastSyncTime}}</text>
         </view>
+      </view>
+      <view class="settings-right">
+        <text class="settings-arrow">›</text>
       </view>
     </view>
   </view>
@@ -253,6 +256,71 @@
       </view>
       <view class="settings-right">
         <text class="settings-value">v1.0.0</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 全量同步详情弹窗 -->
+  <view class="sync-detail-mask" wx:if="{{showSyncDetail}}" bindtap="onSyncDetailMaskTap">
+    <view class="sync-detail-dialog" catchtap="">
+      <view class="sync-detail-header">
+        <text class="sync-detail-title">全量同步详情</text>
+        <text class="sync-detail-close" bindtap="hideSyncDetail">✕</text>
+      </view>
+      <view class="sync-detail-body">
+        <view class="sync-detail-row">
+          <text class="sdr-label">同步时间</text>
+          <text class="sdr-value">{{syncDetailForShow.syncTime}}</text>
+        </view>
+        <view class="sync-detail-divider"></view>
+        <view class="sync-detail-section-title">汇总统计</view>
+        <view class="sync-detail-grid">
+          <view class="sdg-item">
+            <text class="sdg-value">{{syncDetailForShow.totalInventories}}</text>
+            <text class="sdg-label">库存目录</text>
+          </view>
+          <view class="sdg-item">
+            <text class="sdg-value">{{syncDetailForShow.totalProducts}}</text>
+            <text class="sdg-label">商品总数</text>
+          </view>
+          <view class="sdg-item">
+            <text class="sdg-value">{{syncDetailForShow.totalOrders}}</text>
+            <text class="sdg-label">出库单</text>
+          </view>
+          <view class="sdg-item">
+            <text class="sdg-value">{{syncDetailForShow.totalLogs}}</text>
+            <text class="sdg-label">入库日志</text>
+          </view>
+          <view class="sdg-item">
+            <text class="sdg-value">{{syncDetailForShow.tagCount}}</text>
+            <text class="sdg-label">标签</text>
+          </view>
+          <view class="sdg-item">
+            <text class="sdg-value">{{syncDetailForShow.statusCodeCount}}</text>
+            <text class="sdg-label">状态编码</text>
+          </view>
+          <view class="sdg-item">
+            <text class="sdg-value">{{syncDetailForShow.whitelistCount}}</text>
+            <text class="sdg-label">白名单人数</text>
+          </view>
+        </view>
+        <view class="sync-detail-divider" wx:if="{{syncDetailForShow.invDetails.length > 0}}"></view>
+        <view class="sync-detail-section-title" wx:if="{{syncDetailForShow.invDetails.length > 0}}">各仓库明细</view>
+        <view class="sync-detail-inv-list" wx:if="{{syncDetailForShow.invDetails.length > 0}}">
+          <view class="sdi-item" wx:for="{{syncDetailForShow.invDetails}}" wx:key="name">
+            <view class="sdi-header">
+              <text class="sdi-name">📦 {{item.name}}</text>
+            </view>
+            <view class="sdi-stats">
+              <text class="sdi-stat">商品: {{item.productCount}} 个</text>
+              <text class="sdi-stat">出库单: {{item.orderCount}} 个</text>
+              <text class="sdi-stat">入库日志: {{item.logCount}} 条</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="sync-detail-footer">
+        <view class="btn btn-primary sync-detail-btn" bindtap="hideSyncDetail">关闭</view>
       </view>
     </view>
   </view>

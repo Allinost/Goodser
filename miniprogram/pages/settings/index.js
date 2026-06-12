@@ -33,7 +33,9 @@ Page({
     // 全量同步状态
     syncing: false,
     syncProgress: '',
-    lastSyncTime: ''
+    lastSyncTime: '',
+    lastSyncDetail: null,
+    showSyncDetail: false
   },
 
   onShow() {
@@ -55,10 +57,13 @@ Page({
     var syncInfo = db.getSyncInfo()
     var imgStats = imgCache.getImageStats()
 
-    // 读取上次全量同步时间
+    // 读取上次全量同步时间和详情
     var lastSync = ''
+    var lastSyncDetail = null
     try {
       lastSync = wx.getStorageSync('gs_last_full_sync') || ''
+      var rawDetail = wx.getStorageSync('gs_last_full_sync_detail')
+      if (rawDetail) lastSyncDetail = JSON.parse(rawDetail)
     } catch (e) {}
 
     this.setData({
@@ -77,7 +82,8 @@ Page({
       syncInfo: syncInfo,
       imageCacheCount: imgStats.count,
       imageCacheKB: imgStats.totalKB.toFixed(1),
-      lastSyncTime: lastSync
+      lastSyncTime: lastSync,
+      lastSyncDetail: lastSyncDetail
     })
   },
 
@@ -293,7 +299,7 @@ Page({
       wx.showLoading({ title: '同步白名单…', mask: true })
       await db.loadWhitelist(true)
 
-      // 5. 记录同步时间
+      // 5. 记录同步时间与详情
       var now = new Date()
       var timeStr = now.getFullYear() + '-' +
         ('0' + (now.getMonth() + 1)).slice(-2) + '-' +
@@ -303,17 +309,44 @@ Page({
         ('0' + now.getSeconds()).slice(-2)
       wx.setStorageSync('gs_last_full_sync', timeStr)
 
-      wx.hideLoading()
-
       // 统计
       var productCount = db.products.length
       var orderCount = db.outboundOrders.length
       var logCount = db.inboundLogs.length
 
+      // 统计各仓库商品数
+      var invDetails = invs.map(function(inv) {
+        var prods = db.products.filter(function(p) { return p.inventory_id === inv._id })
+        var orders = db.outboundOrders.filter(function(o) { return o.inventory_id === inv._id })
+        var logs = db.inboundLogs.filter(function(l) { return l.inventory_id === inv._id })
+        return {
+          name: inv.name,
+          productCount: prods.length,
+          orderCount: orders.length,
+          logCount: logs.length
+        }
+      })
+
+      var syncDetail = {
+        syncTime: timeStr,
+        totalInventories: totalInvs,
+        totalProducts: productCount,
+        totalOrders: orderCount,
+        totalLogs: logCount,
+        tagCount: db.tags.length,
+        statusCodeCount: db.statusCodes.length,
+        whitelistCount: db.whitelist.length,
+        invDetails: invDetails
+      }
+      wx.setStorageSync('gs_last_full_sync_detail', JSON.stringify(syncDetail))
+
+      wx.hideLoading()
+
       this.setData({
         syncing: false,
         syncProgress: '',
-        lastSyncTime: timeStr
+        lastSyncTime: timeStr,
+        lastSyncDetail: syncDetail
       })
 
       wx.showModal({
@@ -447,5 +480,46 @@ Page({
         that._refreshAll()
       }
     })
-  }
+  },
+
+  // ========== 查看上次全量同步详情 ==========
+
+  onViewLastSyncDetail() {
+    var detail = this.data.lastSyncDetail
+    if (!detail) {
+      // 如果没有存储详情，用当前数据作为兜底
+      var invs = db.inventories
+      var invDetails = invs.map(function(inv) {
+        var prods = db.products.filter(function(p) { return p.inventory_id === inv._id })
+        var orders = db.outboundOrders.filter(function(o) { return o.inventory_id === inv._id })
+        var logs = db.inboundLogs.filter(function(l) { return l.inventory_id === inv._id })
+        return {
+          name: inv.name,
+          productCount: prods.length,
+          orderCount: orders.length,
+          logCount: logs.length
+        }
+      })
+      detail = {
+        syncTime: this.data.lastSyncTime || '未知',
+        totalInventories: invs.length,
+        totalProducts: db.products.length,
+        totalOrders: db.outboundOrders.length,
+        totalLogs: db.inboundLogs.length,
+        tagCount: db.tags.length,
+        statusCodeCount: db.statusCodes.length,
+        whitelistCount: db.whitelist.length,
+        invDetails: invDetails
+      }
+    }
+    this.setData({ syncDetailForShow: detail, showSyncDetail: true })
+  },
+
+  hideSyncDetail() {
+    this.setData({ showSyncDetail: false })
+  },
+
+  onSyncDetailMaskTap() {
+    this.hideSyncDetail()
+  },
 })
