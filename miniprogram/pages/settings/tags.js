@@ -73,6 +73,9 @@ Page({
     })
   },
 
+  // 阻止弹窗内点击冒泡到遮罩层
+  onDialogTap() {},
+
   hideDialog() {
     this.setData({ showDialog: false })
   },

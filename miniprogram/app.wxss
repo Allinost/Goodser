@@ -69,6 +69,11 @@ page {
   width: 100%;
 }
 
+.btn-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 /* 标签 */
 .tag {
   display: inline-block;

@@ -28,7 +28,12 @@ Page({
 
     // 图片缓存
     imageCacheCount: 0,
-    imageCacheKB: '0'
+    imageCacheKB: '0',
+
+    // 全量同步状态
+    syncing: false,
+    syncProgress: '',
+    lastSyncTime: ''
   },
 
   onShow() {
@@ -50,6 +55,12 @@ Page({
     var syncInfo = db.getSyncInfo()
     var imgStats = imgCache.getImageStats()
 
+    // 读取上次全量同步时间
+    var lastSync = ''
+    try {
+      lastSync = wx.getStorageSync('gs_last_full_sync') || ''
+    } catch (e) {}
+
     this.setData({
       whitelistCount: db.whitelist.length,
       statusCodeCount: db.statusCodes.length,
@@ -65,7 +76,8 @@ Page({
       cacheStorageKB: cacheStats.storageKB.toFixed(1),
       syncInfo: syncInfo,
       imageCacheCount: imgStats.count,
-      imageCacheKB: imgStats.totalKB.toFixed(1)
+      imageCacheKB: imgStats.totalKB.toFixed(1),
+      lastSyncTime: lastSync
     })
   },
 
@@ -198,31 +210,155 @@ Page({
     this._refreshAll()
   },
 
-  // ========== 强制刷新 ==========
+  // ========== 同步所有数据 ==========
 
-  async onForceRefresh() {
-    if (!db.isCloudReady()) {
-      wx.showToast({ title: '云数据库未连接', icon: 'none' })
+  async onSyncAllData() {
+    var that = this
+
+    // 检查后端模式是否就绪
+    var isCloud = db.isCloudReady()
+    var isNAS = db.isNASReady()
+    if (!isCloud && !isNAS) {
+      wx.showModal({
+        title: '未连接后端',
+        content: '请先在「数据存储」区域开启并连接云数据库或 NAS 私有云。\n\n当前为本地 Mock 模式，无需同步。',
+        showCancel: false
+      })
       return
     }
 
-    wx.showLoading({ title: '强制刷新中…' })
+    var modeName = isCloud ? '云数据库' : 'NAS 私有云'
+
+    wx.showModal({
+      title: '同步所有数据',
+      content: '将从 ' + modeName + ' 全量拉取所有数据，包括：\n\n• 库存目录\n• 全部商品（每个仓库）\n• 出库单\n• 入库日志\n• 标签 / 状态编码 / 白名单\n\n这会清除本地缓存并重新下载，确认继续？',
+      success: function (res) {
+        if (res.confirm) {
+          that._doSyncAllData(isCloud, isNAS)
+        }
+      }
+    })
+  },
+
+  async _doSyncAllData(isCloud, isNAS) {
+    var that = this
+
+    this.setData({ syncing: true, syncProgress: '正在清除缓存…' })
+    wx.showLoading({ title: '正在清除缓存…', mask: true })
+
     try {
+      // 1. 清除所有缓存（包括差量同步标记和 L1/L2）
       await db.forceRefresh('all')
-      // 重新加载核心数据
+
+      // 2. 加载基础数据
+      this.setData({ syncProgress: '正在同步库存目录…' })
+      wx.showLoading({ title: '同步库存目录…', mask: true })
       await db.loadInventories(true)
+
+      var invs = db.inventories
+      var totalInvs = invs.length
+
+      // 3. 对每个仓库，加载商品、出库单、入库日志
+      for (var i = 0; i < totalInvs; i++) {
+        var inv = invs[i]
+        var invName = inv.name || ('仓库 ' + (i + 1))
+        var idx = i + 1
+
+        // 商品
+        this.setData({ syncProgress: '同步商品 [' + idx + '/' + totalInvs + '] ' + invName })
+        wx.showLoading({ title: '同步商品…', mask: true })
+        await db.loadProducts(inv._id, true)
+
+        // 出库单
+        this.setData({ syncProgress: '同步出库单 [' + idx + '/' + totalInvs + '] ' + invName })
+        wx.showLoading({ title: '同步出库单…', mask: true })
+        await db.loadOutboundOrders(inv._id, true)
+
+        // 入库日志
+        this.setData({ syncProgress: '同步入库日志 [' + idx + '/' + totalInvs + '] ' + invName })
+        wx.showLoading({ title: '同步入库日志…', mask: true })
+        await db.loadInboundLogs(inv._id, true)
+      }
+
+      // 4. 加载标签、状态编码、白名单
+      this.setData({ syncProgress: '正在同步标签…' })
+      wx.showLoading({ title: '同步标签…', mask: true })
       await db.loadTags(true)
+
+      this.setData({ syncProgress: '正在同步状态编码…' })
+      wx.showLoading({ title: '同步状态编码…', mask: true })
       await db.loadStatusCodes(true)
+
+      this.setData({ syncProgress: '正在同步白名单…' })
+      wx.showLoading({ title: '同步白名单…', mask: true })
       await db.loadWhitelist(true)
 
+      // 5. 记录同步时间
+      var now = new Date()
+      var timeStr = now.getFullYear() + '-' +
+        ('0' + (now.getMonth() + 1)).slice(-2) + '-' +
+        ('0' + now.getDate()).slice(-2) + ' ' +
+        ('0' + now.getHours()).slice(-2) + ':' +
+        ('0' + now.getMinutes()).slice(-2) + ':' +
+        ('0' + now.getSeconds()).slice(-2)
+      wx.setStorageSync('gs_last_full_sync', timeStr)
+
       wx.hideLoading()
-      wx.showToast({ title: '全部数据已刷新', icon: 'success' })
+
+      // 统计
+      var productCount = db.products.length
+      var orderCount = db.outboundOrders.length
+      var logCount = db.inboundLogs.length
+
+      this.setData({
+        syncing: false,
+        syncProgress: '',
+        lastSyncTime: timeStr
+      })
+
+      wx.showModal({
+        title: '同步完成',
+        content: '所有数据已从后端同步完成！\n\n' +
+          '库存目录：' + totalInvs + ' 个\n' +
+          '商品总数：' + productCount + ' 个\n' +
+          '出库单：' + orderCount + ' 个\n' +
+          '入库日志：' + logCount + ' 条\n' +
+          '标签：' + db.tags.length + ' 个\n' +
+          '状态编码：' + db.statusCodes.length + ' 个\n' +
+          '白名单：' + db.whitelist.length + ' 人',
+        showCancel: false
+      })
+
+      this._refreshAll()
+
     } catch (err) {
       wx.hideLoading()
-      wx.showToast({ title: '刷新失败: ' + (err.message || '未知'), icon: 'none' })
+      this.setData({ syncing: false, syncProgress: '' })
+      console.error('[Settings] 同步失败:', err)
+      wx.showModal({
+        title: '同步失败',
+        content: '错误信息：' + (err.message || '未知错误') + '\n\n请检查网络连接和后端服务状态后重试。',
+        showCancel: false
+      })
+      this._refreshAll()
     }
+  },
 
-    this._refreshAll()
+  // ========== 强制刷新缓存（仅清除本地缓存，不重新拉取） ==========
+
+  onForceRefresh() {
+    var that = this
+    wx.showModal({
+      title: '强制刷新缓存',
+      content: '将清除所有本地缓存标记（L1 内存 + L2 Storage + 差量同步标记）。\n\n下次访问各页面时将自动从后端重新拉取数据。',
+      success: function (res) {
+        if (res.confirm) {
+          db.forceRefresh('all')
+          wx.showToast({ title: '缓存标记已清除', icon: 'success' })
+          that._refreshAll()
+        }
+      }
+    })
   },
 
   // ========== 缓存清理 ==========

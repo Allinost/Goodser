@@ -154,6 +154,12 @@
   font-weight: 500;
 }
 
+.tag-checkmark {
+  font-size: 20rpx;
+  margin-left: 4rpx;
+  font-weight: 700;
+}
+
 .tag-color-dot-sm {
   width: 16rpx;
   height: 16rpx;

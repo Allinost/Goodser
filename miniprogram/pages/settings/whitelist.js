@@ -11,6 +11,10 @@ Page({
     this.setData({ whitelist: db.whitelist })
   },
 
+  onShow() {
+    this.setData({ whitelist: [...db.whitelist] })
+  },
+
   onAddMember() {
     this.setData({ showAddDialog: true, searchKeyword: '' })
   },
@@ -30,6 +34,9 @@ Page({
     }
     wx.showToast({ title: '搜索功能开发中', icon: 'none' })
   },
+
+  // 阻止弹窗内点击冒泡到遮罩层
+  onDialogTap() {},
 
   onRemoveMember(e) {
     const id = e.currentTarget.dataset.id

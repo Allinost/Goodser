@@ -225,7 +225,9 @@ async function allocateSeq(event) {
 // ========== 入库操作 ==========
 
 async function inboundSingle(event, openid) {
-  const { inventory_id, product: productData } = event
+  const { inventory_id, order_no, ...productData } = event
+  delete productData.action  // 移除 action 字段
+  productData.inventory_id = inventory_id  // 补回解构时被抽走的 inventory_id
 
   // 创建商品
   const productRes = await createProduct(productData, openid)
@@ -250,11 +252,12 @@ async function inboundSingle(event, openid) {
 }
 
 async function inboundBatch(event, openid) {
-  const { inventory_id, products: productList } = event
+  const { inventory_id, items: productList, order_no, remark } = event
   const results = []
   const logItems = []
 
   for (const p of productList) {
+    p.inventory_id = inventory_id  // 补回事件级 inventory_id
     const res = await createProduct(p, openid)
     if (res.code === 0) {
       results.push(res.data)
@@ -271,9 +274,9 @@ async function inboundBatch(event, openid) {
   if (logItems.length > 0) {
     await createInboundLog({
       inventory_id,
-      order_no: event.order_no,
+      order_no,
       type: 'batch',
-      remark: event.remark || '',
+      remark: remark || '',
       items: logItems
     }, openid)
   }
@@ -282,53 +285,46 @@ async function inboundBatch(event, openid) {
 }
 
 async function inboundSearchImport(event, openid) {
-  const { inventory_id, product_id, quantity, new_main_zone, new_sub_zone, new_status_code } = event
+  const { inventory_id, items, order_no, remark } = event
 
-  // 更新库存
-  await db.collection('products').doc(product_id).update({
-    data: {
-      quantity: _.inc(quantity),
-      updated_at: db.serverDate()
+  for (const item of items) {
+    const { product_id, quantity } = item
+
+    // 更新库存
+    await db.collection('products').doc(product_id).update({
+      data: {
+        quantity: _.inc(quantity),
+        updated_at: db.serverDate()
+      }
+    })
+
+    // 更新编码中的数量段
+    const product = await db.collection('products').doc(product_id).get()
+    const newQty = product.data.quantity
+
+    // 重新生成编码中的数量段
+    const parts = product.data.code.split('-')
+    if (parts.length >= 4) {
+      parts[3] = String(newQty).padStart(4, '0')
     }
-  })
-
-  // 更新编码（如果改变了分区或状态）
-  const product = await db.collection('products').doc(product_id).get()
-  const mainZone = new_main_zone || product.data.main_zone
-  const subZone = new_sub_zone || product.data.sub_zone
-  const statusCode = new_status_code || product.data.status_code
-  const newQty = product.data.quantity + quantity
-
-  // 重新生成编码中的数量段
-  const parts = product.data.code.split('-')
-  parts[3] = String(newQty).padStart(4, '0')
-  parts[4] = statusCode
-  if (new_main_zone) parts[0] = new_main_zone
-  if (new_sub_zone) parts[1] = new_sub_zone
-
-  await db.collection('products').doc(product_id).update({
-    data: {
-      code: parts.join('-'),
-      main_zone: mainZone,
-      sub_zone: subZone,
-      status_code: statusCode
-    }
-  })
+    await db.collection('products').doc(product_id).update({
+      data: { code: parts.join('-') }
+    })
+  }
 
   // 创建入库日志
-  const latestProduct = await db.collection('products').doc(product_id).get()
   await createInboundLog({
     inventory_id,
-    order_no: event.order_no,
+    order_no,
     type: 'search',
-    remark: event.remark || '',
-    items: [{
-      product_id,
-      product_name: latestProduct.data.name,
-      product_code: latestProduct.data.code,
-      quantity,
-      image_url: latestProduct.data.image_url || ''
-    }]
+    remark: remark || '',
+    items: items.map(item => ({
+      product_id: item.product_id,
+      product_name: item.product_name,
+      product_code: item.product_code,
+      quantity: item.quantity,
+      image_url: item.image_url || ''
+    }))
   }, openid)
 
   return { code: 0, data: { updated: true } }

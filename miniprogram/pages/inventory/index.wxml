@@ -6,6 +6,7 @@
       <text class="selector-arrow">▼</text>
     </view>
     <view class="top-actions">
+      <view class="top-btn top-btn-refresh" bindtap="onPullDownRefresh">🔄</view>
       <view class="top-btn" bindtap="onAddInventory">+ 新增</view>
       <view class="top-btn" bindtap="onRenameInventory">重命名</view>
       <view class="top-btn top-btn-danger" bindtap="onDeleteInventory">删除</view>
@@ -71,7 +72,7 @@
 
   <!-- 库存目录选择弹窗 -->
   <view class="picker-mask" wx:if="{{showPicker}}" bindtap="hideInventoryPicker">
-    <view class="picker-panel" catchtap="">
+    <view class="picker-panel" catchtap="onDialogTap">
       <view class="picker-header">
         <text class="picker-title">选择库存目录</text>
         <text class="picker-close" bindtap="hideInventoryPicker">✕</text>
@@ -93,7 +94,7 @@
 
   <!-- 筛选弹窗 -->
   <view class="picker-mask" wx:if="{{showFilter}}" bindtap="hideFilter">
-    <view class="picker-panel filter-panel" catchtap="">
+    <view class="picker-panel filter-panel" catchtap="onDialogTap">
       <view class="picker-header">
         <text class="picker-title">筛选条件</text>
         <text class="picker-close" bindtap="hideFilter">✕</text>
@@ -155,7 +156,7 @@
 
   <!-- 新增库存目录弹窗 -->
   <view class="picker-mask dialog-mask" wx:if="{{showAddDialog}}" bindtap="hideAddDialog">
-    <view class="dialog" catchtap="">
+    <view class="dialog" catchtap="onDialogTap">
       <view class="dialog-title">新增库存目录</view>
       <input class="dialog-input" placeholder="请输入目录名称" value="{{newInventoryName}}" bindinput="onNewNameInput" adjust-position="{{false}}" />
       <view class="dialog-actions">
@@ -167,7 +168,7 @@
 
   <!-- 重命名库存目录弹窗 -->
   <view class="picker-mask dialog-mask" wx:if="{{showRenameDialog}}" bindtap="hideRenameDialog">
-    <view class="dialog" catchtap="">
+    <view class="dialog" catchtap="onDialogTap">
       <view class="dialog-title">重命名库存目录</view>
       <input class="dialog-input" placeholder="请输入新名称" value="{{renameInventoryName}}" bindinput="onRenameInput" adjust-position="{{false}}" />
       <view class="dialog-actions">

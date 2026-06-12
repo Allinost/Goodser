@@ -136,3 +136,28 @@
 .cache-stats:active {
   background: transparent;
 }
+
+/* 全量同步按钮 */
+.sync-all-item {
+  border-left: 6rpx solid #52c41a;
+}
+
+.sync-all-item .settings-label {
+  color: #52c41a;
+  font-weight: 600;
+}
+
+/* 加载动画 */
+.loading-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.sync-progress {
+  font-size: 26rpx;
+  color: #1890ff;
+}

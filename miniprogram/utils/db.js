@@ -242,15 +242,27 @@ function _cloudRead(collectionName) {
 async function _cloudCall(action, data) {
   if (!_cloudReady) throw new Error('云开发未就绪')
   data = data || {}
-  var res = await wx.cloud.callFunction({
-    name: 'goodser',
-    data: Object.assign({ action: action }, data)
-  })
-  if (res.result && res.result.code !== 0) {
-    throw new Error(res.result.message || '操作失败')
+  try {
+    var res = await wx.cloud.callFunction({
+      name: 'goodser',
+      data: Object.assign({ action: action }, data)
+    })
+    if (res.result && res.result.code !== 0) {
+      throw new Error(res.result.message || '操作失败')
+    }
+    return res.result.data
+  } catch (err) {
+    var errMsg = err.message || ''
+    var errCode = err.errCode || ''
+    // 云函数未部署 (-504002)
+    if (errCode === -504002 || errMsg.indexOf('-504002') !== -1 || errMsg.indexOf('FUNCTION_NOT_FOUND') !== -1) {
+      throw new Error('云函数"goodser"未部署，请在微信开发者工具中右键 miniprogram/cloud/functions/goodser → 上传并部署')
+    }
+    // 其他云函数错误直接抛出
+    throw err
   }
-  return res.result.data
 }
+
 
 // ========== 双层缓存核心 ==========
 

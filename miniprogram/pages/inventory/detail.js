@@ -22,6 +22,7 @@ Page({
 
   onLoad(options) {
     this._productId = options.id
+    this._inventoryId = options.inv_id || ''
     this.loadProduct()
   },
 
@@ -30,15 +31,72 @@ Page({
   },
 
   loadProduct() {
-    const product = db.products.find(p => p._id === this._productId)
+    var that = this
+    var product = db.products.find(function(p) { return p._id === that._productId })
     if (product) {
-      this.setData({
-        product,
-        statusLabel: util.getStatusLabel(product.status_code),
-        statusTagClass: util.getStatusTagClass(product.status_code)
-      })
-      this.loadProductTags()
+      this._renderProduct(product)
+      return
     }
+    // 商品不在本地缓存，尝试从后端加载
+    if (!db.isBackendMode || !db.isBackendMode()) {
+      this.setData({ product: {} })
+      return
+    }
+    // 如果有 inventory_id，直接加载该仓库的产品
+    if (this._inventoryId) {
+      wx.showLoading({ title: '加载中…' })
+      db.loadProducts(this._inventoryId, true).then(function() {
+        wx.hideLoading()
+        var p = db.products.find(function(p2) { return p2._id === that._productId })
+        if (p) {
+          that._renderProduct(p)
+        } else {
+          that._loadAllInventories()
+        }
+      }).catch(function() {
+        wx.hideLoading()
+        that._loadAllInventories()
+      })
+      return
+    }
+    // 没有 inventory_id：遍历所有库存目录查找
+    this._loadAllInventories()
+  },
+
+  _loadAllInventories() {
+    var that = this
+    var invs = db.inventories
+    if (invs.length === 0) {
+      this.setData({ product: {} })
+      wx.showToast({ title: '没有可用的库存目录', icon: 'none' })
+      return
+    }
+    wx.showLoading({ title: '搜索中…' })
+    var promises = invs.map(function(inv) {
+      return db.loadProducts(inv._id, true).catch(function() { return null })
+    })
+    Promise.all(promises).then(function() {
+      wx.hideLoading()
+      var p = db.products.find(function(p2) { return p2._id === that._productId })
+      if (p) {
+        that._renderProduct(p)
+      } else {
+        that.setData({ product: {} })
+        wx.showToast({ title: '商品未找到', icon: 'none' })
+      }
+    }).catch(function() {
+      wx.hideLoading()
+      that.setData({ product: {} })
+    })
+  },
+
+  _renderProduct(product) {
+    this.setData({
+      product: product,
+      statusLabel: util.getStatusLabel(product.status_code),
+      statusTagClass: util.getStatusTagClass(product.status_code)
+    })
+    this.loadProductTags()
   },
 
   loadProductTags() {
@@ -153,8 +211,12 @@ Page({
   },
 
   onEdit() {
-    wx.navigateTo({ url: `/pages/inventory/edit?id=${this.data.product._id}` })
+    var prod = this.data.product
+    wx.navigateTo({ url: `/pages/inventory/edit?id=${prod._id}&inv_id=${prod.inventory_id || ''}` })
   },
+
+  // 阻止弹窗内点击冒泡到遮罩层
+  onDialogTap() {},
 
   onDelete() {
     const product = this.data.product
@@ -177,10 +239,18 @@ Page({
             })
             return
           }
-          // 通过 API 持久化删除
-          await db.deleteProduct(product._id)
-          wx.showToast({ title: '删除成功', icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 1500)
+          wx.showLoading({ title: '删除中...', mask: true })
+          try {
+            // 通过 API 持久化删除
+            await db.deleteProduct(product._id)
+            wx.hideLoading()
+            wx.showToast({ title: '删除成功', icon: 'success' })
+            setTimeout(() => wx.navigateBack(), 1200)
+          } catch (err) {
+            wx.hideLoading()
+            console.error('[删除商品] 失败:', err)
+            wx.showToast({ title: '删除失败: ' + (err.message || '未知错误'), icon: 'none', duration: 2500 })
+          }
         }
       }
     })

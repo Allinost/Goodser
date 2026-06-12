@@ -13,6 +13,10 @@ Page({
     this.setData({ statusCodes: db.statusCodes })
   },
 
+  onShow() {
+    this.setData({ statusCodes: [...db.statusCodes] })
+  },
+
   onAddCode() {
     this.setData({
       showAddDialog: true,
@@ -21,6 +25,9 @@ Page({
       codeError: ''
     })
   },
+
+  // 阻止弹窗内点击冒泡到遮罩层
+  onDialogTap() {},
 
   hideAddDialog() {
     this.setData({ showAddDialog: false, codeError: '' })

@@ -80,7 +80,7 @@
 
   <!-- 筛选弹窗 -->
   <view class="picker-mask" wx:if="{{showFilter}}" bindtap="hideFilter">
-    <view class="picker-panel" catchtap="">
+    <view class="picker-panel" catchtap="onDialogTap">
       <view class="picker-header">
         <text class="picker-title">筛选条件</text>
         <text class="picker-close" bindtap="hideFilter">✕</text>

@@ -43,14 +43,22 @@ Page({
       confirmColor: '#ff4d4f',
       success: async (res) => {
         if (res.confirm) {
-          // 通过 API 取消（后端恢复库存 + 更新状态）
-          if (order.type === 'outbound') {
-            await db.cancelOutbound(order._id)
-          } else {
-            await db.cancelReserve(order._id)
+          wx.showLoading({ title: '处理中...', mask: true })
+          try {
+            // 通过 API 取消（后端恢复库存 + 更新状态）
+            if (order.type === 'outbound') {
+              await db.cancelOutbound(order._id)
+            } else {
+              await db.cancelReserve(order._id)
+            }
+            wx.hideLoading()
+            wx.showToast({ title: `${action}成功`, icon: 'success' })
+            setTimeout(() => wx.navigateBack(), 1200)
+          } catch (err) {
+            wx.hideLoading()
+            console.error('[出库] 取消失败:', err)
+            wx.showToast({ title: `${action}失败: ` + (err.message || '未知错误'), icon: 'none', duration: 2500 })
           }
-          wx.showToast({ title: `${action}成功`, icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 1500)
         }
       }
     })
@@ -65,20 +73,26 @@ Page({
       content: isOutbound ? '确认出库后将扣减库存并归档此出库单' : '准备出库后将生成对应的出库单并扣减库存',
       success: async (res) => {
         if (res.confirm) {
-          if (isOutbound) {
-            // 通过 API 确认出库
-            await db.confirmOutbound(order._id)
-          } else {
-            // 预留单转为实际出库
-            await db.reserveToOutbound(order._id, {
-              inventory_id: order.inventory_id,
-              order_info: order.order_info || '',
-              remark: order.remark || '',
-              items: order.items || []
-            })
+          wx.showLoading({ title: '处理中...', mask: true })
+          try {
+            if (isOutbound) {
+              await db.confirmOutbound(order._id)
+            } else {
+              await db.reserveToOutbound(order._id, {
+                inventory_id: order.inventory_id,
+                order_info: order.order_info || '',
+                remark: order.remark || '',
+                items: order.items || []
+              })
+            }
+            wx.hideLoading()
+            wx.showToast({ title: `${action}成功`, icon: 'success' })
+            setTimeout(() => wx.navigateBack(), 1200)
+          } catch (err) {
+            wx.hideLoading()
+            console.error('[出库] 确认失败:', err)
+            wx.showToast({ title: `${action}失败: ` + (err.message || '未知错误'), icon: 'none', duration: 2500 })
           }
-          wx.showToast({ title: `${action}成功`, icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 1500)
         }
       }
     })

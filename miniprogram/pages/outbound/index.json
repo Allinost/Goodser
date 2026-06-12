@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "出库",
+  "enablePullDownRefresh": true,
   "usingComponents": {
     "order-card": "/components/order-card/order-card",
     "empty-state": "/components/empty-state/empty-state"

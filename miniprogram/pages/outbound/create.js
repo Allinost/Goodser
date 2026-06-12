@@ -13,20 +13,40 @@ Page({
     selectedItems: [],
     // 多选模式
     multiSelectMode: false,
-    checkedProductIds: []
+    checkedProductIds: [],
+    submitting: false
   },
 
   onLoad() {
-    wx.enableAlertBeforeUnload({
-      message: '当前页面有未保存的修改，确定要离开吗？'
-    })
+    this.refreshInventories()
+  },
+
+  onShow() {
+    // 页面显示时确保产品数据最新
+    var inv = this.data.inventories[this.data.inventoryIndex]
+    if (inv && db.isBackendMode && db.isBackendMode()) {
+      db.loadProducts(inv._id, true).catch(function(e) {
+        console.warn('[Outbound] loadProducts 失败:', e)
+      })
+    }
+  },
+
+  refreshInventories() {
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     this.setData({ inventories, inventoryNames })
   },
 
   onInventoryChange(e) {
-    this.setData({ inventoryIndex: e.detail.value })
+    var idx = e.detail.value
+    this.setData({ inventoryIndex: idx })
+    // 切换目录时，从后端加载该目录的商品
+    var inv = this.data.inventories[idx]
+    if (inv && db.isBackendMode && db.isBackendMode()) {
+      db.loadProducts(inv._id, true).catch(function(err) {
+        console.warn('[Outbound] loadProducts 失败:', err)
+      })
+    }
   },
 
   onProductSearch(e) {
@@ -36,6 +56,10 @@ Page({
       return
     }
     const inventory = this.data.inventories[this.data.inventoryIndex]
+    if (!inventory) {
+      wx.showToast({ title: '请先选择目录', icon: 'none' })
+      return
+    }
     const results = db.products.filter(p =>
       p.inventory_id === inventory._id &&
       (p.name.toLowerCase().includes(keyword) || p.code.toLowerCase().includes(keyword))
@@ -96,6 +120,7 @@ Page({
       selectedItems: [...this.data.selectedItems, newItem],
       showSearchResults: false
     })
+    this.enableUnloadAlert()
   },
 
   onToggleMultiSelect() {
@@ -127,6 +152,7 @@ Page({
       checkedProductIds: []
     })
     if (newItems.length > 0) {
+      this.enableUnloadAlert()
       wx.showToast({ title: `已添加 ${newItems.length} 种商品`, icon: 'success' })
     }
   },
@@ -164,7 +190,16 @@ Page({
     this.setData({ orderRemark: e.detail.value })
   },
 
-  onSubmit() {
+  enableUnloadAlert() {
+    if (this._alertEnabled) return
+    this._alertEnabled = true
+    this._disableAlert = wx.enableAlertBeforeUnload({
+      message: '当前页面有未保存的修改，确定要离开吗？'
+    })
+  },
+
+  async onSubmit() {
+    if (this.data.submitting) return
     if (this.data.selectedItems.length === 0) {
       wx.showToast({ title: '请添加出库商品', icon: 'none' })
       return
@@ -184,9 +219,13 @@ Page({
     wx.showModal({
       title: '确认新建出库单',
       content: `目录: ${inventory.name}\n共 ${this.data.selectedItems.length} 种商品`,
-      success: async (res) => {
-        if (res.confirm) {
-          // 生成单号：用目录名缩写替代OUT
+      success: async (modalRes) => {
+        if (!modalRes.confirm) return
+
+        this.setData({ submitting: true })
+        wx.showLoading({ title: '创建中...', mask: true })
+
+        try {
           const prefix = inventory.name.substring(0, 2).toUpperCase()
           const orderNo = util.generateOrderNo(prefix)
           // 通过 API 创建出库单（后端处理库存扣减）
@@ -206,8 +245,20 @@ Page({
               image_url: i.image_url
             }))
           })
+
+          if (this._disableAlert) {
+            this._disableAlert()
+            this._disableAlert = null
+          }
+
+          wx.hideLoading()
           wx.showToast({ title: '创建成功', icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 1500)
+          setTimeout(() => wx.navigateBack(), 1200)
+        } catch (err) {
+          wx.hideLoading()
+          this.setData({ submitting: false })
+          console.error('[出库] 创建失败:', err)
+          wx.showToast({ title: '创建失败: ' + (err.message || '未知错误'), icon: 'none', duration: 2500 })
         }
       }
     })

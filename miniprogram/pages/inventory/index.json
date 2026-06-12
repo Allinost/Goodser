@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "库存",
+  "enablePullDownRefresh": true,
   "usingComponents": {
     "search-bar": "/components/search-bar/search-bar",
     "product-card": "/components/product-card/product-card",

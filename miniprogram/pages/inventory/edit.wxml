@@ -105,12 +105,12 @@
 
   <!-- 底部按钮 -->
   <view class="bottom-bar">
-    <view class="btn btn-primary btn-block" bindtap="onSave">保存修改</view>
+    <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="{{submitting ? '' : 'onSave'}}">{{submitting ? '保存中...' : '保存修改'}}</view>
   </view>
 
   <!-- 新建标签弹窗 -->
   <view class="picker-mask" wx:if="{{showNewTagDialog}}" bindtap="hideNewTagDialog">
-    <view class="inline-dialog" catchtap="">
+    <view class="inline-dialog" catchtap="onDialogTap">
       <view class="inline-dialog-title">新建标签</view>
       <view class="form-group">
         <text class="form-label">标签名称</text>

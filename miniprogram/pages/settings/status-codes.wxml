@@ -20,7 +20,7 @@
 
   <!-- 添加编码弹窗 -->
   <view class="picker-mask" wx:if="{{showAddDialog}}" bindtap="hideAddDialog">
-    <view class="dialog" catchtap="">
+    <view class="dialog" catchtap="onDialogTap">
       <view class="dialog-title">添加自定义状态编码</view>
       <view class="form-group">
         <text class="form-label">编码字母</text>

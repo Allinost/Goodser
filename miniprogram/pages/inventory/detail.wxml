@@ -88,7 +88,7 @@
 
   <!-- 标签选择弹窗 -->
   <view class="picker-mask" wx:if="{{showTagPicker}}" bindtap="hideTagPicker">
-    <view class="dialog" catchtap="">
+    <view class="dialog" catchtap="onDialogTap">
       <view class="dialog-title">选择标签</view>
       <view class="tag-dialog-list">
         <view
@@ -113,7 +113,7 @@
 
   <!-- 新建标签弹窗 -->
   <view class="picker-mask" wx:if="{{showNewTagDialog}}" bindtap="hideNewTagDialog">
-    <view class="dialog" catchtap="">
+    <view class="dialog" catchtap="onDialogTap">
       <view class="dialog-title">新建标签</view>
       <view class="form-group">
         <text class="form-label">标签名称</text>

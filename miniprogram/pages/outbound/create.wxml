@@ -80,6 +80,6 @@
 
   <!-- 底部按钮 -->
   <view class="bottom-bar">
-    <view class="btn btn-primary btn-block" bindtap="onSubmit">确认新建出库单</view>
+    <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="{{submitting ? '' : 'onSubmit'}}">{{submitting ? '创建中...' : '确认新建出库单'}}</view>
   </view>
 </view>

@@ -22,7 +22,7 @@
   <view class="card">
     <view class="section-title">入库商品</view>
     <view class="item-list">
-      <view class="inbound-item" wx:for="{{log.items}}" wx:key="product_id">
+      <view class="inbound-item" wx:for="{{log.items}}" wx:key="product_id" bindtap="onProductTap" data-id="{{item.product_id}}">
         <image class="item-image" src="{{item.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
         <view class="item-info">
           <text class="item-name">{{item.product_name}}</text>
@@ -45,7 +45,7 @@
 
   <!-- 编辑弹窗 -->
   <view class="picker-mask" wx:if="{{showEditModal}}" bindtap="hideEditModal">
-    <view class="edit-panel" catchtap="">
+    <view class="edit-panel" catchtap="onDialogTap">
       <view class="edit-panel-header">
         <text class="edit-panel-title">编辑入库单</text>
         <text class="edit-panel-close" bindtap="hideEditModal">✕</text>

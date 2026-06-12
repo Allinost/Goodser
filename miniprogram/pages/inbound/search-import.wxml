@@ -114,6 +114,6 @@
 
   <!-- 底部按钮 -->
   <view class="bottom-bar" wx:if="{{!multiSelectMode && (selectedProduct || selectedProducts.length > 0)}}">
-    <view class="btn btn-primary btn-block" bindtap="onSubmit">确认导入入库</view>
+    <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="{{submitting ? '' : 'onSubmit'}}">{{submitting ? '导入中...' : '确认导入入库'}}</view>
   </view>
 </view>

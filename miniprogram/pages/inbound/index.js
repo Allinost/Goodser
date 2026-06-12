@@ -26,16 +26,48 @@ Page({
   onLoad() {
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
+    const index = inventories.length > 0 ? 0 : 0
+    const currentInventoryId = inventories.length > 0 ? inventories[0]._id : ''
     this.setData({
       inventories,
       inventoryNames,
-      currentInventoryId: inventories[0]._id,
-      inventoryIndex: 0
+      currentInventoryId: currentInventoryId,
+      inventoryIndex: index
     })
   },
 
   onShow() {
+    // 刷新库存目录列表（可能从库存页面新增/删除/重命名了目录）
+    const inventories = db.inventories
+    const inventoryNames = inventories.map(i => i.name)
+    // 确保当前目录索引仍然有效
+    let index = this.data.inventoryIndex
+    if (index >= inventories.length) index = Math.max(0, inventories.length - 1)
+    const currentInventoryId = inventories.length > 0 ? inventories[index]._id : ''
+    this.setData({
+      inventories: inventories,
+      inventoryNames: inventoryNames,
+      inventoryIndex: index,
+      currentInventoryId: currentInventoryId
+    })
     this.loadLogs()
+  },
+
+  onPullDownRefresh() {
+    // 刷新库存目录列表
+    const inventories = db.inventories
+    const inventoryNames = inventories.map(i => i.name)
+    let index = this.data.inventoryIndex
+    if (index >= inventories.length) index = Math.max(0, inventories.length - 1)
+    const currentInventoryId = inventories.length > 0 ? inventories[index]._id : ''
+    this.setData({
+      inventories: inventories,
+      inventoryNames: inventoryNames,
+      inventoryIndex: index,
+      currentInventoryId: currentInventoryId
+    })
+    this.loadLogs()
+    wx.stopPullDownRefresh()
   },
 
   onInventoryChange(e) {

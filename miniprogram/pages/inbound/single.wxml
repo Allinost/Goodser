@@ -104,12 +104,13 @@
           class="tag-select-item {{selectedTagIds.indexOf(item._id) > -1 ? 'tag-select-item-active' : ''}}"
           wx:for="{{allTags}}"
           wx:key="_id"
-          style="{{selectedTagIds.indexOf(item._id) > -1 ? 'background: ' + item.color + '20; color: ' + item.color + '; border-color: ' + item.color + '40' : ''}}"
+          style="{{selectedTagIds.indexOf(item._id) > -1 ? 'background: ' + item.color + '20; color: ' + item.color + '; border-color: ' + item.color + '' : ''}}"
           bindtap="onToggleTag"
           data-id="{{item._id}}"
         >
           <view class="tag-color-dot-sm" style="background: {{item.color}}"></view>
           <text>{{item.name}}</text>
+          <text class="tag-checkmark" wx:if="{{selectedTagIds.indexOf(item._id) > -1}}">✓</text>
         </view>
         <view class="tag-inline-add" bindtap="onInlineAddTag">+ 新建</view>
       </view>
@@ -118,12 +119,12 @@
 
   <!-- 底部按钮 -->
   <view class="bottom-bar">
-    <view class="btn btn-primary btn-block" bindtap="onSubmit">确认入库</view>
+    <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="{{submitting ? '' : 'onSubmit'}}">{{submitting ? '入库中...' : '确认入库'}}</view>
   </view>
 
   <!-- 新建标签弹窗 -->
   <view class="picker-mask" wx:if="{{showNewTagDialog}}" bindtap="hideNewTagDialog">
-    <view class="inline-dialog" catchtap="">
+    <view class="inline-dialog" catchtap="onDialogTap">
       <view class="inline-dialog-title">新建标签</view>
       <view class="form-group">
         <text class="form-label">标签名称</text>

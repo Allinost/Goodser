@@ -14,8 +14,8 @@ Page({
     items: [],
     mainZones: util.ZONES,
     subZones: util.ZONES,
-    statusCodes: db.statusCodes,
-    statusCodeLabels: db.statusCodes.map(s => `${s.code} - ${s.label}`),
+    statusCodes: [],
+    statusCodeLabels: [],
     allTags: [],
     // 当前表单
     currentName: '',
@@ -32,37 +32,51 @@ Page({
     showNewTagDialog: false,
     newTagName: '',
     newTagColor: COLOR_OPTIONS[0],
-    colorOptions: COLOR_OPTIONS
+    colorOptions: COLOR_OPTIONS,
+    submitting: false
   },
 
   onLoad() {
-    wx.enableAlertBeforeUnload({
-      message: '当前页面有未保存的修改，确定要离开吗？'
-    })
+    this.refreshFormData()
+  },
+
+  refreshFormData() {
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
+    const statusCodes = [...db.statusCodes]
     this.setData({
       inventories,
       inventoryNames,
-      allTags: [...db.tags]
+      allTags: [...db.tags],
+      statusCodes: statusCodes,
+      statusCodeLabels: statusCodes.map(s => `${s.code} - ${s.label}`)
     })
   },
 
   onInventoryChange(e) {
     this.setData({ inventoryIndex: e.detail.value })
+    this.enableUnloadAlert()
   },
 
   // 表单输入
-  onCurrentNameInput(e) { this.setData({ currentName: e.detail.value }) },
-  onCurrentOriginalPriceInput(e) { this.setData({ currentOriginalPrice: e.detail.value }) },
-  onCurrentMarketPriceInput(e) { this.setData({ currentMarketPrice: e.detail.value }) },
-  onCurrentExpectedPriceInput(e) { this.setData({ currentExpectedPrice: e.detail.value }) },
-  onCurrentQuantityInput(e) { this.setData({ currentQuantity: e.detail.value }) },
-  onCurrentStorageLocationInput(e) { this.setData({ currentStorageLocation: e.detail.value }) },
-  onCurrentRemarkInput(e) { this.setData({ currentRemark: e.detail.value }) },
-  onCurrentMainZoneChange(e) { this.setData({ currentMainZoneIndex: e.detail.value }) },
-  onCurrentSubZoneChange(e) { this.setData({ currentSubZoneIndex: e.detail.value }) },
+  onCurrentNameInput(e) { this.setData({ currentName: e.detail.value }); this.enableUnloadAlert() },
+  onCurrentOriginalPriceInput(e) { this.setData({ currentOriginalPrice: e.detail.value }); this.enableUnloadAlert() },
+  onCurrentMarketPriceInput(e) { this.setData({ currentMarketPrice: e.detail.value }); this.enableUnloadAlert() },
+  onCurrentExpectedPriceInput(e) { this.setData({ currentExpectedPrice: e.detail.value }); this.enableUnloadAlert() },
+  onCurrentQuantityInput(e) { this.setData({ currentQuantity: e.detail.value }); this.enableUnloadAlert() },
+  onCurrentStorageLocationInput(e) { this.setData({ currentStorageLocation: e.detail.value }); this.enableUnloadAlert() },
+  onCurrentRemarkInput(e) { this.setData({ currentRemark: e.detail.value }); this.enableUnloadAlert() },
+  onCurrentMainZoneChange(e) { this.setData({ currentMainZoneIndex: e.detail.value }); this.enableUnloadAlert() },
+  onCurrentSubZoneChange(e) { this.setData({ currentSubZoneIndex: e.detail.value }); this.enableUnloadAlert() },
   onCurrentStatusCodeChange(e) { this.setData({ currentStatusCodeIndex: e.detail.value }) },
+
+  enableUnloadAlert() {
+    if (this._alertEnabled) return
+    this._alertEnabled = true
+    this._disableAlert = wx.enableAlertBeforeUnload({
+      message: '当前页面有未保存的修改，确定要离开吗？'
+    })
+  },
 
   // 标签
   onToggleTag(e) {
@@ -75,6 +89,7 @@ Page({
       currentTagIds.push(tagId)
     }
     this.setData({ currentTagIds })
+    this.enableUnloadAlert()
   },
 
   onInlineAddTag() {
@@ -103,17 +118,24 @@ Page({
       wx.showToast({ title: '标签已存在', icon: 'none' })
       return
     }
-    const result = await db.createTag({
-      name: name,
-      color: this.data.newTagColor
-    })
-    const newTagId = result ? result._id : ('tag_' + Date.now())
-    this.setData({
-      allTags: [...db.tags],
-      currentTagIds: [...this.data.currentTagIds, newTagId],
-      showNewTagDialog: false
-    })
-    wx.showToast({ title: '标签已创建', icon: 'success' })
+    wx.showLoading({ title: '创建中...' })
+    try {
+      const result = await db.createTag({
+        name: name,
+        color: this.data.newTagColor
+      })
+      const newTagId = result ? result._id : ('tag_' + Date.now())
+      this.setData({
+        allTags: [...db.tags],
+        currentTagIds: [...this.data.currentTagIds, newTagId],
+        showNewTagDialog: false
+      })
+      wx.hideLoading()
+      wx.showToast({ title: '标签已创建', icon: 'success' })
+    } catch (err) {
+      wx.hideLoading()
+      wx.showToast({ title: '创建标签失败: ' + err.message, icon: 'none' })
+    }
   },
 
   onAddToBatch() {
@@ -125,6 +147,12 @@ Page({
       wx.showToast({ title: '请输入库存数量', icon: 'none' })
       return
     }
+    if (!this.data.statusCodes || this.data.statusCodes.length === 0) {
+      wx.showToast({ title: '状态编码数据异常，请返回重试', icon: 'none' })
+      return
+    }
+    this.enableUnloadAlert()
+
     // 获取标签名
     const tagNames = this.data.currentTagIds.map(tid => {
       const tag = db.tags.find(t => t._id === tid)
@@ -168,17 +196,31 @@ Page({
     this.setData({ items })
   },
 
-  onSubmit() {
+  // 阻止弹窗内点击冒泡到遮罩层
+  onDialogTap() {},
+
+  async onSubmit() {
+    if (this.data.submitting) return
     if (this.data.items.length === 0) {
       wx.showToast({ title: '请添加商品', icon: 'none' })
       return
     }
     const inventory = this.data.inventories[this.data.inventoryIndex]
+    if (!inventory) {
+      wx.showToast({ title: '请选择入库目录', icon: 'none' })
+      return
+    }
+
     wx.showModal({
       title: '确认批量入库',
       content: `目录: ${inventory.name}\n共 ${this.data.items.length} 件商品`,
-      success: async (res) => {
-        if (res.confirm) {
+      success: async (modalRes) => {
+        if (!modalRes.confirm) return
+
+        this.setData({ submitting: true })
+        wx.showLoading({ title: '入库中...', mask: true })
+
+        try {
           const prefix = inventory.name.substring(0, 2).toUpperCase()
           const orderNo = util.generateOrderNo(prefix)
           // 构建批量入库数据
@@ -207,8 +249,21 @@ Page({
             order_no: orderNo,
             items: batchItems
           })
+
+          // 关闭离开拦截
+          if (this._disableAlert) {
+            this._disableAlert()
+            this._disableAlert = null
+          }
+
+          wx.hideLoading()
           wx.showToast({ title: '入库成功', icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 1500)
+          setTimeout(() => wx.navigateBack(), 1200)
+        } catch (err) {
+          wx.hideLoading()
+          this.setData({ submitting: false })
+          console.error('[批量入库] 失败:', err)
+          wx.showToast({ title: '入库失败: ' + (err.message || '未知错误'), icon: 'none', duration: 2500 })
         }
       }
     })

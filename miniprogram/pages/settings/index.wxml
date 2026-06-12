@@ -82,11 +82,47 @@
     </view>
   </view>
 
+  <!-- 数据同步 -->
+  <view class="section-title">数据同步</view>
+  <view class="settings-group">
+    <!-- 同步所有数据 -->
+    <view class="settings-item sync-all-item" bindtap="onSyncAllData">
+      <view class="settings-left">
+        <text class="settings-icon">🔄</text>
+        <view class="settings-label-group">
+          <text class="settings-label">同步所有数据</text>
+          <text class="settings-hint">从后端（云开发 / NAS 私有云）重新拉取全部数据：目录、商品、出库单、入库日志、标签、状态编码、白名单</text>
+        </view>
+      </view>
+      <view class="settings-right">
+        <text class="settings-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 同步状态 -->
+    <view class="settings-item cache-stats" wx:if="{{syncing}}">
+      <view class="settings-left">
+        <text class="settings-icon loading-icon">⏳</text>
+        <text class="settings-label sync-progress">{{syncProgress}}</text>
+      </view>
+    </view>
+
+    <!-- 上次同步时间 -->
+    <view class="settings-item cache-stats" wx:if="{{lastSyncTime}}">
+      <view class="settings-left">
+        <text class="settings-icon">🕐</text>
+        <view class="settings-label-group">
+          <text class="settings-label">上次全量同步</text>
+          <text class="settings-hint">{{lastSyncTime}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 缓存管理 -->
   <view class="section-title">缓存管理</view>
-
-  <!-- 分级 TTL 开关 -->
   <view class="settings-group">
+    <!-- 分级 TTL 开关 -->
     <view class="settings-item">
       <view class="settings-left">
         <text class="settings-icon">⏱️</text>
@@ -111,13 +147,13 @@
       </view>
     </view>
 
-    <!-- 强制刷新 -->
+    <!-- 强制刷新缓存 -->
     <view class="settings-item" bindtap="onForceRefresh">
       <view class="settings-left">
-        <text class="settings-icon">🔄</text>
+        <text class="settings-icon">🗑️</text>
         <view class="settings-label-group">
-          <text class="settings-label">强制刷新全部数据</text>
-          <text class="settings-hint">跳过所有缓存，从云数据库重新拉取</text>
+          <text class="settings-label">强制刷新缓存</text>
+          <text class="settings-hint">清除本地缓存标记，下次访问页面时重新从后端拉取</text>
         </view>
       </view>
       <view class="settings-right">

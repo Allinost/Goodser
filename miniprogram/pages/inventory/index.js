@@ -43,29 +43,105 @@ Page({
   },
 
   onLoad() {
+    // 确定有效的库存目录 ID
+    var invs = db.inventories
+    var curId = this._resolveCurrentInventoryId(this.data.currentInventoryId, invs)
+
     this.setData({
-      inventories: db.inventories,
+      inventories: invs,
+      currentInventoryId: curId,
       statusCodeOptions: db.statusCodes,
       mainZones: util.ZONES,
       tagOptions: db.tags
     })
     this.setCurrentInventory()
+
+    // Cloud/NAS模式：从后端加载当前目录的商品
+    this._loadFromBackend(curId)
   },
 
   onShow() {
-    // 刷新标签（可能从设置页新增了标签）
-    this.setData({ tagOptions: db.tags })
+    this.refreshAll()
+  },
+
+  onPullDownRefresh() {
+    this.refreshAll(function() {
+      wx.stopPullDownRefresh()
+    })
+  },
+
+  /**
+   * 解析有效的库存目录 ID：如果当前 ID 无效，返回第一个有效 ID
+   */
+  _resolveCurrentInventoryId(curId, invs) {
+    if (curId && invs.length > 0 && !invs.find(function(i) { return i._id === curId })) {
+      return invs[0]._id
+    }
+    if (!curId && invs.length > 0) {
+      return invs[0]._id
+    }
+    return curId || ''
+  },
+
+  /**
+   * 从后端加载产品数据（Cloud/NAS模式）
+   */
+  _loadFromBackend(invId) {
+    if (!invId) return
+    if (!db.isBackendMode || !db.isBackendMode()) return
+    var that = this
+    db.loadProducts(invId, true).then(function() {
+      that.setCurrentInventory()
+    }).catch(function(e) {
+      console.warn('[Inventory] loadProducts 失败，使用本地数据:', e)
+      that.setCurrentInventory()
+    })
+  },
+
+  async refreshAll(callback) {
+    var isBackend = db.isBackendMode && db.isBackendMode()
+    var invs = db.inventories
+    // 解析有效的库存目录 ID
+    var curId = this._resolveCurrentInventoryId(this.data.currentInventoryId, invs)
+
+    this.setData({
+      inventories: invs,
+      currentInventoryId: curId,
+      tagOptions: db.tags,
+      statusCodeOptions: db.statusCodes,
+      mainZones: util.ZONES
+    })
+
+    // Cloud/NAS模式：从数据库强制拉取最新数据
+    if (isBackend && curId) {
+      try {
+        await db.loadProducts(curId, true)
+      } catch (e) {
+        console.warn('[Inventory] loadProducts 失败，使用缓存数据:', e)
+      }
+    }
+
+    this.setCurrentInventory()
+    if (callback) callback()
   },
 
   setCurrentInventory() {
-    const inv = this.data.inventories.find(i => i._id === this.data.currentInventoryId)
-    this.setData({ currentInventory: inv || this.data.inventories[0] })
+    var curId = this.data.currentInventoryId
+    var invs = this.data.inventories
+    var inv = invs.find(function(i) { return i._id === curId })
+    if (!inv && invs.length > 0) {
+      // 当前 ID 无效，回退到第一个目录
+      inv = invs[0]
+      this.setData({ currentInventoryId: inv._id })
+    }
+    this.setData({ currentInventory: inv || {} })
     this.loadProducts()
   },
 
   loadProducts() {
-    const products = db.products.filter(p => p.inventory_id === this.data.currentInventoryId)
-    this.setData({ products })
+    var curId = this.data.currentInventoryId
+    var products = db.products.filter(function(p) { return p.inventory_id === curId })
+    this.setData({ products: products })
     this.applyFilters()
   },
 
@@ -244,7 +320,16 @@ Page({
       filterStatus: '',
       filterTags: []
     })
-    this.setCurrentInventory()
+    // Cloud/NAS模式：切换目录时从后端加载产品数据
+    if (db.isBackendMode && db.isBackendMode()) {
+      db.loadProducts(id, true).then(() => {
+        this.setCurrentInventory()
+      }).catch(() => {
+        this.setCurrentInventory()
+      })
+    } else {
+      this.setCurrentInventory()
+    }
     this.setData({ showPicker: false })
   },
 
@@ -324,6 +409,9 @@ Page({
   // 商品点击
   onProductTap(e) {
     const product = e.detail.product
-    wx.navigateTo({ url: `/pages/inventory/detail?id=${product._id}` })
-  }
+    wx.navigateTo({ url: `/pages/inventory/detail?id=${product._id}&inv_id=${product.inventory_id || ''}` })
+  },
+
+  // 阻止弹窗内点击冒泡到遮罩层
+  onDialogTap() {}
 })

@@ -28,11 +28,29 @@ Page({
     this.loadLog()
   },
 
+  onShow() {
+    // 确保当前仓库的产品已加载
+    var log = this.data.log
+    if (log && log.inventory_id && db.isBackendMode && db.isBackendMode()) {
+      db.loadProducts(log.inventory_id, true).catch(function(e) {
+        console.warn('[LogDetail] loadProducts 失败:', e)
+      })
+    }
+  },
+
   onUnload() {
     // 清理键盘监听，防止页面卸载后残留
     if (this._keyboardListener) {
       wx.offKeyboardHeightChange(this._keyboardListener)
       this._keyboardListener = null
+    }
+  },
+
+  onProductTap(e) {
+    const productId = e.currentTarget.dataset.id
+    if (productId) {
+      var invId = this.data.log ? this.data.log.inventory_id : ''
+      wx.navigateTo({ url: `/pages/inventory/detail?id=${productId}&inv_id=${invId}` })
     }
   },
 
@@ -262,39 +280,51 @@ Page({
     const log = db.inboundLogs.find(l => l._id === this._logId)
     if (!log) return
 
-    // 构建新的 items 数组
-    const newItems = this.data.editItems.map(i => ({
-      product_id: i.product_id,
-      product_name: i.product_name,
-      product_code: i.product_code,
-      quantity: i.quantity,
-      image_url: i.image_url
-    }))
+    wx.showLoading({ title: '保存中...', mask: true })
 
-    // 通过 API 更新入库记录（后端处理库存调整）
-    await db.updateInboundLog(this._logId, {
-      items: newItems,
-      remark: this.data.editRemark.trim()
-    })
+    try {
+      // 构建新的 items 数组
+      const newItems = this.data.editItems.map(i => ({
+        product_id: i.product_id,
+        product_name: i.product_name,
+        product_code: i.product_code,
+        quantity: i.quantity,
+        image_url: i.image_url
+      }))
 
-    // 重新加载展示
-    const updatedLog = db.inboundLogs.find(l => l._id === this._logId) || log
-    const totalQuantity = updatedLog.items.reduce((sum, item) => sum + item.quantity, 0)
-    // 移除键盘监听
-    if (this._keyboardListener) {
-      wx.offKeyboardHeightChange(this._keyboardListener)
-      this._keyboardListener = null
+      // 通过 API 更新入库记录（后端处理库存调整）
+      await db.updateInboundLog(this._logId, {
+        items: newItems,
+        remark: this.data.editRemark.trim()
+      })
+
+      // 重新加载展示
+      const updatedLog = db.inboundLogs.find(l => l._id === this._logId) || log
+      const totalQuantity = updatedLog.items.reduce((sum, item) => sum + item.quantity, 0)
+      // 移除键盘监听
+      if (this._keyboardListener) {
+        wx.offKeyboardHeightChange(this._keyboardListener)
+        this._keyboardListener = null
+      }
+      this.setData({
+        showEditModal: false,
+        keyboardHeight: 0,
+        log: { ...updatedLog },
+        editRemark: updatedLog.remark || '',
+        totalQuantity: totalQuantity
+      })
+
+      wx.hideLoading()
+      wx.showToast({ title: '已保存', icon: 'success' })
+    } catch (err) {
+      wx.hideLoading()
+      console.error('[入库记录] 保存失败:', err)
+      wx.showToast({ title: '保存失败: ' + (err.message || '未知错误'), icon: 'none', duration: 2500 })
     }
-    this.setData({
-      showEditModal: false,
-      keyboardHeight: 0,
-      log: { ...updatedLog },
-      editRemark: updatedLog.remark || '',
-      totalQuantity: totalQuantity
-    })
-
-    wx.showToast({ title: '已保存', icon: 'success' })
   },
+
+  // 阻止弹窗内点击冒泡到遮罩层
+  onDialogTap() {},
 
   onDelete() {
     wx.showModal({
@@ -303,9 +333,17 @@ Page({
       confirmColor: '#ff4d4f',
       success: async (res) => {
         if (res.confirm) {
-          await db.deleteInboundLog(this._logId)
-          wx.showToast({ title: '已删除', icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 1500)
+          wx.showLoading({ title: '删除中...', mask: true })
+          try {
+            await db.deleteInboundLog(this._logId)
+            wx.hideLoading()
+            wx.showToast({ title: '已删除', icon: 'success' })
+            setTimeout(() => wx.navigateBack(), 1200)
+          } catch (err) {
+            wx.hideLoading()
+            console.error('[入库记录] 删除失败:', err)
+            wx.showToast({ title: '删除失败: ' + (err.message || '未知错误'), icon: 'none', duration: 2500 })
+          }
         }
       }
     })

@@ -22,7 +22,7 @@
 
   <!-- 添加成员弹窗 -->
   <view class="picker-mask" wx:if="{{showAddDialog}}" bindtap="hideAddDialog">
-    <view class="dialog" catchtap="">
+    <view class="dialog" catchtap="onDialogTap">
       <view class="dialog-title">添加成员</view>
       <view class="dialog-desc">输入对方微信号搜索添加，或分享小程序邀请对方加入</view>
       <input class="dialog-input" placeholder="请输入微信号" value="{{searchKeyword}}" bindinput="onSearchInput" adjust-position="{{false}}" />
