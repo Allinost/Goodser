@@ -256,6 +256,7 @@ Page({
         selectedTagIds: [...this.data.selectedTagIds, newTagId],
         showNewTagDialog: false
       })
+      this._markDirty()
       wx.hideLoading()
       wx.showToast({ title: '标签已创建', icon: 'success' })
     } catch (err) {

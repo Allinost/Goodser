@@ -115,13 +115,15 @@
   display: flex;
   align-items: center;
   padding: 16rpx 12rpx;
-  border: 2rpx solid #f0f0f0;
+  border: 2rpx dashed #d0d0d0;
   border-radius: 8rpx;
   margin-bottom: 8rpx;
 }
 
 .tag-dialog-item-selected {
+  border-style: solid;
   font-weight: 500;
+  background: #f0f5ff;
 }
 
 .tag-dialog-name {

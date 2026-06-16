@@ -42,7 +42,7 @@ Page({
     if (!productId) return
     var order = db.outboundOrders.find(function(o) { return o._id === this._orderId }.bind(this))
     var invId = order ? order.inventory_id : ''
-    wx.navigateTo({ url: '/pages/inventory/edit?id=' + productId + '&inv_id=' + invId })
+    wx.navigateTo({ url: '/pages/inventory/detail?id=' + productId + '&inv_id=' + invId })
   },
 
   onShow() {

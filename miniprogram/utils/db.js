@@ -527,10 +527,9 @@ async function loadProducts(inventoryId, forceRefresh) {
         if (products[i].inventory_id === inventoryId) products.splice(i, 1)
       }
       products.push.apply(products, allData)
+      _setL1(cacheKey, allData, ttl)
+      _setL2(cacheKey, allData)
     }
-
-    _setL1(cacheKey, allData, ttl)
-    _setL2(cacheKey, allData)
     return allData
   } catch (err) {
     console.error('[DB] loadProducts 失败:', err)
@@ -628,10 +627,12 @@ async function loadTags(forceRefresh) {
       if (!Array.isArray(data)) data = []
     } else return []
 
-    tags.splice(0, tags.length)
-    tags.push.apply(tags, data)
-    _setL1(cacheKey, data, ttl)
-    _setL2(cacheKey, data)
+    if (data && data.length > 0) {
+      tags.splice(0, tags.length)
+      tags.push.apply(tags, data)
+      _setL1(cacheKey, data, ttl)
+      _setL2(cacheKey, data)
+    }
     return data
   } catch (err) {
     console.error('[DB] loadTags 失败:', err)
@@ -666,10 +667,12 @@ async function loadStatusCodes(forceRefresh) {
       if (!Array.isArray(data)) data = []
     } else return []
 
-    statusCodes.splice(0, statusCodes.length)
-    statusCodes.push.apply(statusCodes, data)
-    _setL1(cacheKey, data, ttl)
-    _setL2(cacheKey, data)
+    if (data && data.length > 0) {
+      statusCodes.splice(0, statusCodes.length)
+      statusCodes.push.apply(statusCodes, data)
+      _setL1(cacheKey, data, ttl)
+      _setL2(cacheKey, data)
+    }
     return data
   } catch (err) {
     console.error('[DB] loadStatusCodes 失败:', err)
@@ -704,10 +707,12 @@ async function loadInventories(forceRefresh) {
       if (!Array.isArray(data)) data = []
     } else return []
 
-    inventories.splice(0, inventories.length)
-    inventories.push.apply(inventories, data)
-    _setL1(cacheKey, data, ttl)
-    _setL2(cacheKey, data)
+    if (data && data.length > 0) {
+      inventories.splice(0, inventories.length)
+      inventories.push.apply(inventories, data)
+      _setL1(cacheKey, data, ttl)
+      _setL2(cacheKey, data)
+    }
     return data
   } catch (err) {
     console.error('[DB] loadInventories 失败:', err)
@@ -752,9 +757,9 @@ async function loadOutboundOrders(inventoryId, forceRefresh) {
         if (outboundOrders[i].inventory_id === inventoryId) outboundOrders.splice(i, 1)
       }
       outboundOrders.push.apply(outboundOrders, data)
+      _setL1(cacheKey, data, ttl)
+      _setL2(cacheKey, data)
     }
-    _setL1(cacheKey, data, ttl)
-    _setL2(cacheKey, data)
     return data
   } catch (err) {
     console.error('[DB] loadOutboundOrders 失败:', err)
@@ -799,9 +804,9 @@ async function loadInboundLogs(inventoryId, forceRefresh) {
         if (inboundLogs[i].inventory_id === inventoryId) inboundLogs.splice(i, 1)
       }
       inboundLogs.push.apply(inboundLogs, data)
+      _setL1(cacheKey, data, ttl)
+      _setL2(cacheKey, data)
     }
-    _setL1(cacheKey, data, ttl)
-    _setL2(cacheKey, data)
     return data
   } catch (err) {
     console.error('[DB] loadInboundLogs 失败:', err)
@@ -836,10 +841,12 @@ async function loadWhitelist(forceRefresh) {
       if (!Array.isArray(data)) data = []
     } else return []
 
-    whitelist.splice(0, whitelist.length)
-    whitelist.push.apply(whitelist, data)
-    _setL1(cacheKey, data, ttl)
-    _setL2(cacheKey, data)
+    if (data && data.length > 0) {
+      whitelist.splice(0, whitelist.length)
+      whitelist.push.apply(whitelist, data)
+      _setL1(cacheKey, data, ttl)
+      _setL2(cacheKey, data)
+    }
     return data
   } catch (err) {
     console.error('[DB] loadWhitelist 失败:', err)

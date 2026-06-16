@@ -179,6 +179,7 @@ Page({
         currentTagIds: [...this.data.currentTagIds, newTagId],
         showNewTagDialog: false
       })
+      this._markDirty()
       wx.hideLoading()
       wx.showToast({ title: '标签已创建', icon: 'success' })
     } catch (err) {
