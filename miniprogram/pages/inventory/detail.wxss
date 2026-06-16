@@ -115,26 +115,28 @@
   display: flex;
   align-items: center;
   padding: 16rpx 12rpx;
-  border: 2rpx dashed #d0d0d0;
+  border: 2rpx dashed #d9d9d9;
   border-radius: 8rpx;
   margin-bottom: 8rpx;
+  background: #fafafa;
 }
 
 .tag-dialog-item-selected {
   border-style: solid;
-  font-weight: 500;
-  background: #f0f5ff;
+  border-color: #1677ff;
+  font-weight: 600;
+  color: #1677ff;
+  background: #e6f4ff;
 }
 
 .tag-dialog-name {
   flex: 1;
   font-size: 28rpx;
-  color: #333333;
 }
 
 .tag-dialog-check {
   font-size: 28rpx;
-  color: #1890ff;
+  color: #1677ff;
   font-weight: 700;
 }
 

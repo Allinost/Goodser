@@ -20,6 +20,7 @@
     <view class="batch-list">
       <view class="batch-item" wx:for="{{items}}" wx:key="id">
         <view class="batch-item-header">
+          <text class="batch-item-index">{{index + 1}}.</text>
           <text class="batch-item-name">{{item.name}}</text>
           <text class="batch-item-remove" bindtap="onRemoveItem" data-index="{{index}}">删除</text>
         </view>
@@ -103,7 +104,6 @@
           class="tag-select-item {{currentTagIds.indexOf(item._id) > -1 ? 'tag-select-item-active' : ''}}"
           wx:for="{{allTags}}"
           wx:key="_id"
-          style="{{currentTagIds.indexOf(item._id) > -1 ? 'background: ' + item.color + '20; color: ' + item.color + '; border-color: ' + item.color + '' : ''}}"
           bindtap="onToggleTag"
           data-id="{{item._id}}"
         >

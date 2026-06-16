@@ -72,11 +72,11 @@
     </view>
     <view class="info-row">
       <text class="label">创建时间</text>
-      <text class="value">{{product.created_at}}</text>
+      <text class="value">{{product._createdAt}}</text>
     </view>
     <view class="info-row">
       <text class="label">更新时间</text>
-      <text class="value">{{product.updated_at}}</text>
+      <text class="value">{{product._updatedAt}}</text>
     </view>
   </view>
 
@@ -97,10 +97,9 @@
           wx:key="_id"
           bindtap="onToggleTag"
           data-id="{{item._id}}"
-          style="{{isTagSelected(item._id) ? 'background: ' + item.color + '18; border-color: ' + item.color + '50' : ''}}"
         >
           <view class="tag-color-dot" style="background: {{item.color}}"></view>
-          <text class="tag-dialog-name" style="{{isTagSelected(item._id) ? 'color: ' + item.color : ''}}">{{item.name}}</text>
+          <text class="tag-dialog-name">{{item.name}}</text>
           <text class="tag-dialog-check" wx:if="{{isTagSelected(item._id)}}">✓</text>
         </view>
       </view>

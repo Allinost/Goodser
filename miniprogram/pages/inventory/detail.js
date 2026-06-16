@@ -92,7 +92,7 @@ Page({
 
   _renderProduct(product) {
     this.setData({
-      product: product,
+      product: { ...product, _createdAt: util.formatTime(product.created_at), _updatedAt: util.formatTime(product.updated_at) },
       statusLabel: util.getStatusLabel(product.status_code),
       statusTagClass: util.getStatusTagClass(product.status_code)
     })

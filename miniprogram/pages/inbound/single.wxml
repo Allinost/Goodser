@@ -104,7 +104,6 @@
           class="tag-select-item {{selectedTagIds.indexOf(item._id) > -1 ? 'tag-select-item-active' : ''}}"
           wx:for="{{allTags}}"
           wx:key="_id"
-          style="{{selectedTagIds.indexOf(item._id) > -1 ? 'background: ' + item.color + '20; color: ' + item.color + '; border-color: ' + item.color + '' : ''}}"
           bindtap="onToggleTag"
           data-id="{{item._id}}"
         >
