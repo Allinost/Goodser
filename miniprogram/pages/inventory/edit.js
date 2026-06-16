@@ -19,6 +19,7 @@ Page({
     remark: '',
     mainZones: util.ZONES,
     subZones: util.ZONES,
+    filteredSubZones: util.ZONES,
     mainZoneIndex: 0,
     subZoneIndex: 0,
     statusCodes: [],
@@ -76,6 +77,12 @@ Page({
     var subZoneIndex = util.ZONES.indexOf(product.sub_zone)
     var statusCodeIndex = statusCodes.findIndex(function(s) { return s.code === product.status_code })
 
+    // 子分区联动：根据主分区过滤可用的子分区
+    var filteredSubZones = util.ZONES.slice(mainZoneIndex > -1 ? mainZoneIndex : 0)
+    if (subZoneIndex > -1 && subZoneIndex < mainZoneIndex) {
+      subZoneIndex = mainZoneIndex
+    }
+
     this.setData({
       productId: product._id,
       imageUrl: product.image_url || '',
@@ -88,6 +95,7 @@ Page({
       remark: product.remark || '',
       mainZoneIndex: mainZoneIndex > -1 ? mainZoneIndex : 0,
       subZoneIndex: subZoneIndex > -1 ? subZoneIndex : 0,
+      filteredSubZones: filteredSubZones,
       statusCodes: statusCodes,
       statusCodeLabels: statusCodes.map(function(s) { return s.code + ' - ' + s.label }),
       statusCodeIndex: statusCodeIndex > -1 ? statusCodeIndex : 0,
@@ -135,7 +143,17 @@ Page({
   onStorageLocationInput(e) { this.setData({ storageLocation: e.detail.value }); this.enableUnloadAlert() },
   onRemarkInput(e) { this.setData({ remark: e.detail.value }); this.enableUnloadAlert() },
 
-  onMainZoneChange(e) { this.setData({ mainZoneIndex: e.detail.value }); this.updatePreview(); this.enableUnloadAlert() },
+  onMainZoneChange(e) {
+    var idx = e.detail.value
+    var filteredSubZones = util.ZONES.slice(idx)
+    this.setData({
+      mainZoneIndex: idx,
+      filteredSubZones: filteredSubZones,
+      subZoneIndex: 0
+    })
+    this.updatePreview()
+    this.enableUnloadAlert()
+  },
   onSubZoneChange(e) { this.setData({ subZoneIndex: e.detail.value }); this.updatePreview(); this.enableUnloadAlert() },
   onStatusCodeChange(e) { this.setData({ statusCodeIndex: e.detail.value }); this.updatePreview(); this.enableUnloadAlert() },
 
@@ -155,7 +173,7 @@ Page({
     }
     const product = db.products.find(p => p._id === this.data.productId)
     const mainZone = this.data.mainZones[this.data.mainZoneIndex]
-    const subZone = this.data.subZones[this.data.subZoneIndex]
+    const subZone = this.data.filteredSubZones[this.data.subZoneIndex]
     const qty = parseInt(this.data.quantity) || 0
     const statusCode = statusCodes[this.data.statusCodeIndex].code
 
@@ -254,7 +272,7 @@ Page({
 
     try {
       const mainZone = this.data.mainZones[this.data.mainZoneIndex]
-      const subZone = this.data.subZones[this.data.subZoneIndex]
+      const subZone = this.data.filteredSubZones[this.data.subZoneIndex]
       const statusCode = this.data.statusCodes[this.data.statusCodeIndex].code
       const qty = parseInt(this.data.quantity)
 

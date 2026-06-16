@@ -78,9 +78,9 @@
       </view>
       <view class="form-group flex-1">
         <text class="form-label">子分区 <text class="required">*</text></text>
-        <picker range="{{subZones}}" value="{{currentSubZoneIndex}}" bindchange="onCurrentSubZoneChange">
+        <picker range="{{filteredSubZones}}" value="{{currentSubZoneIndex}}" bindchange="onCurrentSubZoneChange">
           <view class="form-picker">
-            <text>{{subZones[currentSubZoneIndex]}}</text>
+            <text>{{filteredSubZones[currentSubZoneIndex]}}</text>
             <text class="picker-arrow">▼</text>
           </view>
         </picker>

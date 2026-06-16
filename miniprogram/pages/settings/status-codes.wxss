@@ -54,6 +54,11 @@
   gap: 16rpx;
 }
 
+.code-edit {
+  font-size: 26rpx;
+  color: #1890ff;
+}
+
 .code-delete {
   font-size: 26rpx;
   color: #ff4d4f;

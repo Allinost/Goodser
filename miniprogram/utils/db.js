@@ -103,7 +103,10 @@ function isBackendMode() {
 }
 
 function isCloudEnabled() {
-  return wx.getStorageSync('cloudDbEnabled') === true
+  // 默认启用云模式（首次启动未设置时返回 true）
+  var val = wx.getStorageSync('cloudDbEnabled')
+  if (val === '' || val === undefined || val === null) return true
+  return val === true
 }
 
 function isCloudReady() {
@@ -518,17 +521,20 @@ async function loadProducts(inventoryId, forceRefresh) {
     }
 
     // 回填到导出数组（替换该仓库的所有商品）
-    for (var i = products.length - 1; i >= 0; i--) {
-      if (products[i].inventory_id === inventoryId) products.splice(i, 1)
+    // 仅当后端有数据时才替换，避免空结果清空本地已有数据
+    if (allData && allData.length > 0) {
+      for (var i = products.length - 1; i >= 0; i--) {
+        if (products[i].inventory_id === inventoryId) products.splice(i, 1)
+      }
+      products.push.apply(products, allData)
     }
-    products.push.apply(products, allData)
 
     _setL1(cacheKey, allData, ttl)
     _setL2(cacheKey, allData)
     return allData
   } catch (err) {
     console.error('[DB] loadProducts 失败:', err)
-    // 降级：尝试返回 L2 过期数据
+    // 降级：尝试返回 L2 过期缓存数据
     try {
       var raw = wx.getStorageSync(STORAGE_PREFIX + cacheKey)
       if (raw) { console.warn('[DB] 使用过期缓存数据'); return JSON.parse(raw) }
@@ -740,10 +746,13 @@ async function loadOutboundOrders(inventoryId, forceRefresh) {
       if (!Array.isArray(data)) data = []
     } else return []
 
-    for (var i = outboundOrders.length - 1; i >= 0; i--) {
-      if (outboundOrders[i].inventory_id === inventoryId) outboundOrders.splice(i, 1)
+    // 仅当后端有数据时才替换，避免空结果清空本地已有数据
+    if (data && data.length > 0) {
+      for (var i = outboundOrders.length - 1; i >= 0; i--) {
+        if (outboundOrders[i].inventory_id === inventoryId) outboundOrders.splice(i, 1)
+      }
+      outboundOrders.push.apply(outboundOrders, data)
     }
-    outboundOrders.push.apply(outboundOrders, data)
     _setL1(cacheKey, data, ttl)
     _setL2(cacheKey, data)
     return data
@@ -784,10 +793,13 @@ async function loadInboundLogs(inventoryId, forceRefresh) {
       if (!Array.isArray(data)) data = []
     } else return []
 
-    for (var i = inboundLogs.length - 1; i >= 0; i--) {
-      if (inboundLogs[i].inventory_id === inventoryId) inboundLogs.splice(i, 1)
+    // 仅当后端有数据时才替换，避免空结果清空本地已有数据
+    if (data && data.length > 0) {
+      for (var i = inboundLogs.length - 1; i >= 0; i--) {
+        if (inboundLogs[i].inventory_id === inventoryId) inboundLogs.splice(i, 1)
+      }
+      inboundLogs.push.apply(inboundLogs, data)
     }
-    inboundLogs.push.apply(inboundLogs, data)
     _setL1(cacheKey, data, ttl)
     _setL2(cacheKey, data)
     return data
@@ -1277,8 +1289,28 @@ async function addStatusCode(data) {
   return result
 }
 
+async function updateStatusCode(id, data) {
+  if (!isBackendMode()) {
+    var sc = statusCodes.find(function(s) { return s._id === id })
+    if (sc) { if (data.label !== undefined) sc.label = data.label }
+    return sc
+  }
+  var result = await _backendCall('updateStatusCode', Object.assign({ id: id }, data))
+  _invalidateCache('statusCodes')
+  await loadStatusCodes(true)
+  return result
+}
+
 async function removeStatusCode(id) {
   if (!isBackendMode()) {
+    // 检查是否有商品使用此状态码
+    var sc = statusCodes.find(function(s) { return s._id === id })
+    if (sc) {
+      var used = products.some(function(p) { return p.status_code === sc.code })
+      if (used) {
+        throw new Error('有商品正在使用此状态编码，无法删除')
+      }
+    }
     var idx = statusCodes.findIndex(function(s) { return s._id === id })
     if (idx > -1) statusCodes.splice(idx, 1)
     return
@@ -1579,6 +1611,7 @@ module.exports = {
   addWhitelist: addWhitelist,
   removeWhitelist: removeWhitelist,
   addStatusCode: addStatusCode,
+  updateStatusCode: updateStatusCode,
   removeStatusCode: removeStatusCode,
 
   // 缓存管理（设置页面使用）

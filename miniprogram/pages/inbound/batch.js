@@ -14,6 +14,7 @@ Page({
     items: [],
     mainZones: util.ZONES,
     subZones: util.ZONES,
+    filteredSubZones: util.ZONES,
     statusCodes: [],
     statusCodeLabels: [],
     allTags: [],
@@ -66,7 +67,16 @@ Page({
   onCurrentQuantityInput(e) { this.setData({ currentQuantity: e.detail.value }); this.enableUnloadAlert() },
   onCurrentStorageLocationInput(e) { this.setData({ currentStorageLocation: e.detail.value }); this.enableUnloadAlert() },
   onCurrentRemarkInput(e) { this.setData({ currentRemark: e.detail.value }); this.enableUnloadAlert() },
-  onCurrentMainZoneChange(e) { this.setData({ currentMainZoneIndex: e.detail.value }); this.enableUnloadAlert() },
+  onCurrentMainZoneChange(e) {
+    var idx = e.detail.value
+    var filteredSubZones = util.ZONES.slice(idx)
+    this.setData({
+      currentMainZoneIndex: idx,
+      filteredSubZones: filteredSubZones,
+      currentSubZoneIndex: 0
+    })
+    this.enableUnloadAlert()
+  },
   onCurrentSubZoneChange(e) { this.setData({ currentSubZoneIndex: e.detail.value }); this.enableUnloadAlert() },
   onCurrentStatusCodeChange(e) { this.setData({ currentStatusCodeIndex: e.detail.value }) },
 
@@ -169,7 +179,7 @@ Page({
       storageLocation: this.data.currentStorageLocation,
       remark: this.data.currentRemark,
       mainZone: this.data.mainZones[this.data.currentMainZoneIndex],
-      subZone: this.data.subZones[this.data.currentSubZoneIndex],
+      subZone: this.data.filteredSubZones[this.data.currentSubZoneIndex],
       statusCode: this.data.statusCodes[this.data.currentStatusCodeIndex].code,
       tagIds: [...this.data.currentTagIds],
       tagNames

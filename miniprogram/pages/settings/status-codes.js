@@ -6,7 +6,13 @@ Page({
     showAddDialog: false,
     newCodeLetter: '',
     newCodeLabel: '',
-    codeError: ''
+    codeError: '',
+    // 编辑
+    showEditDialog: false,
+    editId: '',
+    editCode: '',
+    editLabel: '',
+    editError: ''
   },
 
   onLoad() {
@@ -46,7 +52,6 @@ Page({
     const code = this.data.newCodeLetter.trim().toUpperCase()
     const label = this.data.newCodeLabel.trim()
 
-    // 验证编码字母
     if (!code) {
       this.setData({ codeError: '请输入编码字母' })
       return
@@ -55,7 +60,6 @@ Page({
       this.setData({ codeError: '只能输入单个大写字母 A-Z' })
       return
     }
-    // 检查是否已存在
     if (db.statusCodes.some(s => s.code === code)) {
       this.setData({ codeError: `编码 ${code} 已存在` })
       return
@@ -74,17 +78,79 @@ Page({
     wx.showToast({ title: '添加成功', icon: 'success' })
   },
 
+  // ========== 编辑 ==========
+
+  onEditCode(e) {
+    const id = e.currentTarget.dataset.id
+    var sc = db.statusCodes.find(function(s) { return s._id === id })
+    if (!sc) return
+    this.setData({
+      showEditDialog: true,
+      editId: id,
+      editCode: sc.code,
+      editLabel: sc.label,
+      editError: ''
+    })
+  },
+
+  hideEditDialog() {
+    this.setData({ showEditDialog: false, editError: '' })
+  },
+
+  onEditLabelInput(e) {
+    this.setData({ editLabel: e.detail.value })
+  },
+
+  async onConfirmEdit() {
+    var label = this.data.editLabel.trim()
+    if (!label) {
+      this.setData({ editError: '状态名称不能为空' })
+      return
+    }
+    wx.showLoading({ title: '保存中...' })
+    try {
+      await db.updateStatusCode(this.data.editId, { label: label })
+      this.setData({
+        statusCodes: [...db.statusCodes],
+        showEditDialog: false,
+        editError: ''
+      })
+      wx.hideLoading()
+      wx.showToast({ title: '更新成功', icon: 'success' })
+    } catch (err) {
+      wx.hideLoading()
+      wx.showToast({ title: '更新失败: ' + (err.message || '未知错误'), icon: 'none' })
+    }
+  },
+
+  // ========== 删除 ==========
+
   onDeleteCode(e) {
     const id = e.currentTarget.dataset.id
+    var sc = db.statusCodes.find(function(s) { return s._id === id })
+    if (!sc) return
+    if (sc.is_system) {
+      wx.showToast({ title: '系统预设编码不可删除', icon: 'none' })
+      return
+    }
+    // 检查是否有商品正在使用
+    var used = db.products.some(function(p) { return p.status_code === sc.code })
+    var content = used
+      ? '有商品正在使用此编码「' + sc.code + ' - ' + sc.label + '」，删除后相关商品的状态显示可能异常。确定删除吗？'
+      : '确定删除编码「' + sc.code + ' - ' + sc.label + '」吗？'
     wx.showModal({
       title: '确认删除',
-      content: '确定删除该状态编码吗？',
+      content: content,
       confirmColor: '#ff4d4f',
       success: async (res) => {
         if (res.confirm) {
-          await db.removeStatusCode(id)
-          this.setData({ statusCodes: [...db.statusCodes] })
-          wx.showToast({ title: '已删除', icon: 'success' })
+          try {
+            await db.removeStatusCode(id)
+            this.setData({ statusCodes: [...db.statusCodes] })
+            wx.showToast({ title: '已删除', icon: 'success' })
+          } catch (err) {
+            wx.showToast({ title: '删除失败: ' + (err.message || '未知错误'), icon: 'none' })
+          }
         }
       }
     })

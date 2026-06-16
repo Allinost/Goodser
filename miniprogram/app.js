@@ -4,16 +4,15 @@ App({
   onLaunch() {
     console.log('Goodser 库存管理启动')
 
-    // 检测云数据库开关（云模式优先于 NAS 模式）
+    // 默认启用云数据库模式（首次启动自动启用）
     if (db.isCloudEnabled()) {
       console.log('[App] 云数据库模式已启用，正在初始化...')
-      db.initCloud()  // 使用 project.config.json 中配置的云环境
+      db.initCloud()
 
-      // 检查是否已初始化（有网络时异步检查）
+      // 检查云数据库是否已初始化（种子数据）
       this.checkCloudInit()
     } else if (db.isNASEnabled()) {
       console.log('[App] NAS 私有云模式已启用，正在初始化...')
-      // 读取 NAS 配置
       var nasConfig = {}
       try {
         var raw = wx.getStorageSync('nasConfig')
@@ -43,12 +42,24 @@ App({
       })
       if (res.result && res.result.code === 0 && !res.result.data.initialized) {
         console.log('[App] 云数据库未初始化，正在设置种子数据...')
-        // 自动初始化
         const setupRes = await wx.cloud.callFunction({
           name: 'init',
           data: { action: 'setup' }
         })
         console.log('[App] 初始化结果:', setupRes.result)
+        // 初始化完成后强制刷新本地数据，确保页面显示最新云端数据
+        await db.forceRefresh('all')
+        await db.loadInventories(true)
+        if (db.inventories.length > 0) {
+          var firstInvId = db.inventories[0]._id
+          await Promise.all([
+            db.loadProducts(firstInvId, true),
+            db.loadOutboundOrders(firstInvId, true),
+            db.loadInboundLogs(firstInvId, true)
+          ])
+        }
+        await Promise.all([db.loadTags(true), db.loadStatusCodes(true)])
+        console.log('[App] 种子数据已加载到本地')
       }
     } catch (err) {
       console.warn('[App] 云初始化检查失败（可能是首次使用或网络问题）:', err.message)

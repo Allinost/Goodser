@@ -71,6 +71,33 @@
     </view>
     <view class="divider"></view>
     <view class="form-group">
+      <text class="form-label">分区修改</text>
+      <view class="toggle-row">
+        <text class="toggle-hint">修改所有选中商品的分区</text>
+        <switch checked="{{changeZoneEnabled}}" bindchange="onToggleChangeZone" color="#1890ff" />
+      </view>
+    </view>
+    <view class="zone-row" wx:if="{{changeZoneEnabled}}">
+      <view class="form-group flex-1">
+        <text class="form-label">主分区</text>
+        <picker range="{{mainZones}}" value="{{currentMainZoneIndex}}" bindchange="onCurrentMainZoneChange">
+          <view class="form-picker">
+            <text>{{mainZones[currentMainZoneIndex]}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-group flex-1">
+        <text class="form-label">子分区</text>
+        <picker range="{{filteredSubZones}}" value="{{currentSubZoneIndex}}" bindchange="onCurrentSubZoneChange">
+          <view class="form-picker">
+            <text>{{filteredSubZones[currentSubZoneIndex]}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+    <view class="form-group">
       <text class="form-label">状态编码</text>
       <picker range="{{statusCodeLabels}}" value="{{statusCodeIndex}}" bindchange="onStatusCodeChange">
         <view class="form-picker">

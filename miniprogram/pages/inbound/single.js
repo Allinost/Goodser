@@ -21,6 +21,7 @@ Page({
     remark: '',
     mainZones: util.ZONES,
     subZones: util.ZONES,
+    filteredSubZones: util.ZONES,
     mainZoneIndex: 0,
     subZoneIndex: 0,
     statusCodes: [],
@@ -80,7 +81,13 @@ Page({
   onRemarkInput(e) { this.setData({ remark: e.detail.value }); this.enableUnloadAlert() },
 
   onMainZoneChange(e) {
-    this.setData({ mainZoneIndex: e.detail.value })
+    var idx = e.detail.value
+    var filteredSubZones = util.ZONES.slice(idx)
+    this.setData({
+      mainZoneIndex: idx,
+      filteredSubZones: filteredSubZones,
+      subZoneIndex: 0
+    })
     this.updatePreview()
     this.enableUnloadAlert()
   },
@@ -114,7 +121,7 @@ Page({
       return
     }
     const mainZone = this.data.mainZones[this.data.mainZoneIndex]
-    const subZone = this.data.subZones[this.data.subZoneIndex]
+    const subZone = this.data.filteredSubZones[this.data.subZoneIndex]
     const qty = parseInt(this.data.quantity) || 0
     const statusCode = statusCodes[this.data.statusCodeIndex].code
 
@@ -220,7 +227,7 @@ Page({
 
         try {
           const mainZone = this.data.mainZones[this.data.mainZoneIndex]
-          const subZone = this.data.subZones[this.data.subZoneIndex]
+          const subZone = this.data.filteredSubZones[this.data.subZoneIndex]
           const statusCode = this.data.statusCodes[this.data.statusCodeIndex].code
           const qty = parseInt(this.data.quantity)
 

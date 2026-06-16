@@ -23,6 +23,13 @@ Page({
     checkedProductIds: [],
     // 多选商品列表（选中后的商品+数量）
     selectedProducts: [],
+    // 分区选择（搜索导入时可选修改分区）
+    mainZones: util.ZONES,
+    subZones: util.ZONES,
+    filteredSubZones: util.ZONES,
+    currentMainZoneIndex: 0,
+    currentSubZoneIndex: 0,
+    changeZoneEnabled: false,
     // 标签
     allTags: [],
     selectedTagIds: [],
@@ -172,6 +179,26 @@ Page({
     this.setData({ selectedProducts })
   },
 
+  // ========== 分区修改（搜索导入时可选） ==========
+
+  onToggleChangeZone() {
+    this.setData({ changeZoneEnabled: !this.data.changeZoneEnabled })
+  },
+
+  onCurrentMainZoneChange(e) {
+    var idx = e.detail.value
+    var filteredSubZones = util.ZONES.slice(idx)
+    this.setData({
+      currentMainZoneIndex: idx,
+      filteredSubZones: filteredSubZones,
+      currentSubZoneIndex: 0
+    })
+  },
+
+  onCurrentSubZoneChange(e) {
+    this.setData({ currentSubZoneIndex: e.detail.value })
+  },
+
   onQuantityInput(e) {
     this.setData({ addQuantity: e.detail.value })
   },
@@ -268,6 +295,29 @@ Page({
           wx.showLoading({ title: '导入中...', mask: true })
 
           try {
+            // 如果启用了分区修改，先更新所有选中商品的分区
+            if (this.data.changeZoneEnabled) {
+              var newMainZone = this.data.mainZones[this.data.currentMainZoneIndex]
+              var newSubZone = this.data.filteredSubZones[this.data.currentSubZoneIndex]
+              var selectedProducts = this.data.selectedProducts
+              for (var _i = 0; _i < selectedProducts.length; _i++) {
+                var sp = selectedProducts[_i]
+                var prod = db.products.find(function(p) { return p._id === sp._id })
+                if (!prod) continue
+                var currentStock = prod.quantity
+                var currentStatus = prod.status_code || 'A'
+                var newSeq = await db.allocateSeqNumber(inventory._id, newMainZone, newSubZone)
+                var newCode = util.generateProductCode(newMainZone, newSubZone, newSeq, currentStock, currentStatus)
+                await db.updateProduct(sp._id, {
+                  main_zone: newMainZone,
+                  sub_zone: newSubZone,
+                  seq_number: newSeq,
+                  code: newCode
+                })
+                sp.code = newCode
+              }
+            }
+
             const prefix = inventory.name.substring(0, 2).toUpperCase()
             const orderNo = util.generateOrderNo(prefix)
             await db.inboundSearchImport({

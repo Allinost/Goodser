@@ -15,13 +15,14 @@ exports.main = async (event, context) => {
   const { action } = event
   const { OPENID } = cloud.getWXContext()
 
-  // 白名单校验（除 init 外所有操作需要）
-  if (action !== 'checkWhitelist') {
-    const wlCheck = await checkWhitelist(OPENID)
-    if (!wlCheck.allowed) {
-      return { code: 40300, message: '无访问权限' }
-    }
-  }
+  // 白名单校验暂不启用，所有已登录用户可直接使用
+  // TODO: 后续版本启用白名单时取消注释以下代码
+  // if (action !== 'checkWhitelist') {
+  //   const wlCheck = await checkWhitelist(OPENID)
+  //   if (!wlCheck.allowed) {
+  //     return { code: 40300, message: '无访问权限' }
+  //   }
+  // }
 
   try {
     switch (action) {
@@ -57,6 +58,7 @@ exports.main = async (event, context) => {
       case 'removeWhitelist':   return removeWhitelist(event)
       // 状态编码
       case 'addStatusCode':     return addStatusCode(event, OPENID)
+      case 'updateStatusCode':  return updateStatusCode(event)
       case 'removeStatusCode':  return removeStatusCode(event)
       // 工具
       case 'checkWhitelist':    return checkWhitelist(OPENID)
@@ -575,6 +577,17 @@ async function addStatusCode(event, openid) {
   }
   const res = await db.collection('status_codes').add({ data })
   return { code: 0, data: { _id: res._id, ...data } }
+}
+
+async function updateStatusCode(event) {
+  const { id, label } = event
+  if (!label || !label.trim()) {
+    return { code: 40001, message: '状态名称不能为空' }
+  }
+  await db.collection('status_codes').doc(id).update({
+    data: { label: label.trim() }
+  })
+  return { code: 0, data: { updated: true } }
 }
 
 async function removeStatusCode(event) {

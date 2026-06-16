@@ -49,9 +49,26 @@ Page({
       : '未连接'
 
     var nasEnabled = wx.getStorageSync('nasEnabled') || false
-    var nasStatusText = nasEnabled
-      ? (db.isNASReady() ? '已连接' : '未连接（请先配置 NAS 地址）')
-      : '未连接'
+    var nasStatusText = '未连接'
+    if (nasEnabled) {
+      if (db.isNASReady()) {
+        nasStatusText = '已连接'
+      } else {
+        // 尝试从已保存的配置初始化 NAS
+        var savedConfig = null
+        try {
+          var raw = wx.getStorageSync('nasConfig')
+          if (raw) savedConfig = JSON.parse(raw)
+        } catch (e) {}
+        if (savedConfig && savedConfig.baseUrl) {
+          // 未调用过 initNAS，但配置已存在——说明刚从配置页返回
+          db.initNAS(savedConfig)
+          nasStatusText = db.isNASReady() ? '已连接' : '连接失败'
+        } else {
+          nasStatusText = '未连接（请先配置 NAS 地址）'
+        }
+      }
+    }
 
     var cacheStats = db.getCacheStats()
     var syncInfo = db.getSyncInfo()

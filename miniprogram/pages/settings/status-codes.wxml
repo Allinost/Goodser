@@ -8,6 +8,7 @@
       </view>
       <view class="code-right">
         <text class="tag {{item.is_system ? 'tag-gray' : 'tag-blue'}}">{{item.is_system ? '系统' : '自定义'}}</text>
+        <text class="code-edit" wx:if="{{!item.is_system}}" bindtap="onEditCode" data-id="{{item._id}}">编辑</text>
         <text class="code-delete" wx:if="{{!item.is_system}}" bindtap="onDeleteCode" data-id="{{item._id}}">删除</text>
       </view>
     </view>
@@ -41,6 +42,26 @@
       <view class="dialog-actions">
         <view class="btn btn-ghost" bindtap="hideAddDialog">取消</view>
         <view class="btn btn-primary" bindtap="onConfirmAdd">确认添加</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑编码弹窗 -->
+  <view class="picker-mask" wx:if="{{showEditDialog}}" bindtap="hideEditDialog">
+    <view class="dialog" catchtap="onDialogTap">
+      <view class="dialog-title">编辑状态编码</view>
+      <view class="form-group">
+        <text class="form-label">编码字母</text>
+        <input class="dialog-input" value="{{editCode}}" disabled="true" style="background:#f5f5f5;color:#999" />
+      </view>
+      <view class="form-group">
+        <text class="form-label">状态名称</text>
+        <input class="dialog-input" placeholder="如: 维修中" value="{{editLabel}}" bindinput="onEditLabelInput" adjust-position="{{false}}" />
+        <text class="form-hint" wx:if="{{editError}}">{{editError}}</text>
+      </view>
+      <view class="dialog-actions">
+        <view class="btn btn-ghost" bindtap="hideEditDialog">取消</view>
+        <view class="btn btn-primary" bindtap="onConfirmEdit">确认修改</view>
       </view>
     </view>
   </view>
