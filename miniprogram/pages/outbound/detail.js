@@ -19,7 +19,13 @@ Page({
     if (order) {
       const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0)
       this.setData({
-        order,
+        order: {
+          ...order,
+          _createdAt: util.formatTime(order.created_at),
+          _updatedAt: util.formatTime(order.updated_at),
+          _confirmedAt: util.formatTime(order.confirmed_at),
+          _cancelledAt: util.formatTime(order.cancelled_at)
+        },
         statusLabel: util.getOrderStatusLabel(order.status),
         statusTagClass: util.getOrderStatusTagClass(order.status),
         totalQuantity
@@ -28,6 +34,15 @@ Page({
         title: order.type === 'outbound' ? '出库单详情' : '预留单详情'
       })
     }
+  },
+
+  // 点击商品跳转详情
+  onProductTap(e) {
+    var productId = e.currentTarget.dataset.id
+    if (!productId) return
+    var order = db.outboundOrders.find(function(o) { return o._id === this._orderId }.bind(this))
+    var invId = order ? order.inventory_id : ''
+    wx.navigateTo({ url: '/pages/inventory/edit?id=' + productId + '&inv_id=' + invId })
   },
 
   onShow() {

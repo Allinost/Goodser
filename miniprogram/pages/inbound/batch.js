@@ -39,6 +39,53 @@ Page({
 
   onLoad() {
     this.refreshFormData()
+    this._saveOriginal()
+  },
+
+  _saveOriginal() {
+    var d = this.data
+    this._originalData = {
+      currentName: d.currentName,
+      currentOriginalPrice: d.currentOriginalPrice,
+      currentMarketPrice: d.currentMarketPrice,
+      currentExpectedPrice: d.currentExpectedPrice,
+      currentQuantity: d.currentQuantity,
+      currentStorageLocation: d.currentStorageLocation,
+      currentRemark: d.currentRemark,
+      currentMainZoneIndex: d.currentMainZoneIndex,
+      currentSubZoneIndex: d.currentSubZoneIndex,
+      currentStatusCodeIndex: d.currentStatusCodeIndex,
+      currentTagIds: [...d.currentTagIds],
+      items: JSON.parse(JSON.stringify(d.items))
+    }
+  },
+
+  _hasChanges() {
+    if (!this._originalData) return false
+    var d = this.data
+    var o = this._originalData
+    if (d.currentName !== o.currentName) return true
+    if (d.currentOriginalPrice !== o.currentOriginalPrice) return true
+    if (d.currentMarketPrice !== o.currentMarketPrice) return true
+    if (d.currentExpectedPrice !== o.currentExpectedPrice) return true
+    if (d.currentQuantity !== o.currentQuantity) return true
+    if (d.currentStorageLocation !== o.currentStorageLocation) return true
+    if (d.currentRemark !== o.currentRemark) return true
+    if (d.currentMainZoneIndex !== o.currentMainZoneIndex) return true
+    if (d.currentSubZoneIndex !== o.currentSubZoneIndex) return true
+    if (d.currentStatusCodeIndex !== o.currentStatusCodeIndex) return true
+    if (JSON.stringify(d.currentTagIds) !== JSON.stringify(o.currentTagIds)) return true
+    if (JSON.stringify(d.items) !== o.items) return true
+    return false
+  },
+
+  _markDirty() {
+    if (this._alertEnabled) return
+    if (!this._hasChanges()) return
+    this._alertEnabled = true
+    this._disableAlert = wx.enableAlertBeforeUnload({
+      message: '当前页面有未保存的修改，确定要离开吗？'
+    })
   },
 
   refreshFormData() {
@@ -56,17 +103,17 @@ Page({
 
   onInventoryChange(e) {
     this.setData({ inventoryIndex: e.detail.value })
-    this.enableUnloadAlert()
+    this._markDirty()
   },
 
   // 表单输入
-  onCurrentNameInput(e) { this.setData({ currentName: e.detail.value }); this.enableUnloadAlert() },
-  onCurrentOriginalPriceInput(e) { this.setData({ currentOriginalPrice: e.detail.value }); this.enableUnloadAlert() },
-  onCurrentMarketPriceInput(e) { this.setData({ currentMarketPrice: e.detail.value }); this.enableUnloadAlert() },
-  onCurrentExpectedPriceInput(e) { this.setData({ currentExpectedPrice: e.detail.value }); this.enableUnloadAlert() },
-  onCurrentQuantityInput(e) { this.setData({ currentQuantity: e.detail.value }); this.enableUnloadAlert() },
-  onCurrentStorageLocationInput(e) { this.setData({ currentStorageLocation: e.detail.value }); this.enableUnloadAlert() },
-  onCurrentRemarkInput(e) { this.setData({ currentRemark: e.detail.value }); this.enableUnloadAlert() },
+  onCurrentNameInput(e) { this.setData({ currentName: e.detail.value }); this._markDirty() },
+  onCurrentOriginalPriceInput(e) { this.setData({ currentOriginalPrice: e.detail.value }); this._markDirty() },
+  onCurrentMarketPriceInput(e) { this.setData({ currentMarketPrice: e.detail.value }); this._markDirty() },
+  onCurrentExpectedPriceInput(e) { this.setData({ currentExpectedPrice: e.detail.value }); this._markDirty() },
+  onCurrentQuantityInput(e) { this.setData({ currentQuantity: e.detail.value }); this._markDirty() },
+  onCurrentStorageLocationInput(e) { this.setData({ currentStorageLocation: e.detail.value }); this._markDirty() },
+  onCurrentRemarkInput(e) { this.setData({ currentRemark: e.detail.value }); this._markDirty() },
   onCurrentMainZoneChange(e) {
     var idx = e.detail.value
     var filteredSubZones = util.ZONES.slice(idx)
@@ -75,18 +122,10 @@ Page({
       filteredSubZones: filteredSubZones,
       currentSubZoneIndex: 0
     })
-    this.enableUnloadAlert()
+    this._markDirty()
   },
-  onCurrentSubZoneChange(e) { this.setData({ currentSubZoneIndex: e.detail.value }); this.enableUnloadAlert() },
-  onCurrentStatusCodeChange(e) { this.setData({ currentStatusCodeIndex: e.detail.value }) },
-
-  enableUnloadAlert() {
-    if (this._alertEnabled) return
-    this._alertEnabled = true
-    this._disableAlert = wx.enableAlertBeforeUnload({
-      message: '当前页面有未保存的修改，确定要离开吗？'
-    })
-  },
+  onCurrentSubZoneChange(e) { this.setData({ currentSubZoneIndex: e.detail.value }); this._markDirty() },
+  onCurrentStatusCodeChange(e) { this.setData({ currentStatusCodeIndex: e.detail.value }); this._markDirty() },
 
   // 标签
   onToggleTag(e) {
@@ -99,7 +138,7 @@ Page({
       currentTagIds.push(tagId)
     }
     this.setData({ currentTagIds })
-    this.enableUnloadAlert()
+    this._markDirty()
   },
 
   onInlineAddTag() {
@@ -161,14 +200,6 @@ Page({
       wx.showToast({ title: '状态编码数据异常，请返回重试', icon: 'none' })
       return
     }
-    this.enableUnloadAlert()
-
-    // 获取标签名
-    const tagNames = this.data.currentTagIds.map(tid => {
-      const tag = db.tags.find(t => t._id === tid)
-      return tag ? tag.name : ''
-    }).filter(Boolean)
-
     const item = {
       id: Date.now(),
       name: this.data.currentName,
@@ -182,7 +213,10 @@ Page({
       subZone: this.data.filteredSubZones[this.data.currentSubZoneIndex],
       statusCode: this.data.statusCodes[this.data.currentStatusCodeIndex].code,
       tagIds: [...this.data.currentTagIds],
-      tagNames
+      tagNames: this.data.currentTagIds.map(function(tid) {
+        var tag = db.tags.find(function(t) { return t._id === tid })
+        return tag ? tag.name : ''
+      }).filter(Boolean)
     }
     this.setData({
       items: [...this.data.items, item],
@@ -196,6 +230,7 @@ Page({
       currentRemark: '',
       currentTagIds: []
     })
+    this._markDirty()
     wx.showToast({ title: '已添加', icon: 'success' })
   },
 
@@ -204,6 +239,7 @@ Page({
     const items = [...this.data.items]
     items.splice(index, 1)
     this.setData({ items })
+    this._markDirty()
   },
 
   // 阻止弹窗内点击冒泡到遮罩层

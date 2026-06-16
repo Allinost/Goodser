@@ -130,18 +130,18 @@ Page({
       sourceType: ['album', 'camera'],
       success: (res) => {
         this.setData({ imageUrl: res.tempFilePaths[0] })
-        this.enableUnloadAlert()
+        this._markDirty()
       }
     })
   },
 
-  onNameInput(e) { this.setData({ name: e.detail.value }); this.enableUnloadAlert() },
-  onOriginalPriceInput(e) { this.setData({ originalPrice: e.detail.value }); this.enableUnloadAlert() },
-  onMarketPriceInput(e) { this.setData({ marketPrice: e.detail.value }); this.enableUnloadAlert() },
-  onExpectedPriceInput(e) { this.setData({ expectedPrice: e.detail.value }); this.enableUnloadAlert() },
-  onQuantityInput(e) { this.setData({ quantity: e.detail.value }); this.updatePreview(); this.enableUnloadAlert() },
-  onStorageLocationInput(e) { this.setData({ storageLocation: e.detail.value }); this.enableUnloadAlert() },
-  onRemarkInput(e) { this.setData({ remark: e.detail.value }); this.enableUnloadAlert() },
+  onNameInput(e) { this.setData({ name: e.detail.value }); this._markDirty() },
+  onOriginalPriceInput(e) { this.setData({ originalPrice: e.detail.value }); this._markDirty() },
+  onMarketPriceInput(e) { this.setData({ marketPrice: e.detail.value }); this._markDirty() },
+  onExpectedPriceInput(e) { this.setData({ expectedPrice: e.detail.value }); this._markDirty() },
+  onQuantityInput(e) { this.setData({ quantity: e.detail.value }); this.updatePreview(); this._markDirty() },
+  onStorageLocationInput(e) { this.setData({ storageLocation: e.detail.value }); this._markDirty() },
+  onRemarkInput(e) { this.setData({ remark: e.detail.value }); this._markDirty() },
 
   onMainZoneChange(e) {
     var idx = e.detail.value
@@ -152,12 +152,30 @@ Page({
       subZoneIndex: 0
     })
     this.updatePreview()
-    this.enableUnloadAlert()
+    this._markDirty()
   },
-  onSubZoneChange(e) { this.setData({ subZoneIndex: e.detail.value }); this.updatePreview(); this.enableUnloadAlert() },
-  onStatusCodeChange(e) { this.setData({ statusCodeIndex: e.detail.value }); this.updatePreview(); this.enableUnloadAlert() },
+  onSubZoneChange(e) { this.setData({ subZoneIndex: e.detail.value }); this.updatePreview(); this._markDirty() },
+  onStatusCodeChange(e) { this.setData({ statusCodeIndex: e.detail.value }); this.updatePreview(); this._markDirty() },
 
-  enableUnloadAlert() {
+  // 仅当数据真正有修改时才启用离开拦截
+  _markDirty() {
+    if (this._alertEnabled) return
+    if (!this._originalData) return
+    if (this.data.name !== this._originalData.name) return this._enableAlert()
+    if (this.data.originalPrice !== this._originalData.originalPrice) return this._enableAlert()
+    if (this.data.marketPrice !== this._originalData.marketPrice) return this._enableAlert()
+    if (this.data.expectedPrice !== this._originalData.expectedPrice) return this._enableAlert()
+    if (this.data.quantity !== this._originalData.quantity) return this._enableAlert()
+    if (this.data.storageLocation !== this._originalData.storageLocation) return this._enableAlert()
+    if (this.data.remark !== this._originalData.remark) return this._enableAlert()
+    if (this.data.mainZoneIndex !== this._originalData.mainZoneIndex) return this._enableAlert()
+    if (this.data.subZoneIndex !== this._originalData.subZoneIndex) return this._enableAlert()
+    if (this.data.statusCodeIndex !== this._originalData.statusCodeIndex) return this._enableAlert()
+    if (this.data.imageUrl !== this._originalData.imageUrl) return this._enableAlert()
+    if (JSON.stringify(this.data.selectedTagIds) !== JSON.stringify(this._originalData.selectedTagIds)) return this._enableAlert()
+  },
+
+  _enableAlert() {
     if (this._alertEnabled) return
     this._alertEnabled = true
     this._disableAlert = wx.enableAlertBeforeUnload({
@@ -197,7 +215,7 @@ Page({
       selectedTagIds.push(tagId)
     }
     this.setData({ selectedTagIds })
-    this.enableUnloadAlert()
+    this._markDirty()
   },
 
   onInlineAddTag() {

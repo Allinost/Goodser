@@ -7,7 +7,7 @@
     </view>
     <view class="order-meta">
       <text class="order-type-tag {{order.type === 'reserve' ? 'order-type-tag-orange' : 'order-type-tag-blue'}}">{{order.type === 'outbound' ? '出库单' : '预留单'}}</text>
-      <text class="meta-item">{{order.created_at}}</text>
+      <text class="meta-item">{{order._createdAt}}</text>
     </view>
     <view class="info-row" wx:if="{{order.order_info}}">
       <text class="label">订单信息</text>
@@ -17,13 +17,21 @@
       <text class="label">备注</text>
       <text class="value">{{order.remark}}</text>
     </view>
+    <view class="info-row" wx:if="{{order._confirmedAt}}">
+      <text class="label">确认时间</text>
+      <text class="value">{{order._confirmedAt}}</text>
+    </view>
+    <view class="info-row" wx:if="{{order._cancelledAt}}">
+      <text class="label">取消时间</text>
+      <text class="value">{{order._cancelledAt}}</text>
+    </view>
   </view>
 
   <!-- 商品列表 -->
   <view class="card">
     <view class="section-title">出库商品</view>
     <view class="item-list">
-      <view class="outbound-item" wx:for="{{order.items}}" wx:key="product_id">
+      <view class="outbound-item" wx:for="{{order.items}}" wx:key="product_id" bindtap="onProductTap" data-id="{{item.product_id}}">
         <image class="item-image" src="{{item.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
         <view class="item-info">
           <text class="item-name">{{item.product_name}}</text>

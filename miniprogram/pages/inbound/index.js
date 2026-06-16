@@ -1,4 +1,5 @@
 const db = require('../../utils/db')
+const util = require('../../utils/util')
 
 // WXML 不支持三元表达式和数组方法，在此处预处理
 const TYPE_MAP = { single: '📝 单独新增', batch: '📋 批量新增', search: '🔍 搜索导入' }
@@ -10,7 +11,8 @@ function formatLog(log) {
     ...log,
     _typeLabel: TYPE_MAP[log.type] || log.type,
     _productNames: productNames,
-    _totalQty: totalQty
+    _totalQty: totalQty,
+    _createdAt: util.formatTime(log.created_at)
   }
 }
 

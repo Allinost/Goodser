@@ -115,6 +115,31 @@ function generateProductCode(mainZone, subZone, seqNumber, quantity, statusCode)
   return `${mainZone}-${subZone}-${seqStr}-${qtyStr}-${statusCode}`
 }
 
+/**
+ * 格式化日期时间，兼容 Date 对象和字符串
+ * @param {Date|string|object} date - 日期（可能为 Date 对象、ISO 字符串或 serverDate 对象）
+ * @returns {string} 格式如 "2024-01-15 14:30:00"
+ */
+function formatTime(date) {
+  if (!date) return ''
+  var d = date
+  // 兼容 serverDate 对象
+  if (typeof d === 'object' && d instanceof Date === false) {
+    try { d = new Date(String(d)) } catch (e) { return '' }
+  }
+  if (typeof d === 'string' || typeof d === 'number') {
+    d = new Date(d)
+  }
+  if (!(d instanceof Date) || isNaN(d.getTime())) return String(date)
+  var Y = d.getFullYear()
+  var M = String(d.getMonth() + 1).padStart(2, '0')
+  var D = String(d.getDate()).padStart(2, '0')
+  var h = String(d.getHours()).padStart(2, '0')
+  var m = String(d.getMinutes()).padStart(2, '0')
+  var s = String(d.getSeconds()).padStart(2, '0')
+  return Y + '-' + M + '-' + D + ' ' + h + ':' + m + ':' + s
+}
+
 module.exports = {
   STATUS_MAP,
   STATUS_TAG_CLASS,
@@ -128,5 +153,6 @@ module.exports = {
   generateOrderNo,
   generateProductCode,
   getNextSeqNumber,
+  formatTime,
   ZONES
 }

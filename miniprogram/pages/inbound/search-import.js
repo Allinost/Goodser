@@ -42,6 +42,38 @@ Page({
 
   onLoad() {
     this.refreshFormData()
+    this._saveOriginal()
+  },
+
+  _saveOriginal() {
+    var d = this.data
+    this._originalData = {
+      selectedProduct: d.selectedProduct,
+      selectedProducts: JSON.parse(JSON.stringify(d.selectedProducts)),
+      checkedProductIds: [],
+      changeZoneEnabled: d.changeZoneEnabled,
+      selectedTagIds: [...d.selectedTagIds]
+    }
+  },
+
+  _hasChanges() {
+    if (!this._originalData) return false
+    var d = this.data
+    var o = this._originalData
+    if (d.selectedProduct !== o.selectedProduct) return true
+    if (JSON.stringify(d.selectedProducts) !== JSON.stringify(o.selectedProducts)) return true
+    if (d.changeZoneEnabled !== o.changeZoneEnabled) return true
+    if (JSON.stringify(d.selectedTagIds) !== JSON.stringify(o.selectedTagIds)) return true
+    return false
+  },
+
+  _markDirty() {
+    if (this._alertEnabled) return
+    if (!this._hasChanges()) return
+    this._alertEnabled = true
+    this._disableAlert = wx.enableAlertBeforeUnload({
+      message: '当前页面有未保存的修改，确定要离开吗？'
+    })
   },
 
   onShow() {
@@ -100,7 +132,7 @@ Page({
 
   onSelectProduct(e) {
     const product = e.currentTarget.dataset.product
-    this.enableUnloadAlert()
+    this._markDirty()
     if (this.data.multiSelectMode) {
       // 多选：切换勾选
       const checkedProductIds = [...this.data.checkedProductIds]
@@ -118,14 +150,6 @@ Page({
     this.setData({ selectedProduct: product, addQuantity: '' })
   },
 
-  enableUnloadAlert() {
-    if (this._alertEnabled) return
-    this._alertEnabled = true
-    this._disableAlert = wx.enableAlertBeforeUnload({
-      message: '当前页面有未保存的修改，确定要离开吗？'
-    })
-  },
-
   onToggleMultiSelect() {
     const next = !this.data.multiSelectMode
     this.setData({
@@ -134,6 +158,7 @@ Page({
       selectedProducts: next ? [] : this.data.selectedProducts,
       selectedProduct: next ? null : this.data.selectedProduct
     })
+    this._markDirty()
   },
 
   onConfirmMultiSelect() {
@@ -162,6 +187,7 @@ Page({
       checkedProductIds: [],
       selectedProduct: null
     })
+    this._markDirty()
   },
 
   onMultiQtyInput(e) {
@@ -170,6 +196,7 @@ Page({
     const selectedProducts = [...this.data.selectedProducts]
     selectedProducts[index].quantity = val
     this.setData({ selectedProducts })
+    this._markDirty()
   },
 
   onRemoveSelectedProduct(e) {
@@ -177,12 +204,14 @@ Page({
     const selectedProducts = [...this.data.selectedProducts]
     selectedProducts.splice(index, 1)
     this.setData({ selectedProducts })
+    this._markDirty()
   },
 
   // ========== 分区修改（搜索导入时可选） ==========
 
   onToggleChangeZone() {
     this.setData({ changeZoneEnabled: !this.data.changeZoneEnabled })
+    this._markDirty()
   },
 
   onCurrentMainZoneChange(e) {
@@ -218,7 +247,7 @@ Page({
       selectedTagIds.push(tagId)
     }
     this.setData({ selectedTagIds })
-    this.enableUnloadAlert()
+    this._markDirty()
   },
 
   onInlineAddTag() {

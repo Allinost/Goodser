@@ -39,6 +39,25 @@ Page({
 
   onLoad() {
     this.refreshFormData()
+    this._saveOriginal()
+  },
+
+  _saveOriginal() {
+    var d = this.data
+    this._originalData = {
+      name: d.name,
+      originalPrice: d.originalPrice,
+      marketPrice: d.marketPrice,
+      expectedPrice: d.expectedPrice,
+      quantity: d.quantity,
+      storageLocation: d.storageLocation,
+      remark: d.remark,
+      mainZoneIndex: d.mainZoneIndex,
+      subZoneIndex: d.subZoneIndex,
+      statusCodeIndex: d.statusCodeIndex,
+      imageUrl: d.imageUrl,
+      selectedTagIds: [...d.selectedTagIds]
+    }
   },
 
   refreshFormData() {
@@ -57,7 +76,7 @@ Page({
   onInventoryChange(e) {
     this.setData({ inventoryIndex: e.detail.value })
     this.updatePreview()
-    this.enableUnloadAlert()
+    this._markDirty()
   },
 
   onChooseImage() {
@@ -67,18 +86,18 @@ Page({
       sourceType: ['album', 'camera'],
       success: (res) => {
         this.setData({ imageUrl: res.tempFilePaths[0] })
-        this.enableUnloadAlert()
+        this._markDirty()
       }
     })
   },
 
-  onNameInput(e) { this.setData({ name: e.detail.value }); this.updatePreview(); this.enableUnloadAlert() },
-  onOriginalPriceInput(e) { this.setData({ originalPrice: e.detail.value }); this.enableUnloadAlert() },
-  onMarketPriceInput(e) { this.setData({ marketPrice: e.detail.value }); this.enableUnloadAlert() },
-  onExpectedPriceInput(e) { this.setData({ expectedPrice: e.detail.value }); this.enableUnloadAlert() },
-  onQuantityInput(e) { this.setData({ quantity: e.detail.value }); this.updatePreview(); this.enableUnloadAlert() },
-  onStorageLocationInput(e) { this.setData({ storageLocation: e.detail.value }); this.enableUnloadAlert() },
-  onRemarkInput(e) { this.setData({ remark: e.detail.value }); this.enableUnloadAlert() },
+  onNameInput(e) { this.setData({ name: e.detail.value }); this.updatePreview(); this._markDirty() },
+  onOriginalPriceInput(e) { this.setData({ originalPrice: e.detail.value }); this._markDirty() },
+  onMarketPriceInput(e) { this.setData({ marketPrice: e.detail.value }); this._markDirty() },
+  onExpectedPriceInput(e) { this.setData({ expectedPrice: e.detail.value }); this._markDirty() },
+  onQuantityInput(e) { this.setData({ quantity: e.detail.value }); this.updatePreview(); this._markDirty() },
+  onStorageLocationInput(e) { this.setData({ storageLocation: e.detail.value }); this._markDirty() },
+  onRemarkInput(e) { this.setData({ remark: e.detail.value }); this._markDirty() },
 
   onMainZoneChange(e) {
     var idx = e.detail.value
@@ -89,25 +108,46 @@ Page({
       subZoneIndex: 0
     })
     this.updatePreview()
-    this.enableUnloadAlert()
+    this._markDirty()
   },
 
   onSubZoneChange(e) {
     this.setData({ subZoneIndex: e.detail.value })
     this.updatePreview()
-    this.enableUnloadAlert()
+    this._markDirty()
   },
 
   onStatusCodeChange(e) {
     this.setData({ statusCodeIndex: e.detail.value })
     this.updatePreview()
+    this._markDirty()
   },
 
   /**
    * 仅在用户有实际输入时才启用离开拦截
    */
-  enableUnloadAlert() {
+  _hasChanges() {
+    if (!this._originalData) return false
+    var d = this.data
+    var o = this._originalData
+    if (d.name !== o.name) return true
+    if (d.originalPrice !== o.originalPrice) return true
+    if (d.marketPrice !== o.marketPrice) return true
+    if (d.expectedPrice !== o.expectedPrice) return true
+    if (d.quantity !== o.quantity) return true
+    if (d.storageLocation !== o.storageLocation) return true
+    if (d.remark !== o.remark) return true
+    if (d.mainZoneIndex !== o.mainZoneIndex) return true
+    if (d.subZoneIndex !== o.subZoneIndex) return true
+    if (d.statusCodeIndex !== o.statusCodeIndex) return true
+    if (d.imageUrl !== o.imageUrl) return true
+    if (JSON.stringify(d.selectedTagIds) !== JSON.stringify(o.selectedTagIds)) return true
+    return false
+  },
+
+  _markDirty() {
     if (this._alertEnabled) return
+    if (!this._hasChanges()) return
     this._alertEnabled = true
     this._disableAlert = wx.enableAlertBeforeUnload({
       message: '当前页面有未保存的修改，确定要离开吗？'

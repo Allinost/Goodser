@@ -65,7 +65,7 @@ Page({
     const inv = db.inventories.find(i => i._id === log.inventory_id)
     const orderNo = log.order_no || this._generateInboundNo(inv, log)
     this.setData({
-      log,
+      log: { ...log, _createdAt: util.formatTime(log.created_at) },
       logTypeLabel: TYPE_MAP[log.type] || log.type,
       inventoryName: inv ? inv.name : '',
       totalQuantity,

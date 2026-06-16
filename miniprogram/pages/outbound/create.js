@@ -19,6 +19,35 @@ Page({
 
   onLoad() {
     this.refreshInventories()
+    this._saveOriginal()
+  },
+
+  _saveOriginal() {
+    var d = this.data
+    this._originalData = {
+      selectedItems: JSON.parse(JSON.stringify(d.selectedItems)),
+      orderInfo: d.orderInfo,
+      orderRemark: d.orderRemark
+    }
+  },
+
+  _hasChanges() {
+    if (!this._originalData) return false
+    var d = this.data
+    var o = this._originalData
+    if (JSON.stringify(d.selectedItems) !== o.selectedItems) return true
+    if (d.orderInfo !== o.orderInfo) return true
+    if (d.orderRemark !== o.orderRemark) return true
+    return false
+  },
+
+  _markDirty() {
+    if (this._alertEnabled) return
+    if (!this._hasChanges()) return
+    this._alertEnabled = true
+    this._disableAlert = wx.enableAlertBeforeUnload({
+      message: '当前页面有未保存的修改，确定要离开吗？'
+    })
   },
 
   onShow() {
@@ -120,11 +149,12 @@ Page({
       selectedItems: [...this.data.selectedItems, newItem],
       showSearchResults: false
     })
-    this.enableUnloadAlert()
+    this._markDirty()
   },
 
   onToggleMultiSelect() {
     this.setData({ multiSelectMode: !this.data.multiSelectMode, checkedProductIds: [] })
+    this._markDirty()
   },
 
   onConfirmMultiSelect() {
@@ -152,7 +182,7 @@ Page({
       checkedProductIds: []
     })
     if (newItems.length > 0) {
-      this.enableUnloadAlert()
+      this._markDirty()
       wx.showToast({ title: `已添加 ${newItems.length} 种商品`, icon: 'success' })
     }
   },
@@ -163,6 +193,7 @@ Page({
     if (items[index].quantity < items[index].stock) {
       items[index].quantity++
       this.setData({ selectedItems: items })
+      this._markDirty()
     }
   },
 
@@ -172,6 +203,7 @@ Page({
     if (items[index].quantity > 1) {
       items[index].quantity--
       this.setData({ selectedItems: items })
+      this._markDirty()
     }
   },
 
@@ -180,22 +212,17 @@ Page({
     const items = [...this.data.selectedItems]
     items.splice(index, 1)
     this.setData({ selectedItems: items })
+    this._markDirty()
   },
 
   onOrderInfoInput(e) {
     this.setData({ orderInfo: e.detail.value })
+    this._markDirty()
   },
 
   onRemarkInput(e) {
     this.setData({ orderRemark: e.detail.value })
-  },
-
-  enableUnloadAlert() {
-    if (this._alertEnabled) return
-    this._alertEnabled = true
-    this._disableAlert = wx.enableAlertBeforeUnload({
-      message: '当前页面有未保存的修改，确定要离开吗？'
-    })
+    this._markDirty()
   },
 
   async onSubmit() {

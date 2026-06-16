@@ -56,7 +56,7 @@
         </view>
         <view class="log-right">
           <text class="log-qty">+{{item._totalQty}}</text>
-          <text class="log-time">{{item.created_at}}</text>
+          <text class="log-time">{{item._createdAt}}</text>
           <text class="log-arrow">›</text>
         </view>
       </view>

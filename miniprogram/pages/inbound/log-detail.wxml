@@ -10,7 +10,7 @@
       <text class="log-inv-name">{{inventoryName}}</text>
     </view>
     <view class="log-meta">
-      <text class="log-time">{{log.created_at}}</text>
+      <text class="log-time">{{log._createdAt}}</text>
     </view>
     <view class="info-row" wx:if="{{log.remark}}">
       <text class="label">备注</text>
