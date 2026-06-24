@@ -1,0 +1,151 @@
+.page-nas-config {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 140rpx;
+}
+
+.status-card {
+  margin: 20rpx 24rpx;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.status-dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 10rpx;
+}
+
+.status-connected {
+  background: #52c41a;
+  box-shadow: 0 0 12rpx rgba(82, 196, 26, 0.4);
+}
+
+.status-disconnected {
+  background: #ff4d4f;
+  box-shadow: 0 0 12rpx rgba(255, 77, 79, 0.4);
+}
+
+.status-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.status-desc {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.card {
+  margin: 20rpx 24rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 12rpx;
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.preset-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 12rpx;
+  background: #fafafa;
+  transition: all 0.2s;
+}
+
+.preset-item:active {
+  background: #f0f7ff;
+}
+
+.preset-active {
+  border-color: #1890ff;
+  background: #f0f7ff;
+}
+
+.preset-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.preset-url {
+  font-size: 24rpx;
+  color: #999999;
+  font-family: monospace;
+}
+
+.action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #ffffff;
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.action-bar .btn {
+  flex: 1;
+  text-align: center;
+}
+
+.btn {
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: #1890ff;
+  color: #ffffff;
+}
+
+.btn-ghost {
+  background: #f5f5f5;
+  color: #666666;
+}

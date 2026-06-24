@@ -43,7 +43,7 @@ services:
       RUSTFS_REGION: ${RUSTFS_REGION:-us-east-1}
       RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-Uq0CQE6YkXFz9cswIm4hMV7Nit8aKnWAZ1Dj23Gp}
       RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-Uq0CQE6YkXFz9cswIm4hMV7Nit8aKnWAZ1Dj23Gp}
-      RUSTFS_BUCKET: ${RUSTFS_BUCKET:-goodser-images}
+      RUSTFS_BUCKET: ${RUSTFS_BUCKET:-2313391}
       RUSTFS_PUBLIC_URL: ${RUSTFS_PUBLIC_URL:-https://rfs.hailong.site/rustfs}
       API_KEY: ${API_KEY:-dev-api-key-change-me}
       UPLOAD_DIR: /data/uploads

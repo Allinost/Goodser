@@ -11,6 +11,20 @@ App({
 
       // 检查云数据库是否已初始化（种子数据）
       this.checkCloudInit()
+    } else if (db.isSelfBuiltEnabled()) {
+      console.log('[App] 自建后端模式已启用，正在初始化...')
+      var selfBuiltConfig = {}
+      try {
+        var raw = wx.getStorageSync('selfBuiltConfig')
+        if (raw) selfBuiltConfig = JSON.parse(raw)
+      } catch (e) {
+        selfBuiltConfig = {}
+      }
+      if (selfBuiltConfig.baseUrl) {
+        db.initSelfBuilt(selfBuiltConfig)
+      } else {
+        console.warn('[App] 自建后端模式已启用但未配置地址，回退到 Mock 模式')
+      }
     } else if (db.isNASEnabled()) {
       console.log('[App] NAS 私有云模式已启用，正在初始化...')
       var nasConfig = {}

@@ -61,7 +61,8 @@ async fn main() {
 
     let storage: std::sync::Arc<dyn ImageStorage> = {
         let s = RustFsStorage::new(&cfg.rustfs);
-        s.ensure_bucket().await.ok();
+        s.ensure_bucket().await
+            .expect("Failed to access RustFS bucket. Check RUSTFS_* config.");
         std::sync::Arc::new(s)
     };
 

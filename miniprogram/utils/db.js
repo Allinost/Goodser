@@ -3,6 +3,7 @@
  * - Mock 模式：本地内存数组（默认，零依赖）
  * - Cloud 模式：微信云开发（wx.cloud.database + 云函数）
  * - NAS 模式：NAS MySQL + 私有云 RustIO（HTTP API）
+ * - 自建后端模式：自建 Rust 后端（HTTP API，可公网 / EasyTier 访问）
  *
  * 缓存策略（四层）：
  * 1. 分级 TTL 内存缓存 —— 按数据变更频率差异化过期时间
@@ -24,6 +25,7 @@ const mockData = require('./mock-data')
 var MODE_MOCK = 'mock'
 var MODE_CLOUD = 'cloud'
 var MODE_NAS = 'nas'
+var MODE_SELF_BUILT = 'self_built'
 var _mode = MODE_MOCK
 
 // Cloud 模式状态
@@ -34,6 +36,10 @@ var _cloudCmd = null
 // NAS 模式状态
 var _nasReady = false
 var _nasConfig = null  // { baseUrl, apiKey }
+
+// 自建后端模式状态
+var _selfBuiltReady = false
+var _selfBuiltConfig = null  // { baseUrl, apiKey }
 
 // ---- 分级 TTL（毫秒）----
 var TTL = {
@@ -99,7 +105,7 @@ function _setSyncMarker(inventoryId, marker) {
  * 在此模式下，所有数据变更必须走后端 API，不能仅改本地数组
  */
 function isBackendMode() {
-  return _mode === MODE_CLOUD || _mode === MODE_NAS
+  return _mode === MODE_CLOUD || _mode === MODE_NAS || _mode === MODE_SELF_BUILT
 }
 
 function isCloudEnabled() {
@@ -119,6 +125,39 @@ function isNASEnabled() {
 
 function isNASReady() {
   return _nasReady && isNASEnabled()
+}
+
+function isSelfBuiltEnabled() {
+  return wx.getStorageSync('selfBuiltEnabled') === true
+}
+
+function isSelfBuiltReady() {
+  return _selfBuiltReady && isSelfBuiltEnabled()
+}
+
+/**
+ * 初始化自建后端模式
+ * @param {Object} config - { baseUrl, apiKey }
+ *   baseUrl: 自建后端 API 地址，如 'https://bak.hailong.site:8080'
+ *   apiKey: API 认证密钥
+ */
+function initSelfBuilt(config) {
+  if (!isSelfBuiltEnabled()) return
+
+  try {
+    _selfBuiltConfig = config || {}
+    _selfBuiltReady = true
+    _mode = MODE_SELF_BUILT
+    console.log('[DB] 自建后端模式已初始化，清空 Mock 数据')
+
+    _clearExportArrays()
+    _restoreFromStorage()
+    _preloadAll()
+  } catch (err) {
+    console.error('[DB] 自建后端初始化失败:', err)
+    _selfBuiltReady = false
+    _mode = MODE_MOCK
+  }
 }
 
 /**
@@ -189,21 +228,23 @@ function initNAS(config) {
 }
 
 /**
- * NAS API 请求封装
- * 直接调用 NAS 上运行的 Goodser API（Node.js Fastify/Koa），
- * API 内部操作 MySQL，无 Redis 缓存层（初期）
+ * HTTP API 请求封装（支持 NAS 和自建后端模式）
+ * 自建后端或 NAS 模式下调用 Rust 后端 HTTP API
  */
 function _nasRequest(action, data) {
-  if (!_nasReady || !_nasConfig) {
-    return Promise.reject(new Error('NAS 未就绪'))
+  var config = (_mode === MODE_SELF_BUILT) ? _selfBuiltConfig : _nasConfig
+  var ready = (_mode === MODE_SELF_BUILT) ? _selfBuiltReady : _nasReady
+
+  if (!ready || !config) {
+    return Promise.reject(new Error(_mode === MODE_SELF_BUILT ? '自建后端未就绪' : 'NAS 未就绪'))
   }
   return new Promise(function(resolve, reject) {
     wx.request({
-      url: (_nasConfig.baseUrl || '').replace(/\/+$/, '') + '/api/' + action,
+      url: (config.baseUrl || '').replace(/\/+$/, '') + '/api/' + action,
       method: 'POST',
       header: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + (_nasConfig.apiKey || '')
+        'Authorization': 'Bearer ' + (config.apiKey || '')
       },
       data: data || {},
       timeout: 15000,
@@ -213,14 +254,14 @@ function _nasRequest(action, data) {
           if (body && body.code === 0) {
             resolve(body.data)
           } else {
-            reject(new Error((body && body.message) || 'NAS API 返回错误'))
+            reject(new Error((body && body.message) || 'API 返回错误'))
           }
         } else {
-          reject(new Error('NAS API HTTP ' + res.statusCode))
+          reject(new Error('API HTTP ' + res.statusCode))
         }
       },
       fail: function(err) {
-        reject(new Error('NAS 连接失败: ' + (err.errMsg || '未知错误')))
+        reject(new Error('后端连接失败: ' + (err.errMsg || '未知错误')))
       }
     })
   })
@@ -231,7 +272,7 @@ function _nasRequest(action, data) {
  */
 function _backendCall(action, data) {
   if (_mode === MODE_CLOUD) return _cloudCall(action, data)
-  if (_mode === MODE_NAS) return _nasRequest(action, data)
+  if (_mode === MODE_NAS || _mode === MODE_SELF_BUILT) return _nasRequest(action, data)
   return Promise.reject(new Error('没有可用的后端'))
 }
 
@@ -1031,7 +1072,7 @@ async function allocateSeqNumber(inventoryId, mainZone, subZone) {
     var result = await _cloudCall('allocateSeq', { inventoryId: inventoryId, mainZone: mainZone, subZone: subZone })
     return result.seqNumber
   }
-  if (_mode === MODE_NAS) {
+  if (_mode === MODE_NAS || _mode === MODE_SELF_BUILT) {
     var nasResult = await _nasRequest('allocateSeq', { inventoryId: inventoryId, mainZone: mainZone, subZone: subZone })
     return nasResult.seqNumber || nasResult.seq_number || 0
   }
@@ -1574,10 +1615,13 @@ module.exports = {
   // 模式管理
   initCloud: initCloud,
   initNAS: initNAS,
+  initSelfBuilt: initSelfBuilt,
   isCloudEnabled: isCloudEnabled,
   isCloudReady: isCloudReady,
   isNASEnabled: isNASEnabled,
   isNASReady: isNASReady,
+  isSelfBuiltEnabled: isSelfBuiltEnabled,
+  isSelfBuiltReady: isSelfBuiltReady,
   isBackendMode: isBackendMode,
   getMode: getMode,
 

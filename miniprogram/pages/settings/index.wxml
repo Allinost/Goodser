@@ -40,6 +40,19 @@
         <text class="settings-arrow">›</text>
       </view>
     </view>
+    <view class="settings-item" bindtap="onSelfBuiltConfig">
+      <view class="settings-left">
+        <text class="settings-icon">🖥️</text>
+        <view class="settings-label-group">
+          <text class="settings-label">自建后端配置</text>
+          <text class="settings-hint">Rust API 后端（bak.hailong.site / EasyTier）</text>
+        </view>
+      </view>
+      <view class="settings-right">
+        <text class="settings-value {{selfBuiltStatus === '已连接' ? 'connected' : 'disconnected'}}">{{selfBuiltStatus === '已连接' ? '已连接' : selfBuiltEnabled ? selfBuiltStatus : '未配置'}}</text>
+        <text class="settings-arrow">›</text>
+      </view>
+    </view>
     <view class="settings-item" bindtap="onNasConfig">
       <view class="settings-left">
         <text class="settings-icon">💾</text>
@@ -78,6 +91,35 @@
       </view>
       <view class="settings-right">
         <text class="settings-value {{cloudDbStatus === '已连接' ? 'connected' : 'disconnected'}}">{{cloudDbStatus}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 自建后端开关 -->
+  <view class="settings-group">
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🖥️</text>
+        <view class="settings-label-group">
+          <text class="settings-label">自建后端</text>
+          <text class="settings-hint">启用后连接自建 Rust 后端 API（bak.hailong.site:8080），数据存储在 MySQL</text>
+        </view>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{selfBuiltEnabled}}" bindchange="onSelfBuiltToggle" color="#52c41a" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 自建后端状态 -->
+  <view class="settings-group" wx:if="{{selfBuiltEnabled}}">
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">📡</text>
+        <text class="settings-label">连接状态</text>
+      </view>
+      <view class="settings-right">
+        <text class="settings-value {{selfBuiltStatus === '已连接' ? 'connected' : 'disconnected'}}">{{selfBuiltStatus}}</text>
       </view>
     </view>
   </view>

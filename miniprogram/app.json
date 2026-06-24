@@ -16,7 +16,8 @@
     "pages/settings/whitelist",
     "pages/settings/status-codes",
     "pages/settings/tags",
-    "pages/settings/nas-config"
+    "pages/settings/nas-config",
+    "pages/settings/self-built-config"
   ],
   "window": {
     "backgroundTextStyle": "light",

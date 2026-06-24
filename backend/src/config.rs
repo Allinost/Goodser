@@ -50,7 +50,7 @@ impl AppConfig {
                 secret_key: get("RUSTFS_SECRET_KEY")
                     .expect("RUSTFS_SECRET_KEY must be set"),
                 bucket: get("RUSTFS_BUCKET")
-                    .unwrap_or_else(|_| "goodser-images".into()),
+                    .unwrap_or_else(|_| "2313391".into()),
                 public_url: get("RUSTFS_PUBLIC_URL").ok(),
             },
             upload_dir: get("UPLOAD_DIR")
@@ -107,7 +107,7 @@ mod tests {
             ("RUSTFS_SECRET_KEY", "test-secret"),
         ]);
         let cfg = AppConfig::from_reader(vars);
-        assert_eq!(cfg.rustfs.bucket, "goodser-images");
+        assert_eq!(cfg.rustfs.bucket, "2313391");
         assert!(cfg.rustfs.public_url.is_none());
     }
 

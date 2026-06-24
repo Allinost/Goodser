@@ -44,18 +44,18 @@ impl RustFsStorage {
     pub async fn ensure_bucket(&self) -> AppResult<()> {
         match self
             .client
-            .create_bucket()
+            .head_bucket()
             .bucket(&self.bucket)
             .send()
             .await
         {
             Ok(_) => {
-                tracing::info!(bucket = %self.bucket, "Bucket created");
+                tracing::info!(bucket = %self.bucket, "Bucket accessible");
                 Ok(())
             }
             Err(e) => {
-                tracing::warn!(bucket = %self.bucket, error = %e, "Bucket may already exist");
-                Ok(())
+                tracing::error!(bucket = %self.bucket, error = %e, "Bucket not accessible");
+                Err(AppError::Storage(format!("Bucket {} not accessible: {}", self.bucket, e)))
             }
         }
     }

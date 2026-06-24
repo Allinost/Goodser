@@ -17,6 +17,10 @@ Page({
     nasEnabled: false,
     nasStatus: '未连接',
 
+    // 自建后端模式
+    selfBuiltEnabled: false,
+    selfBuiltStatus: '未连接',
+
     // 缓存管理
     gradedTTL: false,
     cacheL1Count: 0,
@@ -70,6 +74,26 @@ Page({
       }
     }
 
+    var selfBuiltEnabled = wx.getStorageSync('selfBuiltEnabled') || false
+    var selfBuiltStatusText = '未连接'
+    if (selfBuiltEnabled) {
+      if (db.isSelfBuiltReady()) {
+        selfBuiltStatusText = '已连接'
+      } else {
+        var savedSelfBuilt = null
+        try {
+          var raw = wx.getStorageSync('selfBuiltConfig')
+          if (raw) savedSelfBuilt = JSON.parse(raw)
+        } catch (e) {}
+        if (savedSelfBuilt && savedSelfBuilt.baseUrl) {
+          db.initSelfBuilt(savedSelfBuilt)
+          selfBuiltStatusText = db.isSelfBuiltReady() ? '已连接' : '连接失败'
+        } else {
+          selfBuiltStatusText = '未连接（请先配置后端地址）'
+        }
+      }
+    }
+
     var cacheStats = db.getCacheStats()
     var syncInfo = db.getSyncInfo()
     var imgStats = imgCache.getImageStats()
@@ -92,6 +116,8 @@ Page({
       cloudDbStatus: cloudStatusText,
       nasEnabled: nasEnabled,
       nasStatus: nasStatusText,
+      selfBuiltEnabled: selfBuiltEnabled,
+      selfBuiltStatus: selfBuiltStatusText,
       gradedTTL: cacheStats.gradedTTL,
       cacheL1Count: cacheStats.l1Count,
       cacheStorageCount: cacheStats.storageCount,
@@ -110,6 +136,7 @@ Page({
   onStatusCodes() { wx.navigateTo({ url: '/pages/settings/status-codes' }) },
   onTags() { wx.navigateTo({ url: '/pages/settings/tags' }) },
   onNasConfig() { wx.navigateTo({ url: '/pages/settings/nas-config' }) },
+  onSelfBuiltConfig() { wx.navigateTo({ url: '/pages/settings/self-built-config' }) },
 
   // ========== NAS 私有云模式开关 ==========
 
@@ -163,6 +190,60 @@ Page({
     } else {
       wx.showToast({ title: '已切换为本地数据', icon: 'none' })
       this.setData({ nasStatus: '未连接', nasConnected: false })
+    }
+  },
+
+  // ========== 自建后端模式开关 ==========
+
+  async onSelfBuiltToggle(e) {
+    var enabled = e.detail.value
+    this.setData({ selfBuiltEnabled: enabled, selfBuiltStatus: enabled ? '连接中…' : '未连接' })
+    wx.setStorageSync('selfBuiltEnabled', enabled)
+
+    if (enabled) {
+      var selfBuiltConfig = {}
+      try {
+        var raw = wx.getStorageSync('selfBuiltConfig')
+        if (raw) selfBuiltConfig = JSON.parse(raw)
+      } catch (e) {
+        selfBuiltConfig = {}
+      }
+
+      if (!selfBuiltConfig.baseUrl) {
+        wx.showModal({
+          title: '请先配置后端地址',
+          content: '需要先配置自建后端的连接信息。\n\n请在「自建后端配置」页面填写后端 API 地址和密钥。',
+          showCancel: false,
+          success: () => {
+            this.setData({ selfBuiltEnabled: false, selfBuiltStatus: '未连接' })
+            wx.setStorageSync('selfBuiltEnabled', false)
+            wx.navigateTo({ url: '/pages/settings/self-built-config' })
+          }
+        })
+        return
+      }
+
+      wx.showLoading({ title: '连接后端…' })
+      db.initSelfBuilt(selfBuiltConfig)
+      if (!db.isSelfBuiltReady()) {
+        wx.hideLoading()
+        wx.showModal({
+          title: '连接失败',
+          content: '无法初始化自建后端模式。\n\n请检查后端地址和 API 密钥是否正确配置。',
+          showCancel: false
+        })
+        this.setData({ selfBuiltEnabled: false, selfBuiltStatus: '未连接' })
+        wx.setStorageSync('selfBuiltEnabled', false)
+        return
+      }
+
+      wx.hideLoading()
+      wx.showToast({ title: '自建后端已连接', icon: 'success' })
+      this.setData({ selfBuiltStatus: '已连接' })
+      this._refreshAll()
+    } else {
+      wx.showToast({ title: '已切换为本地数据', icon: 'none' })
+      this.setData({ selfBuiltStatus: '未连接' })
     }
   },
 
@@ -238,32 +319,32 @@ Page({
   async onSyncAllData() {
     var that = this
 
-    // 检查后端模式是否就绪
     var isCloud = db.isCloudReady()
     var isNAS = db.isNASReady()
-    if (!isCloud && !isNAS) {
+    var isSelfBuilt = db.isSelfBuiltReady()
+    if (!isCloud && !isNAS && !isSelfBuilt) {
       wx.showModal({
         title: '未连接后端',
-        content: '请先在「数据存储」区域开启并连接云数据库或 NAS 私有云。\n\n当前为本地 Mock 模式，无需同步。',
+        content: '请先在「数据存储」区域开启并连接云数据库、自建后端或 NAS 私有云。\n\n当前为本地 Mock 模式，无需同步。',
         showCancel: false
       })
       return
     }
 
-    var modeName = isCloud ? '云数据库' : 'NAS 私有云'
+    var modeName = isCloud ? '云数据库' : (isSelfBuilt ? '自建后端' : 'NAS 私有云')
 
     wx.showModal({
       title: '同步所有数据',
       content: '将从 ' + modeName + ' 全量拉取所有数据，包括：\n\n• 库存目录\n• 全部商品（每个仓库）\n• 出库单\n• 入库日志\n• 标签 / 状态编码 / 白名单\n\n这会清除本地缓存并重新下载，确认继续？',
       success: function (res) {
         if (res.confirm) {
-          that._doSyncAllData(isCloud, isNAS)
+          that._doSyncAllData(isCloud, isNAS, isSelfBuilt)
         }
       }
     })
   },
 
-  async _doSyncAllData(isCloud, isNAS) {
+  async _doSyncAllData(isCloud, isNAS, isSelfBuilt) {
     var that = this
 
     this.setData({ syncing: true, syncProgress: '正在清除缓存…' })
