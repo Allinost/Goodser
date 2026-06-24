@@ -23,7 +23,7 @@ pub struct RustFsConfig {
 
 impl AppConfig {
     pub fn from_env() -> Self {
-        Self::from_reader(env::var)
+        Self::from_reader(|key| env::var(key))
     }
 
     fn from_reader<F>(get: F) -> Self

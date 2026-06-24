@@ -53,9 +53,38 @@ impl RustFsStorage {
                 tracing::info!(bucket = %self.bucket, "Bucket accessible");
                 Ok(())
             }
+            Err(aws_sdk_s3::error::SdkError::ServiceError(err)) => {
+                if matches!(
+                    err.err(),
+                    aws_sdk_s3::operation::head_bucket::HeadBucketError::NotFound(_)
+                ) {
+                    tracing::warn!(bucket = %self.bucket, "Bucket not found, attempting to create");
+                    self.client
+                        .create_bucket()
+                        .bucket(&self.bucket)
+                        .send()
+                        .await
+                        .map_err(|e| {
+                            AppError::Storage(format!(
+                                "Failed to create bucket {}: {e}",
+                                self.bucket
+                            ))
+                        })?;
+                    tracing::info!(bucket = %self.bucket, "Bucket created");
+                } else {
+                    tracing::warn!(
+                        bucket = %self.bucket, ?err,
+                        "Bucket service error — continuing. Storage ops may fail."
+                    );
+                }
+                Ok(())
+            }
             Err(e) => {
-                tracing::error!(bucket = %self.bucket, error = %e, "Bucket not accessible");
-                Err(AppError::Storage(format!("Bucket {} not accessible: {}", self.bucket, e)))
+                tracing::warn!(
+                    bucket = %self.bucket, error = %e,
+                    "Could not verify bucket — continuing. Storage ops may fail."
+                );
+                Ok(())
             }
         }
     }
