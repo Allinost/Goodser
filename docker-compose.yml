@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.4.5
+    container_name: goodser-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: goodser
+      MYSQL_USER: goodser
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-goodser123}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: goodser-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - cargo_registry:/usr/local/cargo/registry
+      - cargo_git:/usr/local/cargo/git
+      - cargo_target:/app/target
+      - uploads:/data/uploads
+    command: ["/bin/sh", "-c", "cd /app && while true; do if [ -f Cargo.toml ]; then cargo run 2>&1 & PID=$!; wait $PID 2>/dev/null; inotifywait -r -q -e modify,create,delete,move --exclude '(^|/)(target/|\\.git/)' /app/src/ /app/Cargo.toml 2>/dev/null || sleep 1; else echo '[dev] No Cargo.toml, waiting...'; sleep 3; fi; done"]
+    environment:
+      APP_HOST: "0.0.0.0"
+      APP_PORT: "8080"
+      DATABASE_URL: mysql://goodser:${MYSQL_PASSWORD:-goodser123}@mysql:3306/goodser
+      RUSTFS_ENDPOINT: ${RUSTFS_ENDPOINT:-https://rfs.hailong.site}
+      RUSTFS_REGION: ${RUSTFS_REGION:-us-east-1}
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:-Uq0CQE6YkXFz9cswIm4hMV7Nit8aKnWAZ1Dj23Gp}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-Uq0CQE6YkXFz9cswIm4hMV7Nit8aKnWAZ1Dj23Gp}
+      RUSTFS_BUCKET: ${RUSTFS_BUCKET:-goodser-images}
+      RUSTFS_PUBLIC_URL: ${RUSTFS_PUBLIC_URL:-https://rfs.hailong.site/rustfs}
+      API_KEY: ${API_KEY:-dev-api-key-change-me}
+      UPLOAD_DIR: /data/uploads
+      RUST_LOG: info
+      RUST_BACKTRACE: "1"
+    depends_on:
+      mysql:
+        condition: service_healthy
+ 
+volumes:
+  mysql_data:
+  cargo_registry:
+  cargo_git:
+  cargo_target:
+  uploads:
