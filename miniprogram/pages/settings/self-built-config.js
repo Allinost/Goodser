@@ -36,11 +36,13 @@ Page({
     }
 
     var baseUrl = this.data.backendAddress.replace(/\/+$/, '')
+    var useHttps = baseUrl.startsWith('https://')
     if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
       baseUrl = 'http://' + baseUrl
     }
 
     wx.showLoading({ title: '测试连接中…' })
+    var that = this
     wx.request({
       url: baseUrl.replace(/\/+$/, '') + '/api/loadStatusCodes',
       method: 'POST',
@@ -53,22 +55,32 @@ Page({
       success: (res) => {
         wx.hideLoading()
         if (res.statusCode === 200 && res.data && res.data.code === 0) {
-          this.setData({ connected: true, configBaseUrl: baseUrl })
+          that.setData({ connected: true, configBaseUrl: baseUrl })
           wx.showToast({ title: '连接成功', icon: 'success' })
         } else {
+          var msg = (res.data && res.data.message) || ('状态码 ' + res.statusCode)
           wx.showModal({
             title: '连接失败',
-            content: '后端返回错误: ' + ((res.data && res.data.message) || '状态码 ' + res.statusCode),
+            content: '后端返回错误: ' + msg + '\n\n请确认后端服务已启动且 API 密钥正确。',
             showCancel: false
           })
         }
       },
       fail: (err) => {
         wx.hideLoading()
-        this.setData({ connected: false })
+        that.setData({ connected: false })
+        var errMsg = err.errMsg || ''
+        var tips = ''
+        if (errMsg.indexOf('fail') !== -1 || errMsg.indexOf('timeout') !== -1) {
+          tips = '请检查：\n1. 后端服务是否已启动\n2. 地址和端口是否正确\n3. 网络是否可达（公网 / EasyTier 已连接）\n'
+        }
+        if (!useHttps && errMsg.indexOf('request:fail') !== -1) {
+          tips += '4. 微信开发者工具中需开启「不校验合法域名」\n'
+          tips += '5. 真机预览必须使用 HTTPS'
+        }
         wx.showModal({
           title: '连接失败',
-          content: '无法连接到后端，请检查地址和网络。\n\n错误: ' + (err.errMsg || '未知错误'),
+          content: tips + '\n错误: ' + errMsg,
           showCancel: false
         })
       }
