@@ -8,11 +8,6 @@ use crate::handlers::{ApiMessage, ApiResponse, JsonResult};
 use crate::models::product::*;
 
 #[derive(Serialize)]
-pub struct ProductData {
-    product: Product,
-}
-
-#[derive(Serialize)]
 pub struct DeletedData {
     deleted: bool,
 }
@@ -184,10 +179,10 @@ pub async fn query_products(
 pub async fn create_product(
     State(repo): State<MysqlRepository>,
     Json(req): Json<CreateProductRequest>,
-) -> JsonResult<ApiResponse<ProductData>> {
+) -> JsonResult<ApiResponse<Product>> {
     validate_product_code(&req.main_zone, &req.sub_zone, &req.status_code)?;
     let product = repo.create_product(&req, "api_user").await?;
-    Ok(Json(ApiResponse::ok(ProductData { product })))
+    Ok(Json(ApiResponse::ok(product)))
 }
 
 pub async fn update_product(
@@ -277,6 +272,36 @@ mod tests {
     fn test_validate_product_code_invalid_status() {
         let err = validate_product_code("A", "B", "CC").unwrap_err();
         assert!(err.to_string().contains("状态编码"));
+    }
+
+    #[test]
+    fn test_product_serializes_with_underscore_id() {
+        let p = Product {
+            id: "prod_001".into(),
+            inventory_id: "inv_001".into(),
+            code: "A-B-0001-0010-A".into(),
+            main_zone: "A".into(),
+            sub_zone: "B".into(),
+            seq_number: 1,
+            quantity: 10,
+            reserved_quantity: 0,
+            status_code: "A".into(),
+            name: "测试商品".into(),
+            original_price: 100.0,
+            market_price: 120.0,
+            expected_price: 110.0,
+            remark: Some("备注".into()),
+            storage_location: Some("A区-1架".into()),
+            image_url: Some("http://example.com/img.jpg".into()),
+            image_list: None,
+            tags: Some(serde_json::json!(["tag_1", "tag_2"])),
+            owner_openid: "user_001".into(),
+            created_at: chrono::NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
+            updated_at: chrono::NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
+        };
+        let json = serde_json::to_value(&p).unwrap();
+        assert_eq!(json["_id"], "prod_001");
+        assert_eq!(json["name"], "测试商品");
     }
 
     #[test]

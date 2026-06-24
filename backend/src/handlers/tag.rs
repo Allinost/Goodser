@@ -7,11 +7,6 @@ use crate::handlers::{ApiMessage, ApiResponse, JsonResult};
 use crate::models::tag::*;
 
 #[derive(Serialize)]
-pub struct TagData {
-    tag: Tag,
-}
-
-#[derive(Serialize)]
 pub struct DeletedData {
     deleted: bool,
 }
@@ -26,9 +21,9 @@ pub async fn load_tags(
 pub async fn create_tag(
     State(repo): State<MysqlRepository>,
     Json(req): Json<CreateTagRequest>,
-) -> JsonResult<ApiResponse<TagData>> {
+) -> JsonResult<ApiResponse<Tag>> {
     let tag = repo.create_tag(&req, "api_user").await?;
-    Ok(Json(ApiResponse::ok(TagData { tag })))
+    Ok(Json(ApiResponse::ok(tag)))
 }
 
 pub async fn update_tag(
@@ -62,19 +57,21 @@ mod tests {
     }
 
     #[test]
-    fn test_tag_data_serde() {
-        let data = TagData { tag: sample_tag() };
-        let json = serde_json::to_value(&data).unwrap();
-        assert_eq!(json["tag"]["name"], "热销");
-        assert_eq!(json["tag"]["color"], "#ff4d4f");
+    fn test_tag_serializes_with_underscore_id() {
+        let tag = sample_tag();
+        let json = serde_json::to_value(&tag).unwrap();
+        assert_eq!(json["_id"], "tag_001");
+        assert_eq!(json["name"], "热销");
+        assert_eq!(json["color"], "#ff4d4f");
     }
 
     #[test]
-    fn test_tag_data_in_api_response() {
-        let resp = ApiResponse::ok(TagData { tag: sample_tag() });
+    fn test_tag_in_api_response() {
+        let tag = sample_tag();
+        let resp = ApiResponse::ok(tag);
         let json = serde_json::to_value(&resp).unwrap();
         assert_eq!(json["code"], 0);
-        assert_eq!(json["data"]["tag"]["name"], "热销");
+        assert_eq!(json["data"]["_id"], "tag_001");
     }
 
     #[test]
@@ -82,17 +79,6 @@ mod tests {
         let data = DeletedData { deleted: true };
         let json = serde_json::to_value(&data).unwrap();
         assert!(json["deleted"].as_bool().unwrap());
-    }
-
-    #[test]
-    fn test_multiple_tags_in_api_response() {
-        let tags = vec![
-            TagData { tag: Tag { id: "t1".into(), name: "A".into(), ..sample_tag() } },
-            TagData { tag: Tag { id: "t2".into(), name: "B".into(), ..sample_tag() } },
-        ];
-        let resp = ApiResponse::ok(tags);
-        let json = serde_json::to_value(&resp).unwrap();
-        assert_eq!(json["data"].as_array().unwrap().len(), 2);
     }
 
     #[test]

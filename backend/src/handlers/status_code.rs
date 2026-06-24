@@ -7,11 +7,6 @@ use crate::handlers::{ApiMessage, ApiResponse, JsonResult};
 use crate::models::status_code::*;
 
 #[derive(Serialize)]
-pub struct StatusCodeData {
-    status_code: StatusCode,
-}
-
-#[derive(Serialize)]
 pub struct DeletedData {
     deleted: bool,
 }
@@ -26,9 +21,9 @@ pub async fn load_status_codes(
 pub async fn add_status_code(
     State(repo): State<MysqlRepository>,
     Json(req): Json<AddStatusCodeRequest>,
-) -> JsonResult<ApiResponse<StatusCodeData>> {
+) -> JsonResult<ApiResponse<StatusCode>> {
     let sc = repo.add_status_code(&req, "api_user").await?;
-    Ok(Json(ApiResponse::ok(StatusCodeData { status_code: sc })))
+    Ok(Json(ApiResponse::ok(sc)))
 }
 
 pub async fn update_status_code(
@@ -63,22 +58,23 @@ mod tests {
     }
 
     #[test]
-    fn test_status_code_data_serde() {
-        let data = StatusCodeData { status_code: sample_status_code() };
-        let json = serde_json::to_value(&data).unwrap();
-        assert_eq!(json["status_code"]["code"], "A");
-        assert_eq!(json["status_code"]["label"], "正常");
+    fn test_status_code_serializes_with_underscore_id() {
+        let sc = sample_status_code();
+        let json = serde_json::to_value(&sc).unwrap();
+        assert_eq!(json["_id"], "sc_a");
+        assert_eq!(json["code"], "A");
+        assert_eq!(json["label"], "正常");
     }
 
     #[test]
-    fn test_status_code_data_system_flag() {
-        let data = StatusCodeData { status_code: sample_status_code() };
-        let json = serde_json::to_value(&data).unwrap();
-        assert!(json["status_code"]["is_system"].as_bool().unwrap());
+    fn test_status_code_system_flag() {
+        let sc = sample_status_code();
+        let json = serde_json::to_value(&sc).unwrap();
+        assert!(json["is_system"].as_bool().unwrap());
     }
 
     #[test]
-    fn test_status_code_data_custom() {
+    fn test_status_code_custom() {
         let sc = StatusCode {
             id: "sc_g".into(),
             code: "G".into(),
@@ -87,9 +83,8 @@ mod tests {
             owner_openid: "user_001".into(),
             created_at: chrono::NaiveDateTime::parse_from_str("2026-06-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
         };
-        let data = StatusCodeData { status_code: sc };
-        let json = serde_json::to_value(&data).unwrap();
-        assert!(!json["status_code"]["is_system"].as_bool().unwrap());
+        let json = serde_json::to_value(&sc).unwrap();
+        assert!(!json["is_system"].as_bool().unwrap());
     }
 
     #[test]

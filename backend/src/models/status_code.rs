@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct StatusCode {
+    #[serde(rename(serialize = "_id"))]
     pub id: String,
     pub code: String,
     pub label: String,

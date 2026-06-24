@@ -7,12 +7,6 @@ use crate::handlers::{ApiResponse, JsonResult};
 use crate::models::order::*;
 
 #[derive(Serialize)]
-pub struct OrderData {
-    #[serde(flatten)]
-    order: OutboundOrder,
-}
-
-#[derive(Serialize)]
 pub struct CancelledData {
     cancelled: bool,
 }
@@ -33,9 +27,9 @@ pub async fn load_outbound_orders(
 pub async fn create_outbound(
     State(repo): State<MysqlRepository>,
     Json(req): Json<CreateOutboundRequest>,
-) -> JsonResult<ApiResponse<OrderData>> {
+) -> JsonResult<ApiResponse<OutboundOrder>> {
     let order = repo.create_outbound_order(&req, "api_user").await?;
-    Ok(Json(ApiResponse::ok(OrderData { order })))
+    Ok(Json(ApiResponse::ok(order)))
 }
 
 pub async fn confirm_outbound(
@@ -65,9 +59,9 @@ pub async fn cancel_reserve(
 pub async fn reserve_to_outbound(
     State(repo): State<MysqlRepository>,
     Json(req): Json<ReserveToOutboundRequest>,
-) -> JsonResult<ApiResponse<OrderData>> {
+) -> JsonResult<ApiResponse<OutboundOrder>> {
     let order = repo.reserve_to_outbound(&req, "api_user").await?;
-    Ok(Json(ApiResponse::ok(OrderData { order })))
+    Ok(Json(ApiResponse::ok(order)))
 }
 
 #[cfg(test)]
@@ -99,11 +93,11 @@ mod tests {
     }
 
     #[test]
-    fn test_order_data_serde() {
-        let data = OrderData { order: sample_order() };
-        let json = serde_json::to_value(&data).unwrap();
+    fn test_outbound_order_serializes_with_underscore_id() {
+        let order = sample_order();
+        let json = serde_json::to_value(&order).unwrap();
+        assert_eq!(json["_id"], "ord_001");
         assert_eq!(json["order_no"], "OUT20260608001");
-        assert_eq!(json["status"], "pending");
     }
 
     #[test]
@@ -121,27 +115,25 @@ mod tests {
     }
 
     #[test]
-    fn test_order_data_with_reserve_type() {
+    fn test_outbound_order_with_reserve_type() {
         let order = OutboundOrder {
             order_type: "reserve".into(),
             status: "reserved".into(),
             ..sample_order()
         };
-        let data = OrderData { order };
-        let json = serde_json::to_value(&data).unwrap();
+        let json = serde_json::to_value(&order).unwrap();
         assert_eq!(json["type"], "reserve");
         assert_eq!(json["status"], "reserved");
     }
 
     #[test]
-    fn test_order_data_with_dates() {
+    fn test_outbound_order_with_dates() {
         let order = OutboundOrder {
             confirmed_at: Some(chrono::NaiveDateTime::parse_from_str("2026-06-08 12:00:00", "%Y-%m-%d %H:%M:%S").unwrap()),
             cancelled_at: None,
             ..sample_order()
         };
-        let data = OrderData { order };
-        let json = serde_json::to_value(&data).unwrap();
+        let json = serde_json::to_value(&order).unwrap();
         assert!(json["confirmed_at"].is_string());
         assert!(json["cancelled_at"].is_null());
     }

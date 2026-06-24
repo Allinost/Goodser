@@ -5,6 +5,7 @@ pub struct AppConfig {
     pub host: String,
     pub port: u16,
     pub database_url: String,
+    #[allow(dead_code)]
     pub api_key: String,
     pub rustfs: RustFsConfig,
     #[allow(dead_code)]

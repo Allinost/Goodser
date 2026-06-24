@@ -7,11 +7,6 @@ use crate::handlers::{ApiMessage, ApiResponse, JsonResult};
 use crate::models::inventory::*;
 
 #[derive(Serialize)]
-pub struct InventoryData {
-    inventory: Inventory,
-}
-
-#[derive(Serialize)]
 pub struct DeletedData {
     deleted: bool,
 }
@@ -26,9 +21,9 @@ pub async fn load_inventories(
 pub async fn create_inventory(
     State(repo): State<MysqlRepository>,
     Json(req): Json<CreateInventoryRequest>,
-) -> JsonResult<ApiResponse<InventoryData>> {
+) -> JsonResult<ApiResponse<Inventory>> {
     let inv = repo.create_inventory(&req, "api_user").await?;
-    Ok(Json(ApiResponse::ok(InventoryData { inventory: inv })))
+    Ok(Json(ApiResponse::ok(inv)))
 }
 
 pub async fn update_inventory(
@@ -51,20 +46,23 @@ pub async fn delete_inventory(
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_inventory_data_serialization() {
-        let inv = Inventory {
+    fn sample_inventory() -> Inventory {
+        Inventory {
             id: "inv_001".into(),
             name: "默认仓库".into(),
             owner_openid: "user_001".into(),
             sort_order: 0,
             created_at: chrono::NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
             updated_at: chrono::NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
-        };
-        let data = InventoryData { inventory: inv };
-        let json = serde_json::to_value(&data).unwrap();
-        assert_eq!(json["inventory"]["name"], "默认仓库");
-        assert_eq!(json["inventory"]["sort_order"], 0);
+        }
+    }
+
+    #[test]
+    fn test_inventory_serializes_with_underscore_id() {
+        let inv = sample_inventory();
+        let json = serde_json::to_value(&inv).unwrap();
+        assert_eq!(json["_id"], "inv_001");
+        assert_eq!(json["name"], "默认仓库");
     }
 
     #[test]
@@ -79,19 +77,13 @@ mod tests {
     }
 
     #[test]
-    fn test_inventory_data_in_api_response() {
-        let inv = Inventory {
-            id: "inv_001".into(),
-            name: "测试".into(),
-            owner_openid: "u1".into(),
-            sort_order: 1,
-            created_at: chrono::NaiveDateTime::parse_from_str("2026-06-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
-            updated_at: chrono::NaiveDateTime::parse_from_str("2026-06-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
-        };
-        let resp = ApiResponse::ok(InventoryData { inventory: inv });
+    fn test_inventory_in_api_response() {
+        let inv = sample_inventory();
+        let resp = ApiResponse::ok(inv);
         let json = serde_json::to_value(&resp).unwrap();
         assert_eq!(json["code"], 0);
-        assert_eq!(json["data"]["inventory"]["name"], "测试");
+        assert_eq!(json["data"]["_id"], "inv_001");
+        assert_eq!(json["data"]["name"], "默认仓库");
     }
 
     #[test]

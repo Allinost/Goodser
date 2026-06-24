@@ -126,7 +126,7 @@ mod tests {
         };
         let json = serde_json::to_value(&data).unwrap();
         assert_eq!(json["product"]["name"], "测试商品");
-        assert_eq!(json["log"]["id"], "log_001");
+        assert_eq!(json["log"]["_id"], "log_001");
     }
 
     #[test]
@@ -142,7 +142,8 @@ mod tests {
 
     #[test]
     fn test_inbound_batch_data_with_products() {
-        let product = crate::models::product::Product {
+        use crate::models::product::Product;
+        let product = Product {
             id: "prod_001".into(),
             inventory_id: "inv_001".into(),
             code: "A-B-0001-0010-A".into(),

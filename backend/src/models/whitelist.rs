@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct WhitelistEntry {
+    #[serde(rename(serialize = "_id"))]
     pub id: String,
     pub openid: String,
     pub nickname: Option<String>,

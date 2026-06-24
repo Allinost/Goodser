@@ -7,12 +7,6 @@ use crate::handlers::{ApiResponse, JsonResult};
 use crate::models::whitelist::*;
 
 #[derive(Serialize)]
-pub struct WhitelistData {
-    #[serde(flatten)]
-    entry: WhitelistEntry,
-}
-
-#[derive(Serialize)]
 pub struct DeletedData {
     deleted: bool,
 }
@@ -33,9 +27,9 @@ pub async fn load_whitelist(
 pub async fn add_whitelist(
     State(repo): State<MysqlRepository>,
     Json(req): Json<AddWhitelistRequest>,
-) -> JsonResult<ApiResponse<WhitelistData>> {
+) -> JsonResult<ApiResponse<WhitelistEntry>> {
     let entry = repo.add_whitelist(&req).await?;
-    Ok(Json(ApiResponse::ok(WhitelistData { entry })))
+    Ok(Json(ApiResponse::ok(entry)))
 }
 
 pub async fn remove_whitelist(
@@ -52,9 +46,16 @@ pub async fn check_whitelist(
 ) -> JsonResult<ApiResponse<CheckData>> {
     let openid = req.get("openid").and_then(|v| v.as_str()).unwrap_or("");
     let allowed = repo.check_whitelist(openid).await?;
+    let user = if allowed {
+        repo.list_whitelist().await.ok().and_then(|entries| {
+            entries.into_iter().find(|e| e.openid == openid)
+        })
+    } else {
+        None
+    };
     Ok(Json(ApiResponse::ok(CheckData {
         allowed,
-        user: None,
+        user,
     })))
 }
 
@@ -75,12 +76,12 @@ mod tests {
     }
 
     #[test]
-    fn test_whitelist_data_serde() {
-        let data = WhitelistData { entry: sample_entry() };
-        let json = serde_json::to_value(&data).unwrap();
+    fn test_whitelist_entry_serializes_with_underscore_id() {
+        let entry = sample_entry();
+        let json = serde_json::to_value(&entry).unwrap();
+        assert_eq!(json["_id"], "wl_001");
         assert_eq!(json["openid"], "openid_abc");
         assert_eq!(json["role"], "admin");
-        assert_eq!(json["nickname"], "张三");
     }
 
     #[test]
@@ -113,12 +114,22 @@ mod tests {
 
     #[test]
     fn test_check_data_with_user() {
+        let user_entry = WhitelistEntry {
+            id: "wl_001".into(),
+            openid: "openid_abc".into(),
+            nickname: Some("张三".into()),
+            avatar_url: None,
+            role: "admin".into(),
+            added_by: Some("system".into()),
+            created_at: chrono::NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
+        };
         let data = CheckData {
             allowed: true,
-            user: Some(sample_entry()),
+            user: Some(user_entry),
         };
         let json = serde_json::to_value(&data).unwrap();
         assert!(json["allowed"].as_bool().unwrap());
+        assert_eq!(json["user"]["_id"], "wl_001");
         assert_eq!(json["user"]["openid"], "openid_abc");
     }
 

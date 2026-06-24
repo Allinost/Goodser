@@ -12,6 +12,7 @@ pub struct InboundLogItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct InboundLog {
+    #[serde(rename(serialize = "_id"))]
     pub id: String,
     pub inventory_id: String,
     pub order_no: Option<String>,

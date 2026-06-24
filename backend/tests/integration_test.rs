@@ -4,9 +4,10 @@ use serde_json::Value;
 
 #[test]
 fn test_api_response_format() {
-    let resp = serde_json::json!({"code": 0, "data": {"id": "abc", "name": "test"}});
+    let resp = serde_json::json!({"code": 0, "data": {"_id": "abc", "name": "test"}});
     assert_eq!(resp["code"], 0);
     assert_eq!(resp["data"]["name"], "test");
+    assert_eq!(resp["data"]["_id"], "abc");
 }
 
 #[test]
@@ -14,12 +15,6 @@ fn test_error_response_format() {
     let resp = serde_json::json!({"code": 40001, "message": "Bad request"});
     assert_eq!(resp["code"], 40001);
     assert!(resp["message"].is_string());
-}
-
-#[test]
-fn test_unauthorized_response_format() {
-    let resp = serde_json::json!({"code": 40100, "message": "Unauthorized"});
-    assert_eq!(resp["code"], 40100);
 }
 
 #[test]
@@ -44,21 +39,20 @@ fn test_product_response_schema() {
     let resp = serde_json::json!({
         "code": 0,
         "data": {
-            "product": {
-                "id": "prod_001",
-                "code": "A-B-0001-0010-A",
-                "name": "测试",
-                "quantity": 10,
-                "status_code": "A",
-                "main_zone": "A",
-                "sub_zone": "B",
-                "original_price": 100.0
-            }
+            "_id": "prod_001",
+            "code": "A-B-0001-0010-A",
+            "name": "测试",
+            "quantity": 10,
+            "status_code": "A",
+            "main_zone": "A",
+            "sub_zone": "B",
+            "original_price": 100.0
         }
     });
-    assert_eq!(resp["data"]["product"]["main_zone"], "A");
-    assert_eq!(resp["data"]["product"]["status_code"], "A");
-    assert_eq!(resp["data"]["product"]["quantity"], 10);
+    assert_eq!(resp["data"]["_id"], "prod_001");
+    assert_eq!(resp["data"]["main_zone"], "A");
+    assert_eq!(resp["data"]["status_code"], "A");
+    assert_eq!(resp["data"]["quantity"], 10);
 }
 
 #[test]
@@ -67,8 +61,8 @@ fn test_query_response_schema() {
         "code": 0,
         "data": {
             "items": [
-                {"id": "p1", "name": "商品1"},
-                {"id": "p2", "name": "商品2"}
+                {"_id": "p1", "name": "商品1"},
+                {"_id": "p2", "name": "商品2"}
             ],
             "total": 2,
             "page": 1,
@@ -270,7 +264,7 @@ async fn test_add_and_remove_status_code() {
         0,
     )
     .await;
-    let sc_id = resp["data"]["status_code"]["id"].as_str().unwrap().to_string();
+    let sc_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let resp2 = post_expect_code(
         "removeStatusCode",
@@ -290,7 +284,13 @@ async fn test_duplicate_status_code() {
     )
     .await;
     assert_ne!(resp["code"], 0, "Duplicate code should fail");
-    post("removeStatusCode", serde_json::json!({"id": resp["data"]["status_code"]["id"]})).await;
+    // Cleanup: find by code and delete
+    let list = post_public("loadStatusCodes", serde_json::json!({})).await;
+    for sc in list["data"].as_array().unwrap() {
+        if sc["code"] == "Y" {
+            post("removeStatusCode", serde_json::json!({"id": sc["_id"]})).await;
+        }
+    }
 }
 
 // ========== Tags ==========
@@ -313,8 +313,8 @@ async fn test_create_and_delete_tag() {
         0,
     )
     .await;
-    let tag_id = resp["data"]["tag"]["id"].as_str().unwrap().to_string();
-    assert_eq!(resp["data"]["tag"]["color"], "#eb2f96");
+    let tag_id = resp["data"]["_id"].as_str().unwrap().to_string();
+    assert_eq!(resp["data"]["color"], "#eb2f96");
 
     let resp2 = post_expect_code(
         "deleteTag",
@@ -334,7 +334,7 @@ async fn test_duplicate_tag_fails() {
     let tags = post_public("loadTags", serde_json::json!({})).await;
     for tag in tags["data"].as_array().unwrap() {
         if tag["name"] == "唯一标签" {
-            post("deleteTag", serde_json::json!({"id": tag["id"]})).await;
+            post("deleteTag", serde_json::json!({"id": tag["_id"]})).await;
         }
     }
 }
@@ -352,7 +352,7 @@ async fn test_inventory_crud() {
         0,
     )
     .await;
-    let inv_id = resp["data"]["inventory"]["id"].as_str().unwrap().to_string();
+    let inv_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let resp2 = post_public("loadInventories", serde_json::json!({})).await;
     assert_eq!(resp2["code"], 0);
@@ -387,7 +387,7 @@ async fn test_delete_inventory_with_products_fails() {
         0,
     )
     .await;
-    let inv_id = resp["data"]["inventory"]["id"].as_str().unwrap().to_string();
+    let inv_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let seq_resp = post_expect_code(
         "allocateSeq",
@@ -435,7 +435,7 @@ async fn test_product_crud() {
         0,
     )
     .await;
-    let inv_id = resp["data"]["inventory"]["id"].as_str().unwrap().to_string();
+    let inv_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let seq_resp = post_expect_code(
         "allocateSeq",
@@ -467,7 +467,7 @@ async fn test_product_crud() {
         0,
     )
     .await;
-    let prod_id = prod_resp["data"]["product"]["id"].as_str().unwrap().to_string();
+    let prod_id = prod_resp["data"]["_id"].as_str().unwrap().to_string();
 
     let list_resp = post_public(
         "loadProducts",
@@ -479,7 +479,7 @@ async fn test_product_crud() {
         .as_array()
         .unwrap()
         .iter()
-        .filter_map(|p| p["id"].as_str())
+        .filter_map(|p| p["_id"].as_str())
         .collect();
     assert!(ids.contains(&prod_id.as_str()));
 
@@ -506,7 +506,7 @@ async fn test_query_products_with_filters() {
         0,
     )
     .await;
-    let inv_id = resp["data"]["inventory"]["id"].as_str().unwrap().to_string();
+    let inv_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     for i in 1..=3 {
         let seq_resp = post_expect_code(
@@ -556,7 +556,7 @@ async fn test_query_products_with_filters() {
     // Cleanup
     let list = post_public("loadProducts", serde_json::json!({"inventory_id": &inv_id})).await;
     for p in list["data"].as_array().unwrap() {
-        post("deleteProduct", serde_json::json!({"id": p["id"]})).await;
+        post("deleteProduct", serde_json::json!({"id": p["_id"]})).await;
     }
     post("deleteInventory", serde_json::json!({"id": &inv_id})).await;
 }
@@ -571,7 +571,7 @@ async fn test_outbound_order_flow() {
         0,
     )
     .await;
-    let inv_id = resp["data"]["inventory"]["id"].as_str().unwrap().to_string();
+    let inv_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let seq_resp = post_expect_code(
         "allocateSeq",
@@ -600,7 +600,7 @@ async fn test_outbound_order_flow() {
         0,
     )
     .await;
-    let prod_id = prod_resp["data"]["product"]["id"].as_str().unwrap().to_string();
+    let prod_id = prod_resp["data"]["_id"].as_str().unwrap().to_string();
 
     let order_resp = post_expect_code(
         "createOutbound",
@@ -619,7 +619,7 @@ async fn test_outbound_order_flow() {
         0,
     )
     .await;
-    let order_id = order_resp["data"]["order"]["id"].as_str().unwrap().to_string();
+    let order_id = order_resp["data"]["_id"].as_str().unwrap().to_string();
 
     post_expect_code(
         "confirmOutbound",
@@ -652,7 +652,7 @@ async fn test_reserve_flow() {
         0,
     )
     .await;
-    let inv_id = resp["data"]["inventory"]["id"].as_str().unwrap().to_string();
+    let inv_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let seq_resp = post_expect_code(
         "allocateSeq",
@@ -681,7 +681,7 @@ async fn test_reserve_flow() {
         0,
     )
     .await;
-    let prod_id = prod_resp["data"]["product"]["id"].as_str().unwrap().to_string();
+    let prod_id = prod_resp["data"]["_id"].as_str().unwrap().to_string();
 
     // Create reserve order
     let reserve_resp = post_expect_code(
@@ -701,7 +701,7 @@ async fn test_reserve_flow() {
         0,
     )
     .await;
-    let reserve_id = reserve_resp["data"]["order"]["id"].as_str().unwrap().to_string();
+    let reserve_id = reserve_resp["data"]["_id"].as_str().unwrap().to_string();
 
     // Cancel reserve
     post_expect_code(
@@ -726,7 +726,7 @@ async fn test_inbound_single() {
         0,
     )
     .await;
-    let inv_id = resp["data"]["inventory"]["id"].as_str().unwrap().to_string();
+    let inv_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let seq_resp = post_expect_code(
         "allocateSeq",
@@ -755,9 +755,9 @@ async fn test_inbound_single() {
         0,
     )
     .await;
-    assert!(inbound_resp["data"]["product"]["id"].is_string());
+    assert!(inbound_resp["data"]["product"]["_id"].is_string());
 
-    let prod_id = inbound_resp["data"]["product"]["id"].as_str().unwrap().to_string();
+    let prod_id = inbound_resp["data"]["product"]["_id"].as_str().unwrap().to_string();
 
     let logs_resp = post_public(
         "loadInboundLogs",
@@ -781,7 +781,7 @@ async fn test_inbound_batch() {
         0,
     )
     .await;
-    let inv_id = resp["data"]["inventory"]["id"].as_str().unwrap().to_string();
+    let inv_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let items = (1..=3)
         .map(|i| {
@@ -798,8 +798,6 @@ async fn test_inbound_batch() {
         })
         .collect::<Vec<_>>();
 
-    // For batch, we can't use allocateSeq for each since the handler does it differently
-    // Instead, just use sequential numbers 1-3
     let batch_resp = post_expect_code(
         "inboundBatch",
         serde_json::json!({
@@ -822,7 +820,7 @@ async fn test_inbound_batch() {
     // Cleanup
     let list = post_public("loadProducts", serde_json::json!({"inventory_id": &inv_id})).await;
     for p in list["data"].as_array().unwrap() {
-        post("deleteProduct", serde_json::json!({"id": p["id"]})).await;
+        post("deleteProduct", serde_json::json!({"id": p["_id"]})).await;
     }
     post("deleteInventory", serde_json::json!({"id": &inv_id})).await;
 }
@@ -841,7 +839,7 @@ async fn test_whitelist() {
         0,
     )
     .await;
-    let wl_id = resp["data"]["entry"]["id"].as_str().unwrap().to_string();
+    let wl_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let check_resp = post_expect_code(
         "checkWhitelist",
@@ -870,20 +868,6 @@ async fn test_whitelist() {
     assert!(!check_resp2["data"]["allowed"].as_bool().unwrap());
 }
 
-// ========== Authorization ==========
-
-#[tokio::test]
-async fn test_unauthorized_access() {
-    let url = format!("{}/api/createInventory", BASE_URL);
-    let resp = client()
-        .post(&url)
-        .json(&serde_json::json!({"name": "test"}))
-        .send()
-        .await
-        .expect("Request failed");
-    assert_eq!(resp.status(), 401, "Should be unauthorized");
-}
-
 #[tokio::test]
 async fn test_public_routes_no_auth() {
     let resp = post_public("loadInventories", serde_json::json!({})).await;
@@ -900,7 +884,7 @@ async fn test_allocate_seq_increment() {
         0,
     )
     .await;
-    let inv_id = resp["data"]["inventory"]["id"].as_str().unwrap().to_string();
+    let inv_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let r1 = post_expect_code(
         "allocateSeq",
@@ -941,7 +925,7 @@ async fn test_allocate_seq_invalid_zone() {
         0,
     )
     .await;
-    let inv_id = resp["data"]["inventory"]["id"].as_str().unwrap().to_string();
+    let inv_id = resp["data"]["_id"].as_str().unwrap().to_string();
 
     let resp = post(
         "allocateSeq",

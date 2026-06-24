@@ -554,7 +554,7 @@ async function loadProducts(inventoryId, forceRefresh) {
     if (_mode === MODE_CLOUD) {
       allData = await _cloudLoadProducts(inventoryId, forceRefresh, cacheKey, ttl)
     } else if (_mode === MODE_NAS) {
-      var res = await _nasRequest('loadProducts', { inventoryId: inventoryId })
+      var res = await _nasRequest('loadProducts', { inventory_id: inventoryId })
       allData = res.products || res || []
       if (!Array.isArray(allData)) allData = []
     } else {
@@ -787,7 +787,7 @@ async function loadOutboundOrders(inventoryId, forceRefresh) {
         .get()
       data = res.data
     } else if (_mode === MODE_NAS) {
-      var nasRes = await _nasRequest('loadOutboundOrders', { inventoryId: inventoryId })
+      var nasRes = await _nasRequest('loadOutboundOrders', { inventory_id: inventoryId })
       data = nasRes.orders || nasRes || []
       if (!Array.isArray(data)) data = []
     } else return []
@@ -834,7 +834,7 @@ async function loadInboundLogs(inventoryId, forceRefresh) {
         .get()
       data = res.data
     } else if (_mode === MODE_NAS) {
-      var nasRes = await _nasRequest('loadInboundLogs', { inventoryId: inventoryId })
+      var nasRes = await _nasRequest('loadInboundLogs', { inventory_id: inventoryId })
       data = nasRes.logs || nasRes || []
       if (!Array.isArray(data)) data = []
     } else return []
@@ -1073,7 +1073,7 @@ async function allocateSeqNumber(inventoryId, mainZone, subZone) {
     return result.seqNumber
   }
   if (_mode === MODE_NAS || _mode === MODE_SELF_BUILT) {
-    var nasResult = await _nasRequest('allocateSeq', { inventoryId: inventoryId, mainZone: mainZone, subZone: subZone })
+    var nasResult = await _nasRequest('allocateSeq', { inventory_id: inventoryId, main_zone: mainZone, sub_zone: subZone })
     return nasResult.seqNumber || nasResult.seq_number || 0
   }
   return 0

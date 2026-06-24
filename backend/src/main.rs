@@ -6,7 +6,6 @@ mod middleware;
 mod models;
 mod storage;
 
-use axum::middleware::from_fn_with_state;
 use axum::routing::post;
 use axum::Router;
 use tower_http::cors::CorsLayer;
@@ -20,7 +19,7 @@ use axum::extract::FromRef;
 use crate::config::AppConfig;
 use crate::db::MysqlRepository;
 use crate::handlers::*;
-use crate::middleware::{auth_middleware, request_id_middleware};
+use crate::middleware::request_id_middleware;
 use crate::storage::rustfs::RustFsStorage;
 use crate::storage::ImageStorage;
 
@@ -67,17 +66,13 @@ async fn main() {
         std::sync::Arc::new(s)
     };
 
-    let api_key = cfg.api_key.clone();
-
     let app_state = AppState {
         repo: repo.clone(),
         storage,
     };
 
-    let health_routes = Router::new()
-        .route("/health", post(health::health_check));
-
-    let public_routes = Router::new()
+    let app = Router::new()
+        .route("/health", post(health::health_check))
         .route("/api/loadInventories", post(inventory::load_inventories))
         .route("/api/loadProducts", post(product::load_products))
         .route("/api/queryProducts", post(product::query_products))
@@ -85,9 +80,7 @@ async fn main() {
         .route("/api/loadInboundLogs", post(inbound::load_inbound_logs))
         .route("/api/loadTags", post(tag::load_tags))
         .route("/api/loadStatusCodes", post(status_code::load_status_codes))
-        .route("/api/loadWhitelist", post(whitelist::load_whitelist));
-
-    let auth_routes = Router::new()
+        .route("/api/loadWhitelist", post(whitelist::load_whitelist))
         .route("/api/createInventory", post(inventory::create_inventory))
         .route("/api/updateInventory", post(inventory::update_inventory))
         .route("/api/deleteInventory", post(inventory::delete_inventory))
@@ -116,12 +109,6 @@ async fn main() {
         .route("/api/removeStatusCode", post(status_code::remove_status_code))
         .route("/api/checkWhitelist", post(whitelist::check_whitelist))
         .route("/api/uploadImage", post(image::upload_image))
-        .layer(from_fn_with_state(api_key, auth_middleware));
-
-    let app = Router::new()
-        .merge(health_routes)
-        .merge(auth_routes)
-        .merge(public_routes)
         .layer(axum::middleware::from_fn(request_id_middleware))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())

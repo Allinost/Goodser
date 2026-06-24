@@ -298,8 +298,8 @@ impl MysqlRepository {
             "INSERT INTO products (id, inventory_id, code, main_zone, sub_zone, \
              seq_number, quantity, status_code, name, original_price, \
              market_price, expected_price, remark, storage_location, \
-             image_url, tags, owner_openid) \
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+             image_url, image_list, tags, owner_openid) \
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&id)
         .bind(&req.inventory_id)
@@ -316,6 +316,7 @@ impl MysqlRepository {
         .bind(req.remark.as_deref())
         .bind(req.storage_location.as_deref())
         .bind(req.image_url.as_deref())
+        .bind(&serde_json::Value::Null)
         .bind(&tags)
         .bind(openid)
         .execute(&self.pool)
@@ -326,6 +327,9 @@ impl MysqlRepository {
     pub async fn update_product(&self, req: &UpdateProductRequest) -> AppResult<()> {
         let product = self.get_product(&req.id).await?;
         let name = req.name.as_deref().unwrap_or(&product.name);
+        let code = req.code.as_deref().unwrap_or(&product.code);
+        let main_zone = req.main_zone.as_deref().unwrap_or(&product.main_zone);
+        let sub_zone = req.sub_zone.as_deref().unwrap_or(&product.sub_zone);
         let status_code = req.status_code.as_deref().unwrap_or(&product.status_code);
         let remark = req.remark.as_deref().or(product.remark.as_deref());
         let storage = req
@@ -334,17 +338,29 @@ impl MysqlRepository {
             .or(product.storage_location.as_deref());
         let image_url = req.image_url.as_deref().or(product.image_url.as_deref());
         let quantity = req.quantity.unwrap_or(product.quantity);
+        let original_price = req.original_price.unwrap_or(product.original_price);
+        let market_price = req.market_price.unwrap_or(product.market_price);
+        let expected_price = req.expected_price.unwrap_or(product.expected_price);
+        let seq_number = req.seq_number.unwrap_or(product.seq_number);
         let tags = req
             .tags
             .as_ref()
             .map(|t| serde_json::to_value(t).unwrap_or(serde_json::Value::Null))
             .unwrap_or(product.tags.unwrap_or(serde_json::Value::Null));
         sqlx::query(
-            "UPDATE products SET name=?, quantity=?, status_code=?, remark=?, \
-             storage_location=?, image_url=?, tags=? WHERE id=?",
+            "UPDATE products SET name=?, code=?, main_zone=?, sub_zone=?, \
+             seq_number=?, quantity=?, original_price=?, market_price=?, expected_price=?, \
+             status_code=?, remark=?, storage_location=?, image_url=?, tags=? WHERE id=?",
         )
         .bind(name)
+        .bind(code)
+        .bind(main_zone)
+        .bind(sub_zone)
+        .bind(seq_number)
         .bind(quantity)
+        .bind(original_price)
+        .bind(market_price)
+        .bind(expected_price)
         .bind(status_code)
         .bind(remark)
         .bind(storage)
@@ -1059,6 +1075,21 @@ impl MysqlRepository {
         for item in &req.items {
             sqlx::query("UPDATE products SET quantity = quantity + ? WHERE id = ?")
                 .bind(item.quantity)
+                .bind(&item.product_id)
+                .execute(&self.pool)
+                .await?;
+
+            // Update product code quantity segment to reflect new quantity
+            let prod = self.get_product(&item.product_id).await?;
+            let new_qty = prod.quantity;
+            let parts: Vec<&str> = prod.code.split('-').collect();
+            let new_code = if parts.len() >= 4 {
+                format!("{}-{}-{}-{:04}-{}", parts[0], parts[1], parts[2], new_qty, parts[4])
+            } else {
+                prod.code.clone()
+            };
+            sqlx::query("UPDATE products SET code = ? WHERE id = ?")
+                .bind(&new_code)
                 .bind(&item.product_id)
                 .execute(&self.pool)
                 .await?;
