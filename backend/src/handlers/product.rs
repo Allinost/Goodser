@@ -1,4 +1,4 @@
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::Json;
 use serde::{Deserialize, Serialize};
 
@@ -226,6 +226,59 @@ pub async fn allocate_seq(
         .allocate_seq_number(&req.inventory_id, &req.main_zone, &req.sub_zone)
         .await?;
     Ok(Json(ApiResponse::ok(AllocateData { seq_number: seq })))
+}
+
+pub async fn list_products_rest(
+    State(repo): State<MysqlRepository>,
+    Path(inventory_id): Path<String>,
+) -> JsonResult<ApiResponse<Vec<Product>>> {
+    let items = repo.list_products(&inventory_id).await?;
+    Ok(Json(ApiResponse::ok(items)))
+}
+
+pub async fn get_product_rest(
+    State(repo): State<MysqlRepository>,
+    Path((_inventory_id, product_id)): Path<(String, String)>,
+) -> JsonResult<ApiResponse<Product>> {
+    let product = repo.get_product(&product_id).await?;
+    Ok(Json(ApiResponse::ok(product)))
+}
+
+pub async fn create_product_rest(
+    State(repo): State<MysqlRepository>,
+    Path(_inventory_id): Path<String>,
+    Json(req): Json<CreateProductRequest>,
+) -> JsonResult<ApiResponse<Product>> {
+    create_product(repo, Json(req)).await
+}
+
+pub async fn update_product_rest(
+    State(repo): State<MysqlRepository>,
+    Path((_inventory_id, product_id)): Path<(String, String)>,
+    Json(req): Json<UpdateProductRequest>,
+) -> JsonResult<ApiResponse<ApiMessage>> {
+    let mut update = req;
+    update.id = product_id;
+    update_product(repo, Json(update)).await
+}
+
+pub async fn delete_product_rest(
+    State(repo): State<MysqlRepository>,
+    Path((_inventory_id, product_id)): Path<(String, String)>,
+) -> JsonResult<ApiResponse<DeletedData>> {
+    repo.delete_product(&product_id).await?;
+    Ok(Json(ApiResponse::ok(DeletedData { deleted: true })))
+}
+
+pub async fn search_products_rest(
+    State(repo): State<MysqlRepository>,
+    Path(inventory_id): Path<String>,
+    Json(req): Json<serde_json::Value>,
+) -> JsonResult<ApiResponse<QueryProductsResponse>> {
+    let mut q = serde_json::from_value::<QueryProductsRequest>(req)
+        .map_err(|e| crate::error::AppError::BadRequest(format!("Invalid request: {e}")))?;
+    q.inventory_id = inventory_id;
+    query_products(repo, Json(q)).await
 }
 
 fn validate_product_code(main_zone: &str, sub_zone: &str, status_code: &str) -> AppResult<()> {

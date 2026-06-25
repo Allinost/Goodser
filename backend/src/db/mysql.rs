@@ -9,6 +9,15 @@ use crate::models::product::*;
 use crate::models::status_code::*;
 use crate::models::tag::*;
 use crate::models::whitelist::*;
+use serde::Serialize;
+
+#[derive(Debug, Clone, Serialize)]
+pub struct InventoryStats {
+    pub total_products: i64,
+    pub total_quantity: i64,
+    pub total_reserved: i64,
+    pub zone_count: i64,
+}
 
 const MIGRATIONS: &[&str] = &[
     "CREATE TABLE IF NOT EXISTS inventories (
@@ -221,6 +230,34 @@ impl MysqlRepository {
         .fetch_optional(&self.pool)
         .await?
         .ok_or_else(|| AppError::NotFound(format!("Inventory {id} not found")))
+    }
+
+    pub async fn get_inventory_stats(&self, id: &str) -> AppResult<InventoryStats> {
+        let (total_products,): (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM products WHERE inventory_id = ?",
+        )
+        .bind(id)
+        .fetch_one(&self.pool)
+        .await?;
+        let (total_quantity,): (i64,) = sqlx::query_as(
+            "SELECT COALESCE(SUM(quantity), 0) FROM products WHERE inventory_id = ?",
+        )
+        .bind(id)
+        .fetch_one(&self.pool)
+        .await?;
+        let (total_reserved,): (i64,) = sqlx::query_as(
+            "SELECT COALESCE(SUM(reserved_quantity), 0) FROM products WHERE inventory_id = ?",
+        )
+        .bind(id)
+        .fetch_one(&self.pool)
+        .await?;
+        let (zone_count,): (i64,) = sqlx::query_as(
+            "SELECT COUNT(DISTINCT main_zone, sub_zone) FROM products WHERE inventory_id = ?",
+        )
+        .bind(id)
+        .fetch_one(&self.pool)
+        .await?;
+        Ok(InventoryStats { total_products, total_quantity, total_reserved, zone_count })
     }
 
     pub async fn update_inventory(&self, req: &UpdateInventoryRequest) -> AppResult<()> {
@@ -672,6 +709,16 @@ impl MysqlRepository {
         .fetch_all(&self.pool)
         .await
         .map_err(AppError::from)
+    }
+
+    pub async fn get_inbound_log(&self, id: &str) -> AppResult<InboundLog> {
+        sqlx::query_as::<_, InboundLog>(
+            "SELECT * FROM inbound_logs WHERE id = ?",
+        )
+        .bind(id)
+        .fetch_optional(&self.pool)
+        .await?
+        .ok_or_else(|| AppError::NotFound(format!("InboundLog {id} not found")))
     }
 
     pub async fn create_inbound_log(

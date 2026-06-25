@@ -1,4 +1,4 @@
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::Json;
 use serde::Serialize;
 
@@ -88,6 +88,66 @@ pub async fn delete_inbound_log(
     Json(req): Json<DeleteInboundLogRequest>,
 ) -> JsonResult<ApiResponse<DeletedData>> {
     repo.delete_inbound_log(&req.id).await?;
+    Ok(Json(ApiResponse::ok(DeletedData { deleted: true })))
+}
+
+pub async fn inbound_single_rest(
+    State(repo): State<MysqlRepository>,
+    Path(_inventory_id): Path<String>,
+    Json(req): Json<InboundSingleRequest>,
+) -> JsonResult<ApiResponse<InboundSingleData>> {
+    inbound_single(repo, Json(req)).await
+}
+
+pub async fn inbound_batch_rest(
+    State(repo): State<MysqlRepository>,
+    Path(_inventory_id): Path<String>,
+    Json(req): Json<InboundBatchRequest>,
+) -> JsonResult<ApiResponse<InboundBatchData>> {
+    inbound_batch(repo, Json(req)).await
+}
+
+pub async fn inbound_search_import_rest(
+    State(repo): State<MysqlRepository>,
+    Path(_inventory_id): Path<String>,
+    Json(req): Json<InboundSearchImportRequest>,
+) -> JsonResult<ApiResponse<UpdatedData>> {
+    inbound_search_import(repo, Json(req)).await
+}
+
+pub async fn list_inbound_logs_rest(
+    State(repo): State<MysqlRepository>,
+    Path(inventory_id): Path<String>,
+) -> JsonResult<ApiResponse<Vec<crate::models::inbound_log::InboundLog>>> {
+    let logs = repo.list_inbound_logs(&inventory_id).await?;
+    Ok(Json(ApiResponse::ok(logs)))
+}
+
+pub async fn get_inbound_log_rest(
+    State(repo): State<MysqlRepository>,
+    Path((_inventory_id, log_id)): Path<(String, String)>,
+) -> JsonResult<ApiResponse<serde_json::Value>> {
+    let log = repo.get_inbound_log(&log_id).await?;
+    let val = serde_json::to_value(&log).unwrap_or_default();
+    Ok(Json(ApiResponse::ok(val)))
+}
+
+pub async fn update_inbound_log_rest(
+    State(repo): State<MysqlRepository>,
+    Path((_inventory_id, log_id)): Path<(String, String)>,
+    Json(req): Json<UpdateInboundLogRequest>,
+) -> JsonResult<ApiResponse<ApiMessage>> {
+    let mut update = req;
+    update.id = log_id;
+    repo.update_inbound_log(&update).await?;
+    Ok(Json(ApiResponse::ok(ApiMessage::ok("updated"))))
+}
+
+pub async fn delete_inbound_log_rest(
+    State(repo): State<MysqlRepository>,
+    Path((_inventory_id, log_id)): Path<(String, String)>,
+) -> JsonResult<ApiResponse<DeletedData>> {
+    repo.delete_inbound_log(&log_id).await?;
     Ok(Json(ApiResponse::ok(DeletedData { deleted: true })))
 }
 

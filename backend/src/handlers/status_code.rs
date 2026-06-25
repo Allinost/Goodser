@@ -1,4 +1,4 @@
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::Json;
 use serde::Serialize;
 
@@ -39,6 +39,27 @@ pub async fn remove_status_code(
     Json(req): Json<RemoveStatusCodeRequest>,
 ) -> JsonResult<ApiResponse<DeletedData>> {
     repo.remove_status_code(&req.id).await?;
+    Ok(Json(ApiResponse::ok(DeletedData { deleted: true })))
+}
+
+pub async fn list_status_codes_rest(
+    State(repo): State<MysqlRepository>,
+) -> JsonResult<ApiResponse<Vec<StatusCode>>> {
+    load_status_codes(repo).await
+}
+
+pub async fn add_status_code_rest(
+    State(repo): State<MysqlRepository>,
+    Json(req): Json<AddStatusCodeRequest>,
+) -> JsonResult<ApiResponse<StatusCode>> {
+    add_status_code(repo, Json(req)).await
+}
+
+pub async fn remove_status_code_rest(
+    State(repo): State<MysqlRepository>,
+    Path(id): Path<String>,
+) -> JsonResult<ApiResponse<DeletedData>> {
+    repo.remove_status_code(&id).await?;
     Ok(Json(ApiResponse::ok(DeletedData { deleted: true })))
 }
 

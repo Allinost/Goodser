@@ -12,4 +12,6 @@ pub trait ImageStorage: Send + Sync {
     async fn exists(&self, _key: &str) -> AppResult<bool> {
         Ok(false)
     }
+    async fn presign_upload(&self, key: &str, content_type: &str, expires_in_secs: u64) -> AppResult<String>;
+    async fn presign_download(&self, key: &str, expires_in_secs: u64) -> AppResult<String>;
 }

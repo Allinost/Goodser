@@ -1,16 +1,34 @@
 use std::sync::Arc;
 
-use axum::extract::{Multipart, State};
+use axum::extract::{Multipart, Path, State};
 use axum::Json;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::error::AppError;
-use crate::handlers::{ApiResponse, JsonResult};
+use crate::handlers::{ApiMessage, ApiResponse, JsonResult};
 use crate::storage::ImageStorage;
 
 #[derive(Serialize)]
 pub struct UploadData {
     url: String,
+}
+
+#[derive(Serialize)]
+pub struct PresignData {
+    url: String,
+    key: String,
+}
+
+#[derive(Deserialize)]
+pub struct PresignRequest {
+    pub content_type: Option<String>,
+    pub product_id: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct ConfirmRequest {
+    pub key: String,
+    pub product_id: Option<String>,
 }
 
 pub async fn upload_image(
@@ -48,6 +66,38 @@ pub async fn upload_image(
     );
 
     let url = storage.upload(&key, &data, &content_type).await?;
+    Ok(Json(ApiResponse::ok(UploadData { url })))
+}
+
+pub async fn presign_upload(
+    State(storage): State<Arc<dyn ImageStorage>>,
+    Json(req): Json<PresignRequest>,
+) -> JsonResult<ApiResponse<PresignData>> {
+    let content_type = req.content_type.unwrap_or_else(|| "image/jpeg".into());
+    let key = format!(
+        "images/{}/{}.jpg",
+        chrono::Utc::now().format("%Y/%m/%d"),
+        uuid::Uuid::new_v4()
+    );
+    let url = storage.presign_upload(&key, &content_type, 3600).await?;
+    Ok(Json(ApiResponse::ok(PresignData { url, key })))
+}
+
+pub async fn confirm_upload(
+    State(storage): State<Arc<dyn ImageStorage>>,
+    Json(req): Json<ConfirmRequest>,
+) -> JsonResult<ApiResponse<ApiMessage>> {
+    if !storage.exists(&req.key).await.unwrap_or(false) {
+        return Err(AppError::BadRequest("上传文件未找到，请重新上传".into()));
+    }
+    Ok(Json(ApiResponse::ok(ApiMessage::ok("upload confirmed"))))
+}
+
+pub async fn get_image_url(
+    State(storage): State<Arc<dyn ImageStorage>>,
+    Path(key): Path<String>,
+) -> JsonResult<ApiResponse<UploadData>> {
+    let url = storage.url(&key).await?;
     Ok(Json(ApiResponse::ok(UploadData { url })))
 }
 

@@ -6,7 +6,7 @@ mod middleware;
 mod models;
 mod storage;
 
-use axum::routing::post;
+use axum::routing::{delete, get, post, put};
 use axum::Router;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
@@ -72,6 +72,7 @@ async fn main() {
     };
 
     let app = Router::new()
+        // Legacy flat POST endpoints
         .route("/health", post(health::health_check))
         .route("/api/loadInventories", post(inventory::load_inventories))
         .route("/api/loadProducts", post(product::load_products))
@@ -109,6 +110,51 @@ async fn main() {
         .route("/api/removeStatusCode", post(status_code::remove_status_code))
         .route("/api/checkWhitelist", post(whitelist::check_whitelist))
         .route("/api/uploadImage", post(image::upload_image))
+        // RESTful Inventories
+        .route("/api/inventories", get(inventory::list_inventories_rest))
+        .route("/api/inventories", post(inventory::create_inventory_rest))
+        .route("/api/inventories/{id}", put(inventory::update_inventory_rest))
+        .route("/api/inventories/{id}", delete(inventory::delete_inventory_rest))
+        .route("/api/inventories/{id}/stats", get(inventory::inventory_stats))
+        // RESTful Products
+        .route("/api/inventories/{id}/products", get(product::list_products_rest))
+        .route("/api/inventories/{id}/products", post(product::create_product_rest))
+        .route("/api/inventories/{id}/products/{pid}", get(product::get_product_rest))
+        .route("/api/inventories/{id}/products/{pid}", put(product::update_product_rest))
+        .route("/api/inventories/{id}/products/{pid}", delete(product::delete_product_rest))
+        .route("/api/inventories/{id}/products/search", post(product::search_products_rest))
+        // RESTful Inbound
+        .route("/api/inventories/{id}/inbound/single", post(inbound::inbound_single_rest))
+        .route("/api/inventories/{id}/inbound/batch", post(inbound::inbound_batch_rest))
+        .route("/api/inventories/{id}/inbound/search-import", post(inbound::inbound_search_import_rest))
+        .route("/api/inventories/{id}/inbound/logs", get(inbound::list_inbound_logs_rest))
+        .route("/api/inventories/{id}/inbound/logs/{log_id}", get(inbound::get_inbound_log_rest))
+        .route("/api/inventories/{id}/inbound/logs/{log_id}", put(inbound::update_inbound_log_rest))
+        .route("/api/inventories/{id}/inbound/logs/{log_id}", delete(inbound::delete_inbound_log_rest))
+        // RESTful Outbound
+        .route("/api/inventories/{id}/outbound/orders", get(order::list_outbound_orders_rest))
+        .route("/api/inventories/{id}/outbound/orders", post(order::create_outbound_order_rest))
+        .route("/api/inventories/{id}/outbound/orders/{oid}", get(order::get_outbound_order_detail_rest))
+        .route("/api/inventories/{id}/outbound/orders/{oid}/confirm", post(order::confirm_outbound_rest))
+        .route("/api/inventories/{id}/outbound/orders/{oid}/cancel", post(order::cancel_outbound_rest))
+        .route("/api/inventories/{id}/outbound/reserves", post(order::create_reserve_order_rest))
+        .route("/api/inventories/{id}/outbound/reserves/{rid}/cancel", post(order::cancel_reserve_rest))
+        .route("/api/inventories/{id}/outbound/reserves/{rid}/to-outbound", post(order::reserve_to_outbound_rest))
+        // RESTful Images
+        .route("/api/images/presign", post(image::presign_upload))
+        .route("/api/images/confirm", post(image::confirm_upload))
+        .route("/api/images/{key}/url", get(image::get_image_url))
+        // RESTful Settings
+        .route("/api/settings/whitelist", get(whitelist::list_whitelist_rest))
+        .route("/api/settings/whitelist", post(whitelist::add_whitelist_rest))
+        .route("/api/settings/whitelist/{id}", delete(whitelist::remove_whitelist_rest))
+        .route("/api/settings/status-codes", get(status_code::list_status_codes_rest))
+        .route("/api/settings/status-codes", post(status_code::add_status_code_rest))
+        .route("/api/settings/status-codes/{id}", delete(status_code::remove_status_code_rest))
+        .route("/api/settings/tags", get(tag::list_tags_rest))
+        .route("/api/settings/tags", post(tag::create_tag_rest))
+        .route("/api/settings/tags/{id}", put(tag::update_tag_rest))
+        .route("/api/settings/tags/{id}", delete(tag::delete_tag_rest))
         .layer(axum::middleware::from_fn(request_id_middleware))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())

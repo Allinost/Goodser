@@ -1,4 +1,4 @@
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::Json;
 use serde::Serialize;
 
@@ -39,6 +39,38 @@ pub async fn delete_tag(
     Json(req): Json<DeleteTagRequest>,
 ) -> JsonResult<ApiResponse<DeletedData>> {
     repo.delete_tag(&req.id).await?;
+    Ok(Json(ApiResponse::ok(DeletedData { deleted: true })))
+}
+
+pub async fn list_tags_rest(
+    State(repo): State<MysqlRepository>,
+) -> JsonResult<ApiResponse<Vec<Tag>>> {
+    load_tags(repo).await
+}
+
+pub async fn create_tag_rest(
+    State(repo): State<MysqlRepository>,
+    Json(req): Json<CreateTagRequest>,
+) -> JsonResult<ApiResponse<Tag>> {
+    create_tag(repo, Json(req)).await
+}
+
+pub async fn update_tag_rest(
+    State(repo): State<MysqlRepository>,
+    Path(id): Path<String>,
+    Json(req): Json<UpdateTagRequest>,
+) -> JsonResult<ApiResponse<ApiMessage>> {
+    let mut update = req;
+    update.id = id;
+    repo.update_tag(&update).await?;
+    Ok(Json(ApiResponse::ok(ApiMessage::ok("updated"))))
+}
+
+pub async fn delete_tag_rest(
+    State(repo): State<MysqlRepository>,
+    Path(id): Path<String>,
+) -> JsonResult<ApiResponse<DeletedData>> {
+    repo.delete_tag(&id).await?;
     Ok(Json(ApiResponse::ok(DeletedData { deleted: true })))
 }
 

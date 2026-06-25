@@ -1,7 +1,8 @@
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::Json;
 use serde::Serialize;
 
+use crate::db::mysql::InventoryStats;
 use crate::db::MysqlRepository;
 use crate::handlers::{ApiMessage, ApiResponse, JsonResult};
 use crate::models::inventory::*;
@@ -40,6 +41,44 @@ pub async fn delete_inventory(
 ) -> JsonResult<ApiResponse<DeletedData>> {
     repo.delete_inventory(&req.id).await?;
     Ok(Json(ApiResponse::ok(DeletedData { deleted: true })))
+}
+
+pub async fn list_inventories_rest(
+    State(repo): State<MysqlRepository>,
+) -> JsonResult<ApiResponse<Vec<Inventory>>> {
+    load_inventories(repo).await
+}
+
+pub async fn create_inventory_rest(
+    State(repo): State<MysqlRepository>,
+    Json(req): Json<CreateInventoryRequest>,
+) -> JsonResult<ApiResponse<Inventory>> {
+    create_inventory(repo, Json(req)).await
+}
+
+pub async fn update_inventory_rest(
+    State(repo): State<MysqlRepository>,
+    Path(id): Path<String>,
+    Json(req): Json<UpdateInventoryRequest>,
+) -> JsonResult<ApiResponse<ApiMessage>> {
+    repo.update_inventory(&UpdateInventoryRequest { id, name: req.name }).await?;
+    Ok(Json(ApiResponse::ok(ApiMessage::ok("updated"))))
+}
+
+pub async fn delete_inventory_rest(
+    State(repo): State<MysqlRepository>,
+    Path(id): Path<String>,
+) -> JsonResult<ApiResponse<DeletedData>> {
+    repo.delete_inventory(&id).await?;
+    Ok(Json(ApiResponse::ok(DeletedData { deleted: true })))
+}
+
+pub async fn inventory_stats(
+    State(repo): State<MysqlRepository>,
+    Path(id): Path<String>,
+) -> JsonResult<ApiResponse<InventoryStats>> {
+    let stats = repo.get_inventory_stats(&id).await?;
+    Ok(Json(ApiResponse::ok(stats)))
 }
 
 #[cfg(test)]

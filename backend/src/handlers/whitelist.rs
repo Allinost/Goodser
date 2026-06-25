@@ -1,4 +1,4 @@
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::Json;
 use serde::Serialize;
 
@@ -57,6 +57,27 @@ pub async fn check_whitelist(
         allowed,
         user,
     })))
+}
+
+pub async fn list_whitelist_rest(
+    State(repo): State<MysqlRepository>,
+) -> JsonResult<ApiResponse<Vec<WhitelistEntry>>> {
+    load_whitelist(repo).await
+}
+
+pub async fn add_whitelist_rest(
+    State(repo): State<MysqlRepository>,
+    Json(req): Json<AddWhitelistRequest>,
+) -> JsonResult<ApiResponse<WhitelistEntry>> {
+    add_whitelist(repo, Json(req)).await
+}
+
+pub async fn remove_whitelist_rest(
+    State(repo): State<MysqlRepository>,
+    Path(id): Path<String>,
+) -> JsonResult<ApiResponse<DeletedData>> {
+    repo.remove_whitelist(&id).await?;
+    Ok(Json(ApiResponse::ok(DeletedData { deleted: true })))
 }
 
 #[cfg(test)]

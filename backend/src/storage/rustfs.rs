@@ -160,6 +160,49 @@ impl ImageStorage for RustFsStorage {
             Err(e) => Err(AppError::Storage(format!("S3 head failed for {key}: {e}"))),
         }
     }
+
+    async fn presign_upload(&self, key: &str, content_type: &str, expires_in_secs: u64) -> AppResult<String> {
+        use aws_sdk_s3::presigning::PresigningConfig;
+        use std::time::Duration;
+
+        let config = PresigningConfig::builder()
+            .expires_in(Duration::from_secs(expires_in_secs))
+            .build()
+            .map_err(|e| AppError::Storage(format!("Presign config error: {e}")))?;
+
+        let req = self
+            .client
+            .put_object()
+            .bucket(&self.bucket)
+            .key(key)
+            .content_type(content_type)
+            .presigned(config)
+            .await
+            .map_err(|e| AppError::Storage(format!("Presign upload failed for {key}: {e}")))?;
+
+        Ok(req.uri().to_string())
+    }
+
+    async fn presign_download(&self, key: &str, expires_in_secs: u64) -> AppResult<String> {
+        use aws_sdk_s3::presigning::PresigningConfig;
+        use std::time::Duration;
+
+        let config = PresigningConfig::builder()
+            .expires_in(Duration::from_secs(expires_in_secs))
+            .build()
+            .map_err(|e| AppError::Storage(format!("Presign config error: {e}")))?;
+
+        let req = self
+            .client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(key)
+            .presigned(config)
+            .await
+            .map_err(|e| AppError::Storage(format!("Presign download failed for {key}: {e}")))?;
+
+        Ok(req.uri().to_string())
+    }
 }
 
 impl std::fmt::Debug for RustFsStorage {
