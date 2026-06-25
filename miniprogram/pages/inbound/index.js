@@ -38,7 +38,7 @@ Page({
     })
   },
 
-  onShow() {
+  async onShow() {
     // 刷新库存目录列表（可能从库存页面新增/删除/重命名了目录）
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
@@ -52,10 +52,10 @@ Page({
       inventoryIndex: index,
       currentInventoryId: currentInventoryId
     })
-    this.loadLogs()
+    await this.loadLogs()
   },
 
-  onPullDownRefresh() {
+  async onPullDownRefresh() {
     // 刷新库存目录列表
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
@@ -68,7 +68,7 @@ Page({
       inventoryIndex: index,
       currentInventoryId: currentInventoryId
     })
-    this.loadLogs()
+    await this.loadLogs()
     wx.stopPullDownRefresh()
   },
 
@@ -81,7 +81,14 @@ Page({
     this.loadLogs()
   },
 
-  loadLogs() {
+  async loadLogs() {
+    if (db.isBackendMode && db.isBackendMode()) {
+      try {
+        await db.loadInboundLogs(this.data.currentInventoryId, true)
+      } catch (e) {
+        console.warn('[入库日志] 后端刷新失败，使用本地缓存:', e)
+      }
+    }
     const logs = db.inboundLogs
       .filter(l => l.inventory_id === this.data.currentInventoryId)
       .map(formatLog)

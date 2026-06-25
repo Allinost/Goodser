@@ -536,6 +536,9 @@ function _preloadAll() {
 async function loadProducts(inventoryId, forceRefresh) {
   if (!isBackendMode()) return products.filter(function(p) { return p.inventory_id === inventoryId })
 
+  // 自建后端模式：无用量限制，始终从后端拉取最新数据
+  if (_mode === MODE_SELF_BUILT) forceRefresh = true
+
   var cacheKey = 'products_' + inventoryId
   var ttl = TTL.products
 
@@ -644,6 +647,8 @@ async function _cloudLoadProducts(inventoryId, forceRefresh, cacheKey, ttl) {
 async function loadTags(forceRefresh) {
   if (!isBackendMode()) return tags.slice()
 
+  if (_mode === MODE_SELF_BUILT) forceRefresh = true
+
   var cacheKey = 'tags'
   var ttl = TTL.tags
 
@@ -683,6 +688,8 @@ async function loadTags(forceRefresh) {
  */
 async function loadStatusCodes(forceRefresh) {
   if (!isBackendMode()) return statusCodes.slice()
+
+  if (_mode === MODE_SELF_BUILT) forceRefresh = true
 
   var cacheKey = 'statusCodes'
   var ttl = TTL.statusCodes
@@ -724,6 +731,8 @@ async function loadStatusCodes(forceRefresh) {
 async function loadInventories(forceRefresh) {
   if (!isBackendMode()) return inventories.slice()
 
+  if (_mode === MODE_SELF_BUILT) forceRefresh = true
+
   var cacheKey = 'inventories'
   var ttl = TTL.inventories
 
@@ -763,6 +772,8 @@ async function loadInventories(forceRefresh) {
  */
 async function loadOutboundOrders(inventoryId, forceRefresh) {
   if (!isBackendMode()) return outboundOrders.filter(function(o) { return o.inventory_id === inventoryId })
+
+  if (_mode === MODE_SELF_BUILT) forceRefresh = true
 
   var cacheKey = 'outbound_' + inventoryId
   var ttl = TTL.outboundOrders
@@ -811,6 +822,8 @@ async function loadOutboundOrders(inventoryId, forceRefresh) {
 async function loadInboundLogs(inventoryId, forceRefresh) {
   if (!isBackendMode()) return inboundLogs.filter(function(l) { return l.inventory_id === inventoryId })
 
+  if (_mode === MODE_SELF_BUILT) forceRefresh = true
+
   var cacheKey = 'inbound_' + inventoryId
   var ttl = TTL.inboundLogs
 
@@ -857,6 +870,8 @@ async function loadInboundLogs(inventoryId, forceRefresh) {
  */
 async function loadWhitelist(forceRefresh) {
   if (!isBackendMode()) return whitelist.slice()
+
+  if (_mode === MODE_SELF_BUILT) forceRefresh = true
 
   var cacheKey = 'whitelist'
   var ttl = TTL.whitelist

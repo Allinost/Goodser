@@ -40,9 +40,9 @@ const MIGRATIONS: &[&str] = &[
         reserved_quantity INT NOT NULL DEFAULT 0,
         status_code       CHAR(1) NOT NULL DEFAULT 'A',
         name              VARCHAR(500) NOT NULL,
-        original_price    DECIMAL(12,2) NOT NULL DEFAULT 0,
-        market_price      DECIMAL(12,2) NOT NULL DEFAULT 0,
-        expected_price    DECIMAL(12,2) NOT NULL DEFAULT 0,
+        original_price    DOUBLE NOT NULL DEFAULT 0,
+        market_price      DOUBLE NOT NULL DEFAULT 0,
+        expected_price    DOUBLE NOT NULL DEFAULT 0,
         remark            TEXT,
         storage_location  VARCHAR(255) DEFAULT '',
         image_url         VARCHAR(1024) DEFAULT '',
@@ -125,14 +125,9 @@ const MIGRATIONS: &[&str] = &[
         created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         UNIQUE INDEX idx_code (code)
     ) ENGINE=InnoDB",
-    "CREATE TABLE IF NOT EXISTS tags (
-        id            VARCHAR(36) PRIMARY KEY,
-        name          VARCHAR(100) NOT NULL,
-        color         VARCHAR(7) NOT NULL DEFAULT '#1890ff',
-        owner_openid  VARCHAR(255) NOT NULL,
-        created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE INDEX idx_name (name)
-    ) ENGINE=InnoDB",
+    "ALTER TABLE products MODIFY COLUMN original_price DOUBLE NOT NULL DEFAULT 0",
+    "ALTER TABLE products MODIFY COLUMN market_price DOUBLE NOT NULL DEFAULT 0",
+    "ALTER TABLE products MODIFY COLUMN expected_price DOUBLE NOT NULL DEFAULT 0",
 ];
 
 const SEED_DATA: &[&str] = &[
@@ -703,7 +698,9 @@ impl MysqlRepository {
         inventory_id: &str,
     ) -> AppResult<Vec<InboundLog>> {
         sqlx::query_as::<_, InboundLog>(
-            "SELECT * FROM inbound_logs WHERE inventory_id = ? ORDER BY created_at DESC",
+            "SELECT id, inventory_id, order_no, type AS log_type, remark, \
+             items, owner_openid, created_at FROM inbound_logs \
+             WHERE inventory_id = ? ORDER BY created_at DESC",
         )
         .bind(inventory_id)
         .fetch_all(&self.pool)
@@ -713,7 +710,8 @@ impl MysqlRepository {
 
     pub async fn get_inbound_log(&self, id: &str) -> AppResult<InboundLog> {
         sqlx::query_as::<_, InboundLog>(
-            "SELECT * FROM inbound_logs WHERE id = ?",
+            "SELECT id, inventory_id, order_no, type AS log_type, remark, \
+             items, owner_openid, created_at FROM inbound_logs WHERE id = ?",
         )
         .bind(id)
         .fetch_optional(&self.pool)
@@ -744,7 +742,8 @@ impl MysqlRepository {
         .execute(&self.pool)
         .await?;
         sqlx::query_as::<_, InboundLog>(
-            "SELECT * FROM inbound_logs WHERE id = ?",
+            "SELECT id, inventory_id, order_no, type AS log_type, remark, \
+             items, owner_openid, created_at FROM inbound_logs WHERE id = ?",
         )
         .bind(&id)
         .fetch_one(&self.pool)

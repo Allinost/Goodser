@@ -30,7 +30,16 @@ Page({
     if (this._productId) this.loadProduct()
   },
 
-  loadProduct() {
+  async loadProduct() {
+    // 自建后端模式：无用量限制，始终从后端拉取最新数据
+    if (db.isBackendMode && db.isBackendMode() && this._inventoryId) {
+      try {
+        await db.loadProducts(this._inventoryId, true)
+      } catch (e) {
+        console.warn('[商品详情] 后端刷新失败，使用本地缓存:', e)
+      }
+    }
+
     var that = this
     var product = db.products.find(function(p) { return p._id === that._productId })
     if (product) {

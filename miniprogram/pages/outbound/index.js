@@ -83,7 +83,14 @@ Page({
     this.loadOrders()
   },
 
-  loadOrders() {
+  async loadOrders() {
+    if (db.isBackendMode && db.isBackendMode()) {
+      try {
+        await db.loadOutboundOrders(this.data.currentInventoryId, true)
+      } catch (e) {
+        console.warn('[出库单] 后端刷新失败，使用本地缓存:', e)
+      }
+    }
     const orders = db.outboundOrders.filter(o => o.inventory_id === this.data.currentInventoryId)
     const ordersWithType = orders.map(o => {
       const inv = db.inventories.find(i => i._id === o.inventory_id)
