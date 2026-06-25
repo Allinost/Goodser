@@ -45,14 +45,16 @@ pub async fn delete_tag(
 pub async fn list_tags_rest(
     State(repo): State<MysqlRepository>,
 ) -> JsonResult<ApiResponse<Vec<Tag>>> {
-    load_tags(repo).await
+    let tags = repo.list_tags().await?;
+    Ok(Json(ApiResponse::ok(tags)))
 }
 
 pub async fn create_tag_rest(
     State(repo): State<MysqlRepository>,
     Json(req): Json<CreateTagRequest>,
 ) -> JsonResult<ApiResponse<Tag>> {
-    create_tag(repo, Json(req)).await
+    let tag = repo.create_tag(&req, "api_user").await?;
+    Ok(Json(ApiResponse::ok(tag)))
 }
 
 pub async fn update_tag_rest(

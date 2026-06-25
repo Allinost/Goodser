@@ -109,9 +109,8 @@ function isBackendMode() {
 }
 
 function isCloudEnabled() {
-  // 默认启用云模式（首次启动未设置时返回 true）
   var val = wx.getStorageSync('cloudDbEnabled')
-  if (val === '' || val === undefined || val === null) return true
+  if (val === '' || val === undefined || val === null) return false
   return val === true
 }
 
@@ -553,12 +552,10 @@ async function loadProducts(inventoryId, forceRefresh) {
 
     if (_mode === MODE_CLOUD) {
       allData = await _cloudLoadProducts(inventoryId, forceRefresh, cacheKey, ttl)
-    } else if (_mode === MODE_NAS) {
+    } else {
       var res = await _nasRequest('loadProducts', { inventory_id: inventoryId })
       allData = res.products || res || []
       if (!Array.isArray(allData)) allData = []
-    } else {
-      return []
     }
 
     // 回填到导出数组（替换该仓库的所有商品）
@@ -662,11 +659,11 @@ async function loadTags(forceRefresh) {
       if (!coll) return []
       var res = await coll.limit(100).get()
       data = res.data
-    } else if (_mode === MODE_NAS) {
+    } else {
       var nasRes = await _nasRequest('loadTags', {})
       data = nasRes.tags || nasRes || []
       if (!Array.isArray(data)) data = []
-    } else return []
+    }
 
     if (data && data.length > 0) {
       tags.splice(0, tags.length)
@@ -702,11 +699,11 @@ async function loadStatusCodes(forceRefresh) {
       if (!coll) return []
       var res = await coll.limit(30).get()
       data = res.data
-    } else if (_mode === MODE_NAS) {
+    } else {
       var nasRes = await _nasRequest('loadStatusCodes', {})
       data = nasRes.statusCodes || nasRes || []
       if (!Array.isArray(data)) data = []
-    } else return []
+    }
 
     if (data && data.length > 0) {
       statusCodes.splice(0, statusCodes.length)
@@ -742,11 +739,11 @@ async function loadInventories(forceRefresh) {
       if (!coll) return []
       var res = await coll.orderBy('sort_order', 'asc').limit(50).get()
       data = res.data
-    } else if (_mode === MODE_NAS) {
+    } else {
       var nasRes = await _nasRequest('loadInventories', {})
       data = nasRes.inventories || nasRes || []
       if (!Array.isArray(data)) data = []
-    } else return []
+    }
 
     if (data && data.length > 0) {
       inventories.splice(0, inventories.length)
@@ -786,11 +783,11 @@ async function loadOutboundOrders(inventoryId, forceRefresh) {
         .limit(100)
         .get()
       data = res.data
-    } else if (_mode === MODE_NAS) {
+    } else {
       var nasRes = await _nasRequest('loadOutboundOrders', { inventory_id: inventoryId })
       data = nasRes.orders || nasRes || []
       if (!Array.isArray(data)) data = []
-    } else return []
+    }
 
     // 仅当后端有数据时才替换，避免空结果清空本地已有数据
     if (data && data.length > 0) {
@@ -833,11 +830,11 @@ async function loadInboundLogs(inventoryId, forceRefresh) {
         .limit(100)
         .get()
       data = res.data
-    } else if (_mode === MODE_NAS) {
+    } else {
       var nasRes = await _nasRequest('loadInboundLogs', { inventory_id: inventoryId })
       data = nasRes.logs || nasRes || []
       if (!Array.isArray(data)) data = []
-    } else return []
+    }
 
     // 仅当后端有数据时才替换，避免空结果清空本地已有数据
     if (data && data.length > 0) {
@@ -876,11 +873,11 @@ async function loadWhitelist(forceRefresh) {
       if (!coll) return []
       var res = await coll.limit(200).get()
       data = res.data
-    } else if (_mode === MODE_NAS) {
+    } else {
       var nasRes = await _nasRequest('loadWhitelist', {})
       data = nasRes.whitelist || nasRes || []
       if (!Array.isArray(data)) data = []
-    } else return []
+    }
 
     if (data && data.length > 0) {
       whitelist.splice(0, whitelist.length)

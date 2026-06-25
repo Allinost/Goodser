@@ -62,14 +62,16 @@ pub async fn check_whitelist(
 pub async fn list_whitelist_rest(
     State(repo): State<MysqlRepository>,
 ) -> JsonResult<ApiResponse<Vec<WhitelistEntry>>> {
-    load_whitelist(repo).await
+    let entries = repo.list_whitelist().await?;
+    Ok(Json(ApiResponse::ok(entries)))
 }
 
 pub async fn add_whitelist_rest(
     State(repo): State<MysqlRepository>,
     Json(req): Json<AddWhitelistRequest>,
 ) -> JsonResult<ApiResponse<WhitelistEntry>> {
-    add_whitelist(repo, Json(req)).await
+    let entry = repo.add_whitelist(&req).await?;
+    Ok(Json(ApiResponse::ok(entry)))
 }
 
 pub async fn remove_whitelist_rest(

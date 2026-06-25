@@ -45,14 +45,16 @@ pub async fn remove_status_code(
 pub async fn list_status_codes_rest(
     State(repo): State<MysqlRepository>,
 ) -> JsonResult<ApiResponse<Vec<StatusCode>>> {
-    load_status_codes(repo).await
+    let codes = repo.list_status_codes().await?;
+    Ok(Json(ApiResponse::ok(codes)))
 }
 
 pub async fn add_status_code_rest(
     State(repo): State<MysqlRepository>,
     Json(req): Json<AddStatusCodeRequest>,
 ) -> JsonResult<ApiResponse<StatusCode>> {
-    add_status_code(repo, Json(req)).await
+    let sc = repo.add_status_code(&req, "api_user").await?;
+    Ok(Json(ApiResponse::ok(sc)))
 }
 
 pub async fn remove_status_code_rest(

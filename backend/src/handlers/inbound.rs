@@ -96,7 +96,12 @@ pub async fn inbound_single_rest(
     Path(_inventory_id): Path<String>,
     Json(req): Json<InboundSingleRequest>,
 ) -> JsonResult<ApiResponse<InboundSingleData>> {
-    inbound_single(repo, Json(req)).await
+    let (product, log) = repo.inbound_single(&req, "api_user").await?;
+    let log_val = serde_json::to_value(&log).unwrap_or_default();
+    Ok(Json(ApiResponse::ok(InboundSingleData {
+        product,
+        log: log_val,
+    })))
 }
 
 pub async fn inbound_batch_rest(
@@ -104,7 +109,9 @@ pub async fn inbound_batch_rest(
     Path(_inventory_id): Path<String>,
     Json(req): Json<InboundBatchRequest>,
 ) -> JsonResult<ApiResponse<InboundBatchData>> {
-    inbound_batch(repo, Json(req)).await
+    let products = repo.inbound_batch(&req, "api_user").await?;
+    let count = products.len();
+    Ok(Json(ApiResponse::ok(InboundBatchData { products, count })))
 }
 
 pub async fn inbound_search_import_rest(
@@ -112,7 +119,8 @@ pub async fn inbound_search_import_rest(
     Path(_inventory_id): Path<String>,
     Json(req): Json<InboundSearchImportRequest>,
 ) -> JsonResult<ApiResponse<UpdatedData>> {
-    inbound_search_import(repo, Json(req)).await
+    repo.inbound_search_import(&req, "api_user").await?;
+    Ok(Json(ApiResponse::ok(UpdatedData { updated: true })))
 }
 
 pub async fn list_inbound_logs_rest(

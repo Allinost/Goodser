@@ -249,7 +249,9 @@ pub async fn create_product_rest(
     Path(_inventory_id): Path<String>,
     Json(req): Json<CreateProductRequest>,
 ) -> JsonResult<ApiResponse<Product>> {
-    create_product(repo, Json(req)).await
+    validate_product_code(&req.main_zone, &req.sub_zone, &req.status_code)?;
+    let product = repo.create_product(&req, "api_user").await?;
+    Ok(Json(ApiResponse::ok(product)))
 }
 
 pub async fn update_product_rest(
@@ -259,7 +261,15 @@ pub async fn update_product_rest(
 ) -> JsonResult<ApiResponse<ApiMessage>> {
     let mut update = req;
     update.id = product_id;
-    update_product(repo, Json(update)).await
+    if let Some(ref mz) = update.main_zone {
+        if mz.len() != 1 || !mz.chars().all(|c| c.is_ascii_uppercase()) {
+            return Err(crate::error::AppError::BadRequest(
+                "主分区必须为大写字母 A-Z".into(),
+            ));
+        }
+    }
+    repo.update_product(&update).await?;
+    Ok(Json(ApiResponse::ok(ApiMessage::ok("updated"))))
 }
 
 pub async fn delete_product_rest(
@@ -278,7 +288,7 @@ pub async fn search_products_rest(
     let mut q = serde_json::from_value::<QueryProductsRequest>(req)
         .map_err(|e| crate::error::AppError::BadRequest(format!("Invalid request: {e}")))?;
     q.inventory_id = inventory_id;
-    query_products(repo, Json(q)).await
+    query_products(axum::extract::State(repo), Json(q)).await
 }
 
 fn validate_product_code(main_zone: &str, sub_zone: &str, status_code: &str) -> AppResult<()> {

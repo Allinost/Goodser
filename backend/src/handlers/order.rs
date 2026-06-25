@@ -1,9 +1,9 @@
 use axum::extract::{Path, State};
 use axum::Json;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::db::MysqlRepository;
-use crate::handlers::{ApiMessage, ApiResponse, JsonResult};
+use crate::handlers::{ApiResponse, JsonResult};
 use crate::models::order::*;
 
 #[derive(Serialize)]
@@ -77,7 +77,8 @@ pub async fn create_outbound_order_rest(
     Path(_inventory_id): Path<String>,
     Json(req): Json<CreateOutboundRequest>,
 ) -> JsonResult<ApiResponse<OutboundOrder>> {
-    create_outbound(repo, Json(req)).await
+    let order = repo.create_outbound_order(&req, "api_user").await?;
+    Ok(Json(ApiResponse::ok(order)))
 }
 
 pub async fn create_reserve_order_rest(
@@ -85,7 +86,8 @@ pub async fn create_reserve_order_rest(
     Path(_inventory_id): Path<String>,
     Json(req): Json<CreateOutboundRequest>,
 ) -> JsonResult<ApiResponse<OutboundOrder>> {
-    create_outbound(repo, Json(req)).await
+    let order = repo.create_outbound_order(&req, "api_user").await?;
+    Ok(Json(ApiResponse::ok(order)))
 }
 
 pub async fn get_outbound_order_detail_rest(
@@ -128,59 +130,6 @@ pub async fn reserve_to_outbound_rest(
     let mut update = req;
     update.id = reserve_id;
     let order = repo.reserve_to_outbound(&update, "api_user").await?;
-    Ok(Json(ApiResponse::ok(order)))
-}
-
-#[derive(Serialize)]
-pub struct ConfirmedData {
-    confirmed: bool,
-}
-
-pub async fn load_outbound_orders(
-    State(repo): State<MysqlRepository>,
-    Json(req): Json<LoadOutboundOrdersRequest>,
-) -> JsonResult<ApiResponse<Vec<OutboundOrder>>> {
-    let orders = repo.list_outbound_orders(&req.inventory_id).await?;
-    Ok(Json(ApiResponse::ok(orders)))
-}
-
-pub async fn create_outbound(
-    State(repo): State<MysqlRepository>,
-    Json(req): Json<CreateOutboundRequest>,
-) -> JsonResult<ApiResponse<OutboundOrder>> {
-    let order = repo.create_outbound_order(&req, "api_user").await?;
-    Ok(Json(ApiResponse::ok(order)))
-}
-
-pub async fn confirm_outbound(
-    State(repo): State<MysqlRepository>,
-    Json(req): Json<ConfirmOutboundRequest>,
-) -> JsonResult<ApiResponse<ConfirmedData>> {
-    repo.confirm_outbound(&req.id).await?;
-    Ok(Json(ApiResponse::ok(ConfirmedData { confirmed: true })))
-}
-
-pub async fn cancel_outbound(
-    State(repo): State<MysqlRepository>,
-    Json(req): Json<CancelOutboundRequest>,
-) -> JsonResult<ApiResponse<CancelledData>> {
-    repo.cancel_outbound(&req.id).await?;
-    Ok(Json(ApiResponse::ok(CancelledData { cancelled: true })))
-}
-
-pub async fn cancel_reserve(
-    State(repo): State<MysqlRepository>,
-    Json(req): Json<CancelReserveRequest>,
-) -> JsonResult<ApiResponse<CancelledData>> {
-    repo.cancel_reserve(&req.id).await?;
-    Ok(Json(ApiResponse::ok(CancelledData { cancelled: true })))
-}
-
-pub async fn reserve_to_outbound(
-    State(repo): State<MysqlRepository>,
-    Json(req): Json<ReserveToOutboundRequest>,
-) -> JsonResult<ApiResponse<OutboundOrder>> {
-    let order = repo.reserve_to_outbound(&req, "api_user").await?;
     Ok(Json(ApiResponse::ok(order)))
 }
 

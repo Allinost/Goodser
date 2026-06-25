@@ -46,14 +46,16 @@ pub async fn delete_inventory(
 pub async fn list_inventories_rest(
     State(repo): State<MysqlRepository>,
 ) -> JsonResult<ApiResponse<Vec<Inventory>>> {
-    load_inventories(repo).await
+    let items = repo.list_inventories().await?;
+    Ok(Json(ApiResponse::ok(items)))
 }
 
 pub async fn create_inventory_rest(
     State(repo): State<MysqlRepository>,
     Json(req): Json<CreateInventoryRequest>,
 ) -> JsonResult<ApiResponse<Inventory>> {
-    create_inventory(repo, Json(req)).await
+    let inv = repo.create_inventory(&req, "api_user").await?;
+    Ok(Json(ApiResponse::ok(inv)))
 }
 
 pub async fn update_inventory_rest(
