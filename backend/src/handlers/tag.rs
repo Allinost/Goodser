@@ -123,4 +123,56 @@ mod tests {
         };
         assert_eq!(req.name.trim(), "");
     }
+
+    #[test]
+    fn test_create_tag_request_with_color() {
+        let req = CreateTagRequest {
+            name: "新品".into(),
+            color: Some("#1890ff".into()),
+        };
+        let json = serde_json::to_value(&req).unwrap();
+        assert_eq!(json["name"], "新品");
+        assert_eq!(json["color"], "#1890ff");
+    }
+
+    #[test]
+    fn test_update_tag_request_all_fields() {
+        let json = serde_json::json!({
+            "id": "tag_001",
+            "name": "更新标签",
+            "color": "#52c41a"
+        });
+        let req: UpdateTagRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.id, "tag_001");
+        assert_eq!(req.name.as_deref(), Some("更新标签"));
+        assert_eq!(req.color.as_deref(), Some("#52c41a"));
+    }
+
+    #[test]
+    fn test_delete_tag_request() {
+        let json = serde_json::json!({"id": "tag_001"});
+        let req: DeleteTagRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.id, "tag_001");
+    }
+
+    #[test]
+    fn test_tag_with_custom_color() {
+        let tag = Tag {
+            id: "tag_custom".into(),
+            name: "自定义".into(),
+            color: "#722ed1".into(),
+            owner_openid: "user_001".into(),
+            created_at: chrono::NaiveDateTime::parse_from_str("2026-06-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
+        };
+        let json = serde_json::to_value(&tag).unwrap();
+        assert_eq!(json["color"], "#722ed1");
+    }
+
+    #[test]
+    fn test_deleted_data_in_api_response() {
+        let resp = ApiResponse::ok(DeletedData { deleted: true });
+        let json = serde_json::to_value(&resp).unwrap();
+        assert_eq!(json["code"], 0);
+        assert!(json["data"]["deleted"].as_bool().unwrap());
+    }
 }

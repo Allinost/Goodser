@@ -83,6 +83,7 @@ pub struct OutboundOrder {
     pub inventory_id: String,
     pub order_no: String,
     #[serde(rename = "type")]
+    #[sqlx(rename = "type")]
     pub order_type: String,
     pub status: String,
     pub order_info: Option<String>,

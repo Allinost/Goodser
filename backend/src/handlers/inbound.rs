@@ -194,7 +194,7 @@ mod tests {
         };
         let json = serde_json::to_value(&data).unwrap();
         assert_eq!(json["product"]["name"], "测试商品");
-        assert_eq!(json["log"]["_id"], "log_001");
+        assert_eq!(json["log"]["id"], "log_001");
     }
 
     #[test]
@@ -311,5 +311,120 @@ mod tests {
         };
         let json = serde_json::to_value(&req).unwrap();
         assert_eq!(json["inventory_id"], "inv_001");
+    }
+
+    #[test]
+    fn test_inbound_single_data_serde() {
+        use crate::models::product::Product;
+        let product = Product {
+            id: "prod_001".into(),
+            inventory_id: "inv_001".into(),
+            code: "A-B-0001-0010-A".into(),
+            main_zone: "A".into(),
+            sub_zone: "B".into(),
+            seq_number: 1,
+            quantity: 10,
+            reserved_quantity: 0,
+            status_code: "A".into(),
+            name: "入库商品".into(),
+            original_price: 0.0,
+            market_price: 0.0,
+            expected_price: 0.0,
+            remark: None,
+            storage_location: None,
+            image_url: None,
+            image_list: None,
+            tags: None,
+            owner_openid: "u1".into(),
+            created_at: chrono::NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
+            updated_at: chrono::NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
+        };
+        let data = InboundSingleData {
+            product,
+            log: serde_json::json!({"_id": "log_001"}),
+        };
+        let json = serde_json::to_value(&data).unwrap();
+        assert_eq!(json["product"]["_id"], "prod_001");
+        assert!(json["log"].is_object());
+    }
+
+    #[test]
+    fn test_inbound_batch_request_empty_items() {
+        let json = serde_json::json!({
+            "inventory_id": "inv_001",
+            "items": []
+        });
+        let req: InboundBatchRequest = serde_json::from_value(json).unwrap();
+        assert!(req.items.is_empty());
+        assert!(req.order_no.is_none());
+    }
+
+    #[test]
+    fn test_inbound_batch_item_with_all_fields() {
+        let json = serde_json::json!({
+            "code": "A-B-0001-0010-A",
+            "main_zone": "A",
+            "sub_zone": "B",
+            "seq_number": 1,
+            "quantity": 10,
+            "status_code": "A",
+            "name": "批量商品",
+            "original_price": 100.0,
+            "market_price": 120.0,
+            "expected_price": 110.0,
+            "remark": "备注",
+            "storage_location": "A区",
+            "image_url": "http://example.com/img.jpg",
+            "tags": ["tag1"]
+        });
+        let item: InboundBatchItem = serde_json::from_value(json).unwrap();
+        assert_eq!(item.original_price, Some(100.0));
+        assert_eq!(item.market_price, Some(120.0));
+        assert_eq!(item.remark.as_deref(), Some("备注"));
+        assert!(item.tags.is_some());
+    }
+
+    #[test]
+    fn test_inbound_log_with_multiple_items() {
+        let log = InboundLog {
+            id: "log_002".into(),
+            inventory_id: "inv_001".into(),
+            order_no: None,
+            log_type: "batch".into(),
+            remark: None,
+            items: serde_json::json!([
+                {"product_id": "p1", "product_name": "Item1", "quantity": 5},
+                {"product_id": "p2", "product_name": "Item2", "quantity": 10}
+            ]),
+            owner_openid: "user_001".into(),
+            created_at: chrono::NaiveDateTime::parse_from_str("2026-06-08 10:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
+        };
+        let json = serde_json::to_value(&log).unwrap();
+        assert_eq!(json["items"].as_array().unwrap().len(), 2);
+        assert!(json["order_no"].is_null());
+    }
+
+    #[test]
+    fn test_create_inbound_log_request_defaults() {
+        let json = serde_json::json!({
+            "inventory_id": "inv_001",
+            "items": []
+        });
+        let req: CreateInboundLogRequest = serde_json::from_value(json).unwrap();
+        assert!(req.order_no.is_none());
+        assert!(req.log_type.is_none());
+        assert!(req.remark.is_none());
+    }
+
+    #[test]
+    fn test_update_inbound_log_request_partial() {
+        let json = serde_json::json!({
+            "id": "log_001",
+            "remark": "updated remark"
+        });
+        let req: UpdateInboundLogRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.id, "log_001");
+        assert_eq!(req.remark.as_deref(), Some("updated remark"));
+        assert!(req.items.is_none());
     }
 }

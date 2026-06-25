@@ -68,7 +68,7 @@ impl AppConfig {
 mod tests {
     use super::*;
 
-    fn mock_env(pairs: &[(&str, &str)]) -> impl Fn(&str) -> Result<String, env::VarError> + '_ {
+    fn mock_env<'a>(pairs: &'a [(&'a str, &'a str)]) -> impl Fn(&str) -> Result<String, env::VarError> + 'a {
         let map: std::collections::HashMap<String, String> = pairs
             .iter()
             .map(|(k, v)| (k.to_string(), v.to_string()))

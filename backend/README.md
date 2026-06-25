@@ -9,6 +9,181 @@ Goodser 库存管理系统的 Rust 后端服务，为微信小程序提供 REST 
 - **对象存储**: RustFS (S3-compatible)
 - **运行环境**: Docker
 
+## 系统架构图
+
+```mermaid
+graph TB
+    Client[微信小程序] -->|HTTP/HTTPS| Server[Axum Server]
+    
+    subgraph "Axum Server"
+        MW[Middleware<br/>Request ID / Auth] --> Router[Router]
+        Router --> Handlers[Handlers]
+    end
+    
+    subgraph "核心模块"
+        Handlers --> Models[Models<br/>数据模型]
+        Handlers --> DB[Database Layer<br/>sqlx + MySQL]
+        Handlers --> Storage[Storage Layer<br/>ImageStorage Trait]
+    end
+    
+    subgraph "外部服务"
+        DB --> MySQL[(MySQL 8.0)]
+        Storage --> RustFS[(RustFS / S3)]
+    end
+    
+    subgraph "配置管理"
+        Config[AppConfig<br/>环境变量] --> Server
+    end
+    
+    style Client fill:#e1f5fe
+    style MySQL fill:#fff3e0
+    style RustFS fill:#e8f5e9
+```
+
+## 数据库 ER 图
+
+```mermaid
+erDiagram
+    inventories {
+        varchar id PK
+        varchar name
+        varchar owner_openid
+        int sort_order
+        datetime created_at
+        datetime updated_at
+    }
+    
+    products {
+        varchar id PK
+        varchar inventory_id FK
+        varchar code
+        char main_zone
+        char sub_zone
+        int seq_number
+        int quantity
+        int reserved_quantity
+        char status_code
+        varchar name
+        double original_price
+        double market_price
+        double expected_price
+        text remark
+        varchar storage_location
+        varchar image_url
+        json image_list
+        json tags
+        varchar owner_openid
+        datetime created_at
+        datetime updated_at
+    }
+    
+    outbound_orders {
+        varchar id PK
+        varchar inventory_id FK
+        varchar order_no
+        enum type
+        enum status
+        text order_info
+        text remark
+        json items
+        varchar source_reserve_id
+        varchar owner_openid
+        datetime created_at
+        datetime updated_at
+        datetime confirmed_at
+        datetime cancelled_at
+    }
+    
+    inbound_logs {
+        varchar id PK
+        varchar inventory_id FK
+        varchar order_no
+        enum type
+        text remark
+        json items
+        varchar owner_openid
+        datetime created_at
+    }
+    
+    tags {
+        varchar id PK
+        varchar name
+        varchar color
+        varchar owner_openid
+        datetime created_at
+    }
+    
+    status_codes {
+        varchar id PK
+        char code
+        varchar label
+        boolean is_system
+        varchar owner_openid
+        datetime created_at
+    }
+    
+    whitelist {
+        varchar id PK
+        varchar openid
+        varchar nickname
+        varchar avatar_url
+        enum role
+        varchar added_by
+        datetime created_at
+    }
+    
+    recycled_seq_numbers {
+        varchar id PK
+        varchar inventory_id FK
+        char main_zone
+        char sub_zone
+        int seq_number
+        datetime recycled_at
+    }
+    
+    seq_counters {
+        varchar id PK
+        varchar inventory_id FK
+        char main_zone
+        char sub_zone
+        int current_max
+    }
+    
+    inventories ||--o{ products : "has"
+    inventories ||--o{ outbound_orders : "has"
+    inventories ||--o{ inbound_logs : "has"
+    inventories ||--o{ recycled_seq_numbers : "has"
+    inventories ||--o{ seq_counters : "has"
+```
+
+## 请求处理流程
+
+```mermaid
+sequenceDiagram
+    participant Client as 微信小程序
+    participant MW as Middleware
+    participant Handler as Handler
+    participant DB as Database
+    participant Storage as Storage
+    
+    Client->>MW: HTTP Request
+    MW->>MW: 生成/透传 X-Request-Id
+    MW->>MW: 验证 Bearer Token (可选)
+    MW->>Handler: 转发请求
+    
+    Handler->>Handler: 解析请求参数
+    Handler->>DB: 执行数据库操作
+    DB-->>Handler: 返回结果
+    
+    alt 需要图片操作
+        Handler->>Storage: 上传/获取图片
+        Storage-->>Handler: 返回图片URL
+    end
+    
+    Handler-->>MW: ApiResponse<T>
+    MW-->>Client: JSON Response
+```
+
 ## 项目结构
 
 ```

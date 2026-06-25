@@ -133,4 +133,56 @@ mod tests {
         assert_eq!(json["code"], 0);
         assert_eq!(json["data"]["url"], "https://example.com/img.jpg");
     }
+
+    #[test]
+    fn test_presign_data_serde() {
+        let data = PresignData {
+            url: "https://rfs.example.com/presign?token=abc".into(),
+            key: "images/2026/06/25/uuid.jpg".into(),
+        };
+        let json = serde_json::to_value(&data).unwrap();
+        assert_eq!(json["url"], "https://rfs.example.com/presign?token=abc");
+        assert_eq!(json["key"], "images/2026/06/25/uuid.jpg");
+    }
+
+    #[test]
+    fn test_presign_request_defaults() {
+        let json = serde_json::json!({});
+        let req: PresignRequest = serde_json::from_value(json).unwrap();
+        assert!(req.content_type.is_none());
+        assert!(req.product_id.is_none());
+    }
+
+    #[test]
+    fn test_presign_request_with_content_type() {
+        let json = serde_json::json!({
+            "content_type": "image/png",
+            "product_id": "prod_001"
+        });
+        let req: PresignRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.content_type.as_deref(), Some("image/png"));
+        assert_eq!(req.product_id.as_deref(), Some("prod_001"));
+    }
+
+    #[test]
+    fn test_confirm_request_serde() {
+        let json = serde_json::json!({
+            "key": "images/2026/06/25/uuid.jpg",
+            "product_id": "prod_001"
+        });
+        let req: ConfirmRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.key, "images/2026/06/25/uuid.jpg");
+        assert_eq!(req.product_id.as_deref(), Some("prod_001"));
+    }
+
+    #[test]
+    fn test_presign_data_in_api_response() {
+        let resp = ApiResponse::ok(PresignData {
+            url: "https://example.com/presign".into(),
+            key: "images/test.jpg".into(),
+        });
+        let json = serde_json::to_value(&resp).unwrap();
+        assert_eq!(json["code"], 0);
+        assert_eq!(json["data"]["key"], "images/test.jpg");
+    }
 }

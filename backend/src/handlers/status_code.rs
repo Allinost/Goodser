@@ -133,4 +133,57 @@ mod tests {
         assert_eq!(req.code, "G");
         assert_eq!(req.label, "自定义");
     }
+
+    #[test]
+    fn test_update_status_code_request() {
+        let json = serde_json::json!({
+            "id": "sc_a",
+            "label": "已更新"
+        });
+        let req: UpdateStatusCodeRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.id, "sc_a");
+        assert_eq!(req.label, "已更新");
+    }
+
+    #[test]
+    fn test_remove_status_code_request() {
+        let json = serde_json::json!({"id": "sc_g"});
+        let req: RemoveStatusCodeRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.id, "sc_g");
+    }
+
+    #[test]
+    fn test_status_code_system_vs_custom() {
+        let system = sample_status_code();
+        let custom = StatusCode {
+            id: "sc_custom".into(),
+            code: "X".into(),
+            label: "自定义".into(),
+            is_system: false,
+            owner_openid: "user_001".into(),
+            created_at: chrono::NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
+        };
+
+        let system_json = serde_json::to_value(&system).unwrap();
+        let custom_json = serde_json::to_value(&custom).unwrap();
+
+        assert!(system_json["is_system"].as_bool().unwrap());
+        assert!(!custom_json["is_system"].as_bool().unwrap());
+    }
+
+    #[test]
+    fn test_status_codes_list_in_api_response() {
+        let codes = vec![sample_status_code()];
+        let resp = ApiResponse::ok(codes);
+        let json = serde_json::to_value(&resp).unwrap();
+        assert_eq!(json["data"].as_array().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_empty_status_codes_list() {
+        let codes: Vec<StatusCode> = vec![];
+        let resp = ApiResponse::ok(codes);
+        let json = serde_json::to_value(&resp).unwrap();
+        assert!(json["data"].as_array().unwrap().is_empty());
+    }
 }

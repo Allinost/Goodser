@@ -425,4 +425,107 @@ mod tests {
         assert_eq!(req.seq_number, 1);
         assert_eq!(req.quantity, Some(10));
     }
+
+    #[test]
+    fn test_validate_product_code_lowercase_main_zone() {
+        let err = validate_product_code("a", "B", "C").unwrap_err();
+        assert!(err.to_string().contains("主分区"));
+    }
+
+    #[test]
+    fn test_validate_product_code_empty_main_zone() {
+        let err = validate_product_code("", "B", "C").unwrap_err();
+        assert!(err.to_string().contains("主分区"));
+    }
+
+    #[test]
+    fn test_validate_product_code_lowercase_sub_zone() {
+        let err = validate_product_code("A", "b", "C").unwrap_err();
+        assert!(err.to_string().contains("子分区"));
+    }
+
+    #[test]
+    fn test_validate_product_code_number_status() {
+        let err = validate_product_code("A", "B", "1").unwrap_err();
+        assert!(err.to_string().contains("状态编码"));
+    }
+
+    #[test]
+    fn test_product_with_zero_quantity() {
+        let p = Product {
+            quantity: 0,
+            reserved_quantity: 0,
+            ..{
+                let mut p = make_product();
+                p.id = "prod_002".into();
+                p
+            }
+        };
+        let json = serde_json::to_value(&p).unwrap();
+        assert_eq!(json["quantity"], 0);
+    }
+
+    #[test]
+    fn test_product_with_reserved_quantity() {
+        let p = Product {
+            quantity: 10,
+            reserved_quantity: 3,
+            ..{
+                let mut p = make_product();
+                p.id = "prod_003".into();
+                p
+            }
+        };
+        let json = serde_json::to_value(&p).unwrap();
+        assert_eq!(json["quantity"], 10);
+        assert_eq!(json["reserved_quantity"], 3);
+    }
+
+    #[test]
+    fn test_update_product_request_all_fields() {
+        let json = serde_json::json!({
+            "id": "prod_001",
+            "name": "Updated",
+            "code": "X-Y-0001-0020-A",
+            "main_zone": "X",
+            "sub_zone": "Y",
+            "seq_number": 5,
+            "quantity": 20,
+            "status_code": "N",
+            "original_price": 100.0,
+            "market_price": 120.0,
+            "expected_price": 110.0,
+            "remark": "updated remark",
+            "storage_location": "B区-2架",
+            "image_url": "http://example.com/new.jpg",
+            "tags": ["tag_new"]
+        });
+        let req: UpdateProductRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.name.as_deref(), Some("Updated"));
+        assert_eq!(req.code.as_deref(), Some("X-Y-0001-0020-A"));
+        assert_eq!(req.main_zone.as_deref(), Some("X"));
+        assert_eq!(req.quantity, Some(20));
+        assert!(req.tags.is_some());
+    }
+
+    #[test]
+    fn test_query_products_response_serde() {
+        let resp = QueryProductsResponse {
+            items: vec![],
+            total: 0,
+            page: 1,
+            page_size: 20,
+        };
+        let json = serde_json::to_value(&resp).unwrap();
+        assert_eq!(json["total"], 0);
+        assert_eq!(json["page"], 1);
+        assert!(json["items"].as_array().unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_allocate_data_serde() {
+        let data = AllocateData { seq_number: 42 };
+        let json = serde_json::to_value(&data).unwrap();
+        assert_eq!(json["seq_number"], 42);
+    }
 }

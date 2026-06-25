@@ -177,4 +177,57 @@ mod tests {
         };
         assert_eq!(entry.role, "member");
     }
+
+    #[test]
+    fn test_remove_whitelist_request() {
+        let json = serde_json::json!({"id": "wl_001"});
+        let req: RemoveWhitelistRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.id, "wl_001");
+    }
+
+    #[test]
+    fn test_whitelist_entry_with_avatar() {
+        let entry = WhitelistEntry {
+            avatar_url: Some("https://example.com/avatar.png".into()),
+            ..sample_entry()
+        };
+        let json = serde_json::to_value(&entry).unwrap();
+        assert_eq!(json["avatar_url"], "https://example.com/avatar.png");
+    }
+
+    #[test]
+    fn test_whitelist_entry_without_added_by() {
+        let entry = WhitelistEntry {
+            added_by: None,
+            ..sample_entry()
+        };
+        let json = serde_json::to_value(&entry).unwrap();
+        assert!(json["added_by"].is_null());
+    }
+
+    #[test]
+    fn test_add_whitelist_request_minimal() {
+        let json = serde_json::json!({
+            "openid": "openid_minimal"
+        });
+        let req: AddWhitelistRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.openid, "openid_minimal");
+        assert!(req.nickname.is_none());
+        assert!(req.avatar_url.is_none());
+        assert!(req.role.is_none());
+        assert!(req.added_by.is_none());
+    }
+
+    #[test]
+    fn test_check_data_in_api_response() {
+        let data = CheckData {
+            allowed: true,
+            user: Some(sample_entry()),
+        };
+        let resp = ApiResponse::ok(data);
+        let json = serde_json::to_value(&resp).unwrap();
+        assert_eq!(json["code"], 0);
+        assert!(json["data"]["allowed"].as_bool().unwrap());
+        assert!(json["data"]["user"].is_object());
+    }
 }

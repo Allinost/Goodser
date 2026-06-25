@@ -256,4 +256,99 @@ mod tests {
         assert_eq!(req.id, "ord_001");
         assert_eq!(req.items.len(), 1);
     }
+
+    #[test]
+    fn test_outbound_order_with_multiple_items() {
+        let order = OutboundOrder {
+            items: serde_json::json!([
+                {"product_id": "p1", "product_name": "Item1", "quantity": 5},
+                {"product_id": "p2", "product_name": "Item2", "quantity": 10},
+                {"product_id": "p3", "product_name": "Item3", "quantity": 3}
+            ]),
+            ..sample_order()
+        };
+        let json = serde_json::to_value(&order).unwrap();
+        assert_eq!(json["items"].as_array().unwrap().len(), 3);
+    }
+
+    #[test]
+    fn test_outbound_order_with_remark() {
+        let order = OutboundOrder {
+            remark: Some("这是一个测试订单".into()),
+            order_info: Some("订单信息详细描述".into()),
+            ..sample_order()
+        };
+        let json = serde_json::to_value(&order).unwrap();
+        assert_eq!(json["remark"], "这是一个测试订单");
+        assert_eq!(json["order_info"], "订单信息详细描述");
+    }
+
+    #[test]
+    fn test_load_outbound_orders_request() {
+        let req = LoadOutboundOrdersRequest {
+            inventory_id: "inv_001".into(),
+        };
+        let json = serde_json::to_value(&req).unwrap();
+        assert_eq!(json["inventory_id"], "inv_001");
+    }
+
+    #[test]
+    fn test_create_outbound_request_minimal() {
+        let json = serde_json::json!({
+            "inventory_id": "inv_001",
+            "order_no": "OUT001",
+            "items": []
+        });
+        let req: CreateOutboundRequest = serde_json::from_value(json).unwrap();
+        assert!(req.items.is_empty());
+        assert!(req.order_type.is_none());
+        assert!(req.status.is_none());
+    }
+
+    #[test]
+    fn test_order_item_without_image() {
+        let item = OrderItem {
+            product_id: "prod_001".into(),
+            product_name: "Item".into(),
+            product_code: "A-B-0001-0010-A".into(),
+            quantity: 5,
+            image_url: None,
+        };
+        let json = serde_json::to_value(&item).unwrap();
+        assert!(json["image_url"].is_null());
+    }
+
+    #[test]
+    fn test_order_item_with_image() {
+        let item = OrderItem {
+            product_id: "prod_001".into(),
+            product_name: "Item".into(),
+            product_code: "A-B-0001-0010-A".into(),
+            quantity: 5,
+            image_url: Some("http://example.com/img.jpg".into()),
+        };
+        let json = serde_json::to_value(&item).unwrap();
+        assert_eq!(json["image_url"], "http://example.com/img.jpg");
+    }
+
+    #[test]
+    fn test_reserve_to_outbound_request_full() {
+        let json = serde_json::json!({
+            "id": "rsv_001",
+            "inventory_id": "inv_001",
+            "order_no": "OUT20260608003",
+            "items": [{
+                "product_id": "prod_001",
+                "product_name": "Item",
+                "product_code": "A-B-0001-0010-A",
+                "quantity": 5,
+                "image_url": "http://example.com/img.jpg"
+            }],
+            "order_info": "订单信息",
+            "remark": "备注"
+        });
+        let req: ReserveToOutboundRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.order_info.as_deref(), Some("订单信息"));
+        assert_eq!(req.remark.as_deref(), Some("备注"));
+    }
 }

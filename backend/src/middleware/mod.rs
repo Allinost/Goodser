@@ -66,11 +66,13 @@ pub async fn request_id_middleware(
 #[cfg(test)]
 mod tests {
     use axum::body::Body;
-    use axum::http::{Request, StatusCode};
+    use axum::http::{header::AUTHORIZATION, Request, StatusCode};
     use axum::middleware::from_fn_with_state;
     use axum::routing::get;
     use axum::Router;
     use tower::util::ServiceExt;
+
+    use super::auth_middleware;
 
     #[tokio::test]
     async fn test_auth_middleware_valid_key() {
