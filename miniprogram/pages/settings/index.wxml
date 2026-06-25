@@ -45,7 +45,7 @@
         <text class="settings-icon">🖥️</text>
         <view class="settings-label-group">
           <text class="settings-label">自建后端配置</text>
-          <text class="settings-hint">Rust API 后端（bak.hailong.site / EasyTier）</text>
+          <text class="settings-hint">Rust API 后端（test.hailong.site / et.hailong.site）</text>
         </view>
       </view>
       <view class="settings-right">
@@ -102,7 +102,7 @@
         <text class="settings-icon">🖥️</text>
         <view class="settings-label-group">
           <text class="settings-label">自建后端</text>
-          <text class="settings-hint">启用后连接自建 Rust 后端 API（bak.hailong.site:8080），数据存储在 MySQL</text>
+          <text class="settings-hint">启用后连接自建 Rust 后端 API（test.hailong.site），数据存储在 MySQL</text>
         </view>
       </view>
       <view class="settings-right">

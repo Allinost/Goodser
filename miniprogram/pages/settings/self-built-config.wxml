@@ -16,11 +16,11 @@
       <view class="preset-list">
         <view class="preset-item {{preset === 'public' ? 'preset-active' : ''}}" data-preset="public" bindtap="onSelectPreset">
           <text class="preset-name">公网访问</text>
-          <text class="preset-url">bak.hailong.site:8080</text>
+          <text class="preset-url">test.hailong.site:8408</text>
         </view>
         <view class="preset-item {{preset === 'easytier' ? 'preset-active' : ''}}" data-preset="easytier" bindtap="onSelectPreset">
           <text class="preset-name">EasyTier 组网</text>
-          <text class="preset-url">10.144.144.14:8080</text>
+          <text class="preset-url">et.hailong.site:8080</text>
         </view>
         <view class="preset-item {{preset === 'custom' ? 'preset-active' : ''}}" data-preset="custom" bindtap="onSelectPreset">
           <text class="preset-name">自定义</text>
@@ -34,7 +34,7 @@
   <view class="card">
     <view class="form-group">
       <text class="form-label">后端地址</text>
-      <input class="form-input" placeholder="如: bak.hailong.site:8080" value="{{backendAddress}}" bindinput="onAddressInput" />
+      <input class="form-input" placeholder="如: test.hailong.site:8408" value="{{backendAddress}}" bindinput="onAddressInput" />
     </view>
     <view class="form-group">
       <text class="form-label">API 密钥</text>

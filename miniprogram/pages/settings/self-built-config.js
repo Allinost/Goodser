@@ -3,7 +3,7 @@ Page({
     connected: false,
     configBaseUrl: '',
     preset: 'public',
-    backendAddress: 'bak.hailong.site:8080',
+    backendAddress: 'https://test.hailong.site:8408',
     apiKey: ''
   },
 
@@ -11,9 +11,9 @@ Page({
     var preset = e.currentTarget.dataset.preset
     var address = ''
     if (preset === 'public') {
-      address = 'bak.hailong.site:8080'
+      address = 'test.hailong.site:8408'
     } else if (preset === 'easytier') {
-      address = '10.144.144.14:8080'
+      address = 'et.hailong.site:8080'
     } else {
       address = ''
     }
@@ -29,17 +29,22 @@ Page({
 
   onApiKeyInput(e) { this.setData({ apiKey: e.detail.value }) },
 
+  _makeUrl(raw) {
+    var url = raw.replace(/\/+$/, '')
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url
+    }
+    return url
+  },
+
   onTestConnection() {
     if (!this.data.backendAddress) {
       wx.showToast({ title: '请输入后端地址', icon: 'none' })
       return
     }
 
-    var baseUrl = this.data.backendAddress.replace(/\/+$/, '')
+    var baseUrl = this._makeUrl(this.data.backendAddress)
     var useHttps = baseUrl.startsWith('https://')
-    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-      baseUrl = 'http://' + baseUrl
-    }
 
     wx.showLoading({ title: '测试连接中…' })
     var that = this
@@ -93,11 +98,7 @@ Page({
       return
     }
 
-    var baseUrl = this.data.backendAddress.replace(/\/+$/, '')
-    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-      baseUrl = 'http://' + baseUrl
-    }
-
+    var baseUrl = this._makeUrl(this.data.backendAddress)
     var config = {
       baseUrl: baseUrl,
       apiKey: this.data.apiKey
@@ -114,8 +115,8 @@ Page({
         var config = JSON.parse(raw)
         var address = (config.baseUrl || '').replace(/^https?:\/\//, '')
         var preset = 'custom'
-        if (address === 'bak.hailong.site:8080') preset = 'public'
-        else if (address === '10.144.144.14:8080') preset = 'easytier'
+        if (address === 'test.hailong.site:8408') preset = 'public'
+        else if (address === 'et.hailong.site:8080') preset = 'easytier'
         this.setData({
           backendAddress: address,
           apiKey: config.apiKey || '',

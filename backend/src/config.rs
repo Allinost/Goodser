@@ -68,10 +68,13 @@ impl AppConfig {
 mod tests {
     use super::*;
 
-    fn mock_env(pairs: &[(&str, &str)]) -> impl Fn(&str) -> Result<String, env::VarError> + use<'_> {
-        let map: std::collections::HashMap<&str, &str> = pairs.iter().copied().collect();
+    fn mock_env(pairs: &[(&str, &str)]) -> impl Fn(&str) -> Result<String, env::VarError> + '_ {
+        let map: std::collections::HashMap<String, String> = pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect();
         move |key| match map.get(key) {
-            Some(v) => Ok(v.to_string()),
+            Some(v) => Ok(v.clone()),
             None => Err(env::VarError::NotPresent),
         }
     }
