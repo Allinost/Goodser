@@ -90,34 +90,35 @@ pub struct LoadProductsRequest {
 }
 
 #[cfg(test)]
+pub(crate) fn make_product() -> Product {
+    Product {
+        id: "prod_001".into(),
+        inventory_id: "inv_001".into(),
+        code: "A-B-0001-0010-A".into(),
+        main_zone: "A".into(),
+        sub_zone: "B".into(),
+        seq_number: 1,
+        quantity: 10,
+        reserved_quantity: 0,
+        status_code: "A".into(),
+        name: "测试商品".into(),
+        original_price: 100.0,
+        market_price: 120.0,
+        expected_price: 110.0,
+        remark: Some("备注".into()),
+        storage_location: Some("A区-1架".into()),
+        image_url: Some("http://example.com/img.jpg".into()),
+        image_list: None,
+        tags: Some(serde_json::json!(["tag_1", "tag_2"])),
+        owner_openid: "user_001".into(),
+        created_at: NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
+        updated_at: NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
-
-    fn make_product() -> Product {
-        Product {
-            id: "prod_001".into(),
-            inventory_id: "inv_001".into(),
-            code: "A-B-0001-0010-A".into(),
-            main_zone: "A".into(),
-            sub_zone: "B".into(),
-            seq_number: 1,
-            quantity: 10,
-            reserved_quantity: 0,
-            status_code: "A".into(),
-            name: "测试商品".into(),
-            original_price: 100.0,
-            market_price: 120.0,
-            expected_price: 110.0,
-            remark: Some("备注".into()),
-            storage_location: Some("A区-1架".into()),
-            image_url: Some("http://example.com/img.jpg".into()),
-            image_list: None,
-            tags: Some(serde_json::json!(["tag_1", "tag_2"])),
-            owner_openid: "user_001".into(),
-            created_at: NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
-            updated_at: NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
-        }
-    }
 
     #[test]
     fn test_product_serde_roundtrip() {

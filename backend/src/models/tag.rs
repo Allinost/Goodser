@@ -11,7 +11,7 @@ pub struct Tag {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateTagRequest {
     pub name: String,
     pub color: Option<String>,

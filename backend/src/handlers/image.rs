@@ -22,12 +22,14 @@ pub struct PresignData {
 #[derive(Deserialize)]
 pub struct PresignRequest {
     pub content_type: Option<String>,
+    #[allow(dead_code)]
     pub product_id: Option<String>,
 }
 
 #[derive(Deserialize)]
 pub struct ConfirmRequest {
     pub key: String,
+    #[allow(dead_code)]
     pub product_id: Option<String>,
 }
 

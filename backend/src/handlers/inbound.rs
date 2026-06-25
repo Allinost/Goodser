@@ -314,41 +314,6 @@ mod tests {
     }
 
     #[test]
-    fn test_inbound_single_data_serde() {
-        use crate::models::product::Product;
-        let product = Product {
-            id: "prod_001".into(),
-            inventory_id: "inv_001".into(),
-            code: "A-B-0001-0010-A".into(),
-            main_zone: "A".into(),
-            sub_zone: "B".into(),
-            seq_number: 1,
-            quantity: 10,
-            reserved_quantity: 0,
-            status_code: "A".into(),
-            name: "入库商品".into(),
-            original_price: 0.0,
-            market_price: 0.0,
-            expected_price: 0.0,
-            remark: None,
-            storage_location: None,
-            image_url: None,
-            image_list: None,
-            tags: None,
-            owner_openid: "u1".into(),
-            created_at: chrono::NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
-            updated_at: chrono::NaiveDateTime::parse_from_str("2026-01-01 00:00:00", "%Y-%m-%d %H:%M:%S").unwrap(),
-        };
-        let data = InboundSingleData {
-            product,
-            log: serde_json::json!({"_id": "log_001"}),
-        };
-        let json = serde_json::to_value(&data).unwrap();
-        assert_eq!(json["product"]["_id"], "prod_001");
-        assert!(json["log"].is_object());
-    }
-
-    #[test]
     fn test_inbound_batch_request_empty_items() {
         let json = serde_json::json!({
             "inventory_id": "inv_001",

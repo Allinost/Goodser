@@ -5,6 +5,7 @@ use axum::response::Response;
 
 use crate::error::AppError;
 
+#[allow(dead_code)]
 pub async fn auth_middleware(
     State(api_key): State<String>,
     req: Request,
