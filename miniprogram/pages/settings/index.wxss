@@ -319,3 +319,8 @@
   width: 100%;
   text-align: center;
 }
+
+/* 设置项显示控制 */
+.toggle-display-group {
+  margin-top: 32rpx;
+}

@@ -1,13 +1,15 @@
 <view class="page-settings">
   <!-- 用户信息 -->
   <view class="user-card card">
-    <image class="user-avatar" src="https://picsum.photos/100/100?random=101" mode="aspectFill" />
+    <!-- <image class="user-avatar" src="https://picsum.photos/100/100?random=101" mode="aspectFill" /> -->
+    <image class="user-avatar" src="https://avatars.githubusercontent.com/u/214270487?s=200&v=4" mode="aspectFill" />
     <view class="user-info">
       <text class="user-name">管理员</text>
       <text class="user-role">admin</text>
     </view>
   </view>
 
+  <view wx:if="{{showSettings}}">
   <!-- 设置列表 -->
   <view class="settings-group">
     <view class="settings-item" bindtap="onWhitelist">
@@ -298,6 +300,20 @@
       </view>
       <view class="settings-right">
         <text class="settings-value">v1.0.0</text>
+      </view>
+    </view>
+  </view>
+  </view>
+
+  <!-- 设置项显示控制 -->
+  <view class="settings-group toggle-display-group">
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">👁️</text>
+        <text class="settings-label">显示设置选项</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showSettings}}" bindchange="onToggleSettingsDisplay" color="#1890ff" />
       </view>
     </view>
   </view>

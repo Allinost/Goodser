@@ -39,7 +39,10 @@ Page({
     syncProgress: '',
     lastSyncTime: '',
     lastSyncDetail: null,
-    showSyncDetail: false
+    showSyncDetail: false,
+
+    // 设置项显示控制
+    showSettings: true
   },
 
   onShow() {
@@ -98,6 +101,10 @@ Page({
     var syncInfo = db.getSyncInfo()
     var imgStats = imgCache.getImageStats()
 
+    // 读取设置项显示控制状态
+    var settingsDisplay = wx.getStorageSync('settingsDisplay')
+    if (settingsDisplay === '') settingsDisplay = true
+
     // 读取上次全量同步时间和详情
     var lastSync = ''
     var lastSyncDetail = null
@@ -108,11 +115,8 @@ Page({
     } catch (e) {}
 
     this.setData({
+      showSettings: settingsDisplay,
       whitelistCount: db.whitelist.length,
-      statusCodeCount: db.statusCodes.length,
-      tagCount: db.tags.length,
-      nasConnected: db.isNASReady(),
-      cloudDbEnabled: cloudEnabled,
       cloudDbStatus: cloudStatusText,
       nasEnabled: nasEnabled,
       nasStatus: nasStatusText,
@@ -619,5 +623,13 @@ Page({
 
   onSyncDetailMaskTap() {
     this.hideSyncDetail()
+  },
+
+  // ========== 设置项显示控制 ==========
+
+  onToggleSettingsDisplay(e) {
+    var show = e.detail.value
+    this.setData({ showSettings: show })
+    wx.setStorageSync('settingsDisplay', show)
   },
 })
