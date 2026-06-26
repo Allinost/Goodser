@@ -9,10 +9,10 @@
     </view>
   </view>
 
-  <view wx:if="{{showSettings}}">
-  <!-- 设置列表 -->
+  <!-- 基本设置 -->
+  <view wx:if="{{showWhitelist || showStatusCodes || showTags || showSelfBuiltConfig || showNasConfig}}">
   <view class="settings-group">
-    <view class="settings-item" bindtap="onWhitelist">
+    <view class="settings-item" wx:if="{{showWhitelist}}" bindtap="onWhitelist">
       <view class="settings-left">
         <text class="settings-icon">👥</text>
         <text class="settings-label">访问白名单</text>
@@ -22,7 +22,7 @@
         <text class="settings-arrow">›</text>
       </view>
     </view>
-    <view class="settings-item" bindtap="onStatusCodes">
+    <view class="settings-item" wx:if="{{showStatusCodes}}" bindtap="onStatusCodes">
       <view class="settings-left">
         <text class="settings-icon">📋</text>
         <text class="settings-label">状态编码管理</text>
@@ -32,7 +32,7 @@
         <text class="settings-arrow">›</text>
       </view>
     </view>
-    <view class="settings-item" bindtap="onTags">
+    <view class="settings-item" wx:if="{{showTags}}" bindtap="onTags">
       <view class="settings-left">
         <text class="settings-icon">🏷️</text>
         <text class="settings-label">标签管理</text>
@@ -42,7 +42,7 @@
         <text class="settings-arrow">›</text>
       </view>
     </view>
-    <view class="settings-item" bindtap="onSelfBuiltConfig">
+    <view class="settings-item" wx:if="{{showSelfBuiltConfig}}" bindtap="onSelfBuiltConfig">
       <view class="settings-left">
         <text class="settings-icon">🖥️</text>
         <view class="settings-label-group">
@@ -55,7 +55,7 @@
         <text class="settings-arrow">›</text>
       </view>
     </view>
-    <view class="settings-item" bindtap="onNasConfig">
+    <view class="settings-item" wx:if="{{showNasConfig}}" bindtap="onNasConfig">
       <view class="settings-left">
         <text class="settings-icon">💾</text>
         <text class="settings-label">NAS 存储配置</text>
@@ -66,10 +66,12 @@
       </view>
     </view>
   </view>
+  </view>
 
   <!-- 数据存储 -->
-  <view class="section-title">数据存储</view>
-  <view class="settings-group">
+  <view wx:if="{{showCloudDb || showCloudDbStatus || showSelfBuilt || showSelfBuiltStatus}}">
+  <view class="section-title" wx:if="{{showCloudDb || showCloudDbStatus || showSelfBuilt || showSelfBuiltStatus}}">数据存储</view>
+  <view class="settings-group" wx:if="{{showCloudDb}}">
     <view class="settings-item">
       <view class="settings-left">
         <text class="settings-icon">☁️</text>
@@ -85,7 +87,7 @@
   </view>
 
   <!-- 云数据库状态 -->
-  <view class="settings-group" wx:if="{{cloudDbEnabled}}">
+  <view class="settings-group" wx:if="{{showCloudDbStatus && cloudDbEnabled}}">
     <view class="settings-item">
       <view class="settings-left">
         <text class="settings-icon">📡</text>
@@ -98,7 +100,7 @@
   </view>
 
   <!-- 自建后端开关 -->
-  <view class="settings-group">
+  <view class="settings-group" wx:if="{{showSelfBuilt}}">
     <view class="settings-item">
       <view class="settings-left">
         <text class="settings-icon">🖥️</text>
@@ -114,7 +116,7 @@
   </view>
 
   <!-- 自建后端状态 -->
-  <view class="settings-group" wx:if="{{selfBuiltEnabled}}">
+  <view class="settings-group" wx:if="{{showSelfBuiltStatus && selfBuiltEnabled}}">
     <view class="settings-item">
       <view class="settings-left">
         <text class="settings-icon">📡</text>
@@ -125,12 +127,14 @@
       </view>
     </view>
   </view>
+  </view>
 
   <!-- 数据同步 -->
-  <view class="section-title">数据同步</view>
+  <view wx:if="{{showSyncAll || showSyncProgress || showLastSync}}">
+  <view class="section-title" wx:if="{{showSyncAll || showSyncProgress || showLastSync}}">数据同步</view>
   <view class="settings-group">
     <!-- 同步所有数据 -->
-    <view class="settings-item sync-all-item" bindtap="onSyncAllData">
+    <view class="settings-item sync-all-item" wx:if="{{showSyncAll}}" bindtap="onSyncAllData">
       <view class="settings-left">
         <text class="settings-icon">🔄</text>
         <view class="settings-label-group">
@@ -144,7 +148,7 @@
     </view>
 
     <!-- 同步状态 -->
-    <view class="settings-item cache-stats" wx:if="{{syncing}}">
+    <view class="settings-item cache-stats" wx:if="{{showSyncProgress && syncing}}">
       <view class="settings-left">
         <text class="settings-icon loading-icon">⏳</text>
         <text class="settings-label sync-progress">{{syncProgress}}</text>
@@ -152,7 +156,7 @@
     </view>
 
     <!-- 上次同步时间 -->
-    <view class="settings-item sync-detail-item" wx:if="{{lastSyncTime}}" bindtap="onViewLastSyncDetail">
+    <view class="settings-item sync-detail-item" wx:if="{{showLastSync && lastSyncTime}}" bindtap="onViewLastSyncDetail">
       <view class="settings-left">
         <text class="settings-icon">🕐</text>
         <view class="settings-label-group">
@@ -165,12 +169,14 @@
       </view>
     </view>
   </view>
+  </view>
 
   <!-- 缓存管理 -->
-  <view class="section-title">缓存管理</view>
+  <view wx:if="{{showGradedTTL || showCacheStatus || showForceRefresh || showClearAllCache || showClearStaleCache || showDiffSync}}">
+  <view class="section-title" wx:if="{{showGradedTTL || showCacheStatus || showForceRefresh || showClearAllCache || showClearStaleCache || showDiffSync}}">缓存管理</view>
   <view class="settings-group">
     <!-- 分级 TTL 开关 -->
-    <view class="settings-item">
+    <view class="settings-item" wx:if="{{showGradedTTL}}">
       <view class="settings-left">
         <text class="settings-icon">⏱️</text>
         <view class="settings-label-group">
@@ -184,7 +190,7 @@
     </view>
 
     <!-- 缓存统计 -->
-    <view class="settings-item cache-stats">
+    <view class="settings-item cache-stats" wx:if="{{showCacheStatus}}">
       <view class="settings-left">
         <text class="settings-icon">📊</text>
         <text class="settings-label">缓存状态</text>
@@ -195,7 +201,7 @@
     </view>
 
     <!-- 强制刷新缓存 -->
-    <view class="settings-item" bindtap="onForceRefresh">
+    <view class="settings-item" wx:if="{{showForceRefresh}}" bindtap="onForceRefresh">
       <view class="settings-left">
         <text class="settings-icon">🗑️</text>
         <view class="settings-label-group">
@@ -209,7 +215,7 @@
     </view>
 
     <!-- 清理操作 -->
-    <view class="settings-item" bindtap="onClearAllCache">
+    <view class="settings-item" wx:if="{{showClearAllCache}}" bindtap="onClearAllCache">
       <view class="settings-left">
         <text class="settings-icon">🗑️</text>
         <view class="settings-label-group">
@@ -222,7 +228,7 @@
       </view>
     </view>
 
-    <view class="settings-item" bindtap="onClearStaleCache">
+    <view class="settings-item" wx:if="{{showClearStaleCache}}" bindtap="onClearStaleCache">
       <view class="settings-left">
         <text class="settings-icon">🧹</text>
         <view class="settings-label-group">
@@ -237,7 +243,7 @@
   </view>
 
   <!-- 差量同步信息 -->
-  <view class="settings-group" wx:if="{{cloudDbEnabled && syncInfo.length > 0}}">
+  <view class="settings-group" wx:if="{{showDiffSync && cloudDbEnabled && syncInfo.length > 0}}">
     <view class="section-inner-title">差量同步追踪</view>
     <view class="settings-item" wx:for="{{syncInfo}}" wx:key="inventoryId">
       <view class="settings-left">
@@ -249,11 +255,13 @@
       </view>
     </view>
   </view>
+  </view>
 
   <!-- 图片缓存 -->
-  <view class="section-title">图片缓存</view>
+  <view wx:if="{{showImageCacheStatus || showClearImageCache || showClearUnusedImages}}">
+  <view class="section-title" wx:if="{{showImageCacheStatus || showClearImageCache || showClearUnusedImages}}">图片缓存</view>
   <view class="settings-group">
-    <view class="settings-item cache-stats">
+    <view class="settings-item cache-stats" wx:if="{{showImageCacheStatus}}">
       <view class="settings-left">
         <text class="settings-icon">🖼️</text>
         <text class="settings-label">图片缓存状态</text>
@@ -263,7 +271,7 @@
       </view>
     </view>
 
-    <view class="settings-item" bindtap="onClearImageCache">
+    <view class="settings-item" wx:if="{{showClearImageCache}}" bindtap="onClearImageCache">
       <view class="settings-left">
         <text class="settings-icon">🗑️</text>
         <view class="settings-label-group">
@@ -276,7 +284,7 @@
       </view>
     </view>
 
-    <view class="settings-item" bindtap="onClearUnusedImages">
+    <view class="settings-item" wx:if="{{showClearUnusedImages}}" bindtap="onClearUnusedImages">
       <view class="settings-left">
         <text class="settings-icon">🧹</text>
         <view class="settings-label-group">
@@ -289,9 +297,11 @@
       </view>
     </view>
   </view>
+  </view>
 
   <!-- 关于 -->
-  <view class="section-title">关于</view>
+  <view wx:if="{{showAboutSection}}">
+  <view class="section-title" wx:if="{{showAboutSection}}">关于</view>
   <view class="settings-group">
     <view class="settings-item">
       <view class="settings-left">
@@ -309,11 +319,200 @@
   <view class="settings-group toggle-display-group">
     <view class="settings-item">
       <view class="settings-left">
-        <text class="settings-icon">👁️</text>
-        <text class="settings-label">显示设置选项</text>
+        <text class="settings-icon">👥</text>
+        <text class="settings-label">访问白名单</text>
       </view>
       <view class="settings-right">
-        <switch checked="{{showSettings}}" bindchange="onToggleSettingsDisplay" color="#1890ff" />
+        <switch checked="{{showWhitelist}}" bindchange="onToggleSetting" data-key="showWhitelist" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">📋</text>
+        <text class="settings-label">状态编码管理</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showStatusCodes}}" bindchange="onToggleSetting" data-key="showStatusCodes" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🏷️</text>
+        <text class="settings-label">标签管理</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showTags}}" bindchange="onToggleSetting" data-key="showTags" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🖥️</text>
+        <text class="settings-label">自建后端配置</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showSelfBuiltConfig}}" bindchange="onToggleSetting" data-key="showSelfBuiltConfig" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">💾</text>
+        <text class="settings-label">NAS 存储配置</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showNasConfig}}" bindchange="onToggleSetting" data-key="showNasConfig" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">☁️</text>
+        <text class="settings-label">云数据库</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showCloudDb}}" bindchange="onToggleSetting" data-key="showCloudDb" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">📡</text>
+        <text class="settings-label">云数据库状态</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showCloudDbStatus}}" bindchange="onToggleSetting" data-key="showCloudDbStatus" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🖥️</text>
+        <text class="settings-label">自建后端</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showSelfBuilt}}" bindchange="onToggleSetting" data-key="showSelfBuilt" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">📡</text>
+        <text class="settings-label">自建后端状态</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showSelfBuiltStatus}}" bindchange="onToggleSetting" data-key="showSelfBuiltStatus" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🔄</text>
+        <text class="settings-label">同步所有数据</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showSyncAll}}" bindchange="onToggleSetting" data-key="showSyncAll" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">⏳</text>
+        <text class="settings-label">同步进度</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showSyncProgress}}" bindchange="onToggleSetting" data-key="showSyncProgress" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🕐</text>
+        <text class="settings-label">上次全量同步</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showLastSync}}" bindchange="onToggleSetting" data-key="showLastSync" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">⏱️</text>
+        <text class="settings-label">分级 TTL 缓存</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showGradedTTL}}" bindchange="onToggleSetting" data-key="showGradedTTL" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">📊</text>
+        <text class="settings-label">缓存状态</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showCacheStatus}}" bindchange="onToggleSetting" data-key="showCacheStatus" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🗑️</text>
+        <text class="settings-label">强制刷新缓存</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showForceRefresh}}" bindchange="onToggleSetting" data-key="showForceRefresh" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🗑️</text>
+        <text class="settings-label">清理所有缓存</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showClearAllCache}}" bindchange="onToggleSetting" data-key="showClearAllCache" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🧹</text>
+        <text class="settings-label">清理过期缓存</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showClearStaleCache}}" bindchange="onToggleSetting" data-key="showClearStaleCache" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">📦</text>
+        <text class="settings-label">差量同步追踪</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showDiffSync}}" bindchange="onToggleSetting" data-key="showDiffSync" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🖼️</text>
+        <text class="settings-label">图片缓存状态</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showImageCacheStatus}}" bindchange="onToggleSetting" data-key="showImageCacheStatus" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🗑️</text>
+        <text class="settings-label">清理全部图片缓存</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showClearImageCache}}" bindchange="onToggleSetting" data-key="showClearImageCache" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">🧹</text>
+        <text class="settings-label">清理未使用图片</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showClearUnusedImages}}" bindchange="onToggleSetting" data-key="showClearUnusedImages" color="#1890ff" />
+      </view>
+    </view>
+    <view class="settings-item">
+      <view class="settings-left">
+        <text class="settings-icon">ℹ️</text>
+        <text class="settings-label">关于 Goodser</text>
+      </view>
+      <view class="settings-right">
+        <switch checked="{{showAboutSection}}" bindchange="onToggleSetting" data-key="showAboutSection" color="#1890ff" />
       </view>
     </view>
   </view>

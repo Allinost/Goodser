@@ -41,8 +41,29 @@ Page({
     lastSyncDetail: null,
     showSyncDetail: false,
 
-    // 设置项显示控制
-    showSettings: true
+    // 设置项显示控制（每个功能点）
+    showWhitelist: true,
+    showStatusCodes: true,
+    showTags: true,
+    showSelfBuiltConfig: true,
+    showNasConfig: true,
+    showCloudDb: true,
+    showCloudDbStatus: true,
+    showSelfBuilt: true,
+    showSelfBuiltStatus: true,
+    showSyncAll: true,
+    showSyncProgress: true,
+    showLastSync: true,
+    showGradedTTL: true,
+    showCacheStatus: true,
+    showForceRefresh: true,
+    showClearAllCache: true,
+    showClearStaleCache: true,
+    showDiffSync: true,
+    showImageCacheStatus: true,
+    showClearImageCache: true,
+    showClearUnusedImages: true,
+    showAboutSection: true
   },
 
   onShow() {
@@ -102,8 +123,30 @@ Page({
     var imgStats = imgCache.getImageStats()
 
     // 读取设置项显示控制状态
-    var settingsDisplay = wx.getStorageSync('settingsDisplay')
-    if (settingsDisplay === '') settingsDisplay = true
+    var vis = {}
+    try { vis = JSON.parse(wx.getStorageSync('settingsVisibility') || '{}') } catch(e) {}
+    var showWhitelist = vis.showWhitelist !== undefined ? vis.showWhitelist : true
+    var showStatusCodes = vis.showStatusCodes !== undefined ? vis.showStatusCodes : true
+    var showTags = vis.showTags !== undefined ? vis.showTags : true
+    var showSelfBuiltConfig = vis.showSelfBuiltConfig !== undefined ? vis.showSelfBuiltConfig : true
+    var showNasConfig = vis.showNasConfig !== undefined ? vis.showNasConfig : true
+    var showCloudDb = vis.showCloudDb !== undefined ? vis.showCloudDb : true
+    var showCloudDbStatus = vis.showCloudDbStatus !== undefined ? vis.showCloudDbStatus : true
+    var showSelfBuilt = vis.showSelfBuilt !== undefined ? vis.showSelfBuilt : true
+    var showSelfBuiltStatus = vis.showSelfBuiltStatus !== undefined ? vis.showSelfBuiltStatus : true
+    var showSyncAll = vis.showSyncAll !== undefined ? vis.showSyncAll : true
+    var showSyncProgress = vis.showSyncProgress !== undefined ? vis.showSyncProgress : true
+    var showLastSync = vis.showLastSync !== undefined ? vis.showLastSync : true
+    var showGradedTTL = vis.showGradedTTL !== undefined ? vis.showGradedTTL : true
+    var showCacheStatus = vis.showCacheStatus !== undefined ? vis.showCacheStatus : true
+    var showForceRefresh = vis.showForceRefresh !== undefined ? vis.showForceRefresh : true
+    var showClearAllCache = vis.showClearAllCache !== undefined ? vis.showClearAllCache : true
+    var showClearStaleCache = vis.showClearStaleCache !== undefined ? vis.showClearStaleCache : true
+    var showDiffSync = vis.showDiffSync !== undefined ? vis.showDiffSync : true
+    var showImageCacheStatus = vis.showImageCacheStatus !== undefined ? vis.showImageCacheStatus : true
+    var showClearImageCache = vis.showClearImageCache !== undefined ? vis.showClearImageCache : true
+    var showClearUnusedImages = vis.showClearUnusedImages !== undefined ? vis.showClearUnusedImages : true
+    var showAboutSection = vis.showAboutSection !== undefined ? vis.showAboutSection : true
 
     // 读取上次全量同步时间和详情
     var lastSync = ''
@@ -115,7 +158,28 @@ Page({
     } catch (e) {}
 
     this.setData({
-      showSettings: settingsDisplay,
+      showWhitelist: showWhitelist,
+      showStatusCodes: showStatusCodes,
+      showTags: showTags,
+      showSelfBuiltConfig: showSelfBuiltConfig,
+      showNasConfig: showNasConfig,
+      showCloudDb: showCloudDb,
+      showCloudDbStatus: showCloudDbStatus,
+      showSelfBuilt: showSelfBuilt,
+      showSelfBuiltStatus: showSelfBuiltStatus,
+      showSyncAll: showSyncAll,
+      showSyncProgress: showSyncProgress,
+      showLastSync: showLastSync,
+      showGradedTTL: showGradedTTL,
+      showCacheStatus: showCacheStatus,
+      showForceRefresh: showForceRefresh,
+      showClearAllCache: showClearAllCache,
+      showClearStaleCache: showClearStaleCache,
+      showDiffSync: showDiffSync,
+      showImageCacheStatus: showImageCacheStatus,
+      showClearImageCache: showClearImageCache,
+      showClearUnusedImages: showClearUnusedImages,
+      showAboutSection: showAboutSection,
       whitelistCount: db.whitelist.length,
       cloudDbStatus: cloudStatusText,
       nasEnabled: nasEnabled,
@@ -627,9 +691,13 @@ Page({
 
   // ========== 设置项显示控制 ==========
 
-  onToggleSettingsDisplay(e) {
-    var show = e.detail.value
-    this.setData({ showSettings: show })
-    wx.setStorageSync('settingsDisplay', show)
+  onToggleSetting(e) {
+    var key = e.currentTarget.dataset.key
+    var value = e.detail.value
+    this.setData({ [key]: value })
+    var vis = {}
+    try { vis = JSON.parse(wx.getStorageSync('settingsVisibility') || '{}') } catch(e) {}
+    vis[key] = value
+    wx.setStorageSync('settingsVisibility', JSON.stringify(vis))
   },
 })
