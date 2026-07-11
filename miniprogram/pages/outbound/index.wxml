@@ -55,19 +55,15 @@
   </view>
 
   <!-- 订单列表 -->
-  <view class="order-list" wx:if="{{pagedOrders.length > 0}}">
+  <view class="order-list" wx:if="{{filteredOrders.length > 0}}">
     <order-card
-      wx:for="{{pagedOrders}}"
+      wx:for="{{filteredOrders}}"
       wx:key="_id"
       order="{{item}}"
       bind:tap="onOrderTap"
     />
-    <!-- 分页 -->
-    <view class="pagination" wx:if="{{totalPages > 1}}">
-      <view class="page-btn {{currentPage <= 1 ? 'page-btn-disabled' : ''}}" bindtap="onPrevPage">上一页</view>
-      <text class="page-info">{{currentPage}} / {{totalPages}}</text>
-      <view class="page-btn {{currentPage >= totalPages ? 'page-btn-disabled' : ''}}" bindtap="onNextPage">下一页</view>
-    </view>
+    <view class="load-more" wx:if="{{loadingMore}}"><text>加载中...</text></view>
+    <view class="load-more" wx:elif="{{hasMore}}" bindtap="onReachBottom"><text>点击加载更多</text></view>
   </view>
 
   <!-- 空状态 -->

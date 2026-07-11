@@ -98,6 +98,7 @@ Page({
       inventories,
       inventoryNames,
       allTags: [...db.tags],
+      tagItems: this._buildTagItems(db.tags, this.data.currentTagIds),
       statusCodes: statusCodes,
       statusCodeLabels: statusCodes.map(s => `${s.code} - ${s.label}`)
     })
@@ -181,6 +182,12 @@ Page({
     this._markDirty()
   },
 
+  _buildTagItems(tags, selectedIds) {
+    return tags.map(function(t) {
+      return { ...t, _active: selectedIds.indexOf(t._id) > -1 }
+    })
+  },
+
   // 标签
   onToggleTag(e) {
     const tagId = e.currentTarget.dataset.id
@@ -191,7 +198,10 @@ Page({
     } else {
       currentTagIds.push(tagId)
     }
-    this.setData({ currentTagIds })
+    this.setData({
+      currentTagIds,
+      tagItems: this._buildTagItems(this.data.allTags, currentTagIds)
+    })
     this._markDirty()
   },
 
@@ -228,9 +238,11 @@ Page({
         color: this.data.newTagColor
       })
       const newTagId = result ? result._id : ('tag_' + Date.now())
+      const updatedSelected = [...this.data.currentTagIds, newTagId]
       this.setData({
         allTags: [...db.tags],
-        currentTagIds: [...this.data.currentTagIds, newTagId],
+        currentTagIds: updatedSelected,
+        tagItems: this._buildTagItems(db.tags, updatedSelected),
         showNewTagDialog: false
       })
       this._markDirty()
@@ -287,7 +299,8 @@ Page({
       currentRemark: '',
       currentImages: [],
       currentImageUrl: '',
-      currentTagIds: []
+      currentTagIds: [],
+      tagItems: this._buildTagItems(this.data.allTags, [])
     })
     this._markDirty()
     wx.showToast({ title: '已添加', icon: 'success' })

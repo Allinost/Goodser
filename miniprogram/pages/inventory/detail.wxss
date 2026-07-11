@@ -127,8 +127,7 @@
 }
 
 .tag-dialog-item-selected {
-  border-style: solid;
-  border-color: #1677ff;
+  border: 2rpx solid #1677ff;
   font-weight: 600;
   color: #1677ff;
   background: #e6f4ff;

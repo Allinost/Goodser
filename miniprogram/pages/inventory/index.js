@@ -1,16 +1,13 @@
 const db = require('../../utils/db')
 const util = require('../../utils/util')
 
-const PAGE_SIZE = 20
-
 Page({
   data: {
     inventories: [],
     currentInventoryId: 'inv_001',
     currentInventory: {},
-    products: [],
+    allProducts: [],
     filteredProducts: [],
-    pagedProducts: [],
     searchKeyword: '',
     sortBy: 'name',
     sortOrder: 'asc',
@@ -31,19 +28,19 @@ Page({
     filterMainZone: '',
     filterStatus: '',
     filterTags: [],
+    filterTagItems: [],
     mainZones: [],
     statusCodeOptions: [],
     tagOptions: [],
-    // 统计
     totalCount: 0,
     totalStock: 0,
-    // 分页
-    currentPage: 1,
-    totalPages: 1
+    page: 1,
+    pageSize: 20,
+    hasMore: false,
+    loadingMore: false
   },
 
   onLoad() {
-    // 确定有效的库存目录 ID
     var invs = db.inventories
     var curId = this._resolveCurrentInventoryId(this.data.currentInventoryId, invs)
 
@@ -52,12 +49,11 @@ Page({
       currentInventoryId: curId,
       statusCodeOptions: db.statusCodes,
       mainZones: util.ZONES,
-      tagOptions: db.tags
+      tagOptions: db.tags,
+      filterTagItems: this._buildFilterTagItems(db.tags, [])
     })
     this.setCurrentInventory()
-
-    // Cloud/NAS模式：从后端加载当前目录的商品
-    this._loadFromBackend(curId)
+    this.refreshData()
   },
 
   onShow() {
@@ -70,9 +66,6 @@ Page({
     })
   },
 
-  /**
-   * 解析有效的库存目录 ID：如果当前 ID 无效，返回第一个有效 ID
-   */
   _resolveCurrentInventoryId(curId, invs) {
     if (curId && invs.length > 0 && !invs.find(function(i) { return i._id === curId })) {
       return invs[0]._id
@@ -83,76 +76,88 @@ Page({
     return curId || ''
   },
 
-  /**
-   * 从后端加载产品数据（Cloud/NAS模式）
-   */
-  _loadFromBackend(invId) {
-    if (!invId) return
-    if (!db.isBackendMode || !db.isBackendMode()) return
-    var that = this
-    db.loadProducts(invId, true).then(function() {
-      that.setCurrentInventory()
-    }).catch(function(e) {
-      console.warn('[Inventory] loadProducts 失败，使用本地数据:', e)
-      that.setCurrentInventory()
-    })
-  },
-
   async refreshAll(callback) {
     var isBackend = db.isBackendMode && db.isBackendMode()
     var invs = db.inventories
-    // 解析有效的库存目录 ID
     var curId = this._resolveCurrentInventoryId(this.data.currentInventoryId, invs)
 
     this.setData({
       inventories: invs,
       currentInventoryId: curId,
       tagOptions: db.tags,
+      filterTagItems: this._buildFilterTagItems(db.tags, this.data.filterTags),
       statusCodeOptions: db.statusCodes,
       mainZones: util.ZONES
     })
 
-    // Cloud/NAS模式：从数据库强制拉取最新数据
     if (isBackend && curId) {
-      try {
-        await db.loadProducts(curId, true)
-      } catch (e) {
-        console.warn('[Inventory] loadProducts 失败，使用缓存数据:', e)
-      }
+      await this.refreshData()
+      this.setCurrentInventory(true)
+    } else {
+      this.setCurrentInventory()
     }
-
-    this.setCurrentInventory()
     if (callback) callback()
   },
 
-  setCurrentInventory() {
+  async refreshData() {
+    this.setData({ allProducts: [], page: 1, hasMore: false })
+    await this.loadPage(1, true)
+  },
+
+  async loadPage(pageNum, forceRefresh) {
+    const invId = this.data.currentInventoryId
+    if (!invId) return
+    if (db.isBackendMode && db.isBackendMode()) {
+      var opts = forceRefresh ? true : { page: pageNum, page_size: this.data.pageSize }
+      var result = await db.loadProducts(invId, opts)
+      var items = result.items || []
+      if (pageNum === 1) {
+        this.setData({ allProducts: items, hasMore: result.has_more, page: 1 })
+      } else {
+        this.setData({
+          allProducts: [...this.data.allProducts, ...items],
+          hasMore: result.has_more,
+          page: pageNum
+        })
+      }
+    } else {
+      this.loadProducts()
+    }
+    this.applyFilters()
+  },
+
+  async onReachBottom() {
+    if (this.data.loadingMore || !this.data.hasMore) return
+    this.setData({ loadingMore: true })
+    await this.loadPage(this.data.page + 1)
+    this.setData({ loadingMore: false })
+  },
+
+  setCurrentInventory(skipLoad) {
     var curId = this.data.currentInventoryId
     var invs = this.data.inventories
     var inv = invs.find(function(i) { return i._id === curId })
     if (!inv && invs.length > 0) {
-      // 当前 ID 无效，回退到第一个目录
       inv = invs[0]
       this.setData({ currentInventoryId: inv._id })
     }
     this.setData({ currentInventory: inv || {} })
-    this.loadProducts()
+    if (!skipLoad) this.loadProducts()
   },
 
   loadProducts() {
     var curId = this.data.currentInventoryId
     var products = db.products.filter(function(p) { return p.inventory_id === curId })
-    this.setData({ products: products })
+    this.setData({ allProducts: products })
     this.applyFilters()
   },
 
   applyFilters() {
-    let list = [...this.data.products]
+    let list = [...this.data.allProducts]
 
-    // 搜索
     if (this.data.searchKeyword) {
       const kw = this.data.searchKeyword.toLowerCase()
       list = list.filter(p => {
-        // 搜索标签名
         const tagNames = (p.tags || []).map(tid => {
           const tag = db.tags.find(t => t._id === tid)
           return tag ? tag.name : ''
@@ -166,17 +171,14 @@ Page({
       })
     }
 
-    // 筛选 - 主分区
     if (this.data.filterMainZone) {
       list = list.filter(p => p.main_zone === this.data.filterMainZone)
     }
 
-    // 筛选 - 状态
     if (this.data.filterStatus) {
       list = list.filter(p => p.status_code === this.data.filterStatus)
     }
 
-    // 筛选 - 标签（OR逻辑：匹配任一标签）
     if (this.data.filterTags.length > 0) {
       list = list.filter(p => {
         const ptags = p.tags || []
@@ -184,7 +186,6 @@ Page({
       })
     }
 
-    // 排序
     const { sortBy, sortOrder } = this.data
     list.sort((a, b) => {
       let va = a[sortBy]
@@ -196,49 +197,16 @@ Page({
       return 0
     })
 
-    // 统计
-    const totalCount = this.data.products.length
+    const totalCount = this.data.allProducts.length
     const totalStock = list.reduce((sum, p) => sum + (p.quantity || 0), 0)
-    const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE))
-
-    // 分页重置到第1页
-    const currentPage = 1
 
     this.setData({
       filteredProducts: list,
       totalCount,
-      totalStock,
-      totalPages,
-      currentPage
-    })
-    this.applyPagination()
-  },
-
-  applyPagination() {
-    const { filteredProducts, currentPage } = this.data
-    const start = (currentPage - 1) * PAGE_SIZE
-    const end = start + PAGE_SIZE
-    this.setData({
-      pagedProducts: filteredProducts.slice(start, end)
+      totalStock
     })
   },
 
-  // 分页
-  onPrevPage() {
-    if (this.data.currentPage <= 1) return
-    this.setData({ currentPage: this.data.currentPage - 1 })
-    this.applyPagination()
-    wx.pageScrollTo({ scrollTop: 0, duration: 200 })
-  },
-
-  onNextPage() {
-    if (this.data.currentPage >= this.data.totalPages) return
-    this.setData({ currentPage: this.data.currentPage + 1 })
-    this.applyPagination()
-    wx.pageScrollTo({ scrollTop: 0, duration: 200 })
-  },
-
-  // 搜索
   onSearch(e) {
     this.setData({ searchKeyword: e.detail.value })
     this.applyFilters()
@@ -249,7 +217,6 @@ Page({
     this.applyFilters()
   },
 
-  // 排序
   onSort(e) {
     const key = e.currentTarget.dataset.key
     if (this.data.sortBy === key) {
@@ -260,7 +227,6 @@ Page({
     this.applyFilters()
   },
 
-  // 筛选
   onFilter() {
     this.setData({ showFilter: true })
   },
@@ -277,6 +243,12 @@ Page({
     this.setData({ filterStatus: e.currentTarget.dataset.val })
   },
 
+  _buildFilterTagItems(tagOptions, filterTags) {
+    return tagOptions.map(function(t) {
+      return { ...t, _active: filterTags.indexOf(t._id) > -1 }
+    })
+  },
+
   onFilterTag(e) {
     const tagId = e.currentTarget.dataset.id
     const filterTags = [...this.data.filterTags]
@@ -286,15 +258,26 @@ Page({
     } else {
       filterTags.push(tagId)
     }
-    this.setData({ filterTags })
+    this.setData({
+      filterTags,
+      filterTagItems: this._buildFilterTagItems(this.data.tagOptions, filterTags)
+    })
   },
 
   onFilterTagClear() {
-    this.setData({ filterTags: [] })
+    this.setData({
+      filterTags: [],
+      filterTagItems: this._buildFilterTagItems(this.data.tagOptions, [])
+    })
   },
 
   onResetFilter() {
-    this.setData({ filterMainZone: '', filterStatus: '', filterTags: [] })
+    this.setData({
+      filterMainZone: '',
+      filterStatus: '',
+      filterTags: [],
+      filterTagItems: this._buildFilterTagItems(this.data.tagOptions, [])
+    })
   },
 
   onApplyFilter() {
@@ -302,7 +285,6 @@ Page({
     this.setData({ showFilter: false })
   },
 
-  // 库存目录选择
   showInventoryPicker() {
     this.setData({ showPicker: true })
   },
@@ -320,20 +302,15 @@ Page({
       filterStatus: '',
       filterTags: []
     })
-    // Cloud/NAS模式：切换目录时从后端加载产品数据
     if (db.isBackendMode && db.isBackendMode()) {
-      db.loadProducts(id, true).then(() => {
-        this.setCurrentInventory()
-      }).catch(() => {
-        this.setCurrentInventory()
-      })
+      this.setCurrentInventory(true)
+      this.refreshData()
     } else {
       this.setCurrentInventory()
     }
     this.setData({ showPicker: false })
   },
 
-  // 新增库存目录
   onAddInventory() {
     this.setData({ showAddDialog: true, newInventoryName: '' })
   },
@@ -359,7 +336,6 @@ Page({
     wx.showToast({ title: '创建成功', icon: 'success' })
   },
 
-  // 删除库存目录
   onDeleteInventory() {
     const hasProducts = db.products.some(p => p.inventory_id === this.data.currentInventoryId)
     if (hasProducts) {
@@ -368,7 +344,7 @@ Page({
     }
     wx.showModal({
       title: '确认删除',
-      content: `确定删除「${this.data.currentInventory.name}」吗？`,
+      content: '确定删除「' + this.data.currentInventory.name + '」吗？',
       confirmColor: '#ff4d4f',
       success: async (res) => {
         if (res.confirm) {
@@ -382,7 +358,6 @@ Page({
     })
   },
 
-  // 重命名库存目录
   onRenameInventory() {
     this.setData({ showRenameDialog: true, renameInventoryName: this.data.currentInventory.name })
   },
@@ -406,12 +381,10 @@ Page({
     wx.showToast({ title: '重命名成功', icon: 'success' })
   },
 
-  // 商品点击
   onProductTap(e) {
     const product = e.detail.product
-    wx.navigateTo({ url: `/pages/inventory/detail?id=${product._id}&inv_id=${product.inventory_id || ''}` })
+    wx.navigateTo({ url: '/pages/inventory/detail?id=' + product._id + '&inv_id=' + (product.inventory_id || '') })
   },
 
-  // 阻止弹窗内点击冒泡到遮罩层
   onDialogTap() {}
 })

@@ -102,7 +102,8 @@ Page({
       statusCodeLabels: statusCodes.map(function(s) { return s.code + ' - ' + s.label }),
       statusCodeIndex: statusCodeIndex > -1 ? statusCodeIndex : 0,
       allTags: [...db.tags],
-      selectedTagIds: [...(product.tags || [])]
+      selectedTagIds: [...(product.tags || [])],
+      tagItems: this._buildTagItems(db.tags, product.tags || [])
     })
 
     // 保存原始数据用于修改检测
@@ -247,6 +248,12 @@ Page({
     }
   },
 
+  _buildTagItems(tags, selectedIds) {
+    return tags.map(function(t) {
+      return { ...t, _active: selectedIds.indexOf(t._id) > -1 }
+    })
+  },
+
   // 标签
   onToggleTag(e) {
     const tagId = e.currentTarget.dataset.id
@@ -257,7 +264,10 @@ Page({
     } else {
       selectedTagIds.push(tagId)
     }
-    this.setData({ selectedTagIds })
+    this.setData({
+      selectedTagIds,
+      tagItems: this._buildTagItems(this.data.allTags, selectedTagIds)
+    })
     this._markDirty()
   },
 
@@ -294,9 +304,11 @@ Page({
         color: this.data.newTagColor
       })
       const newTagId = result ? result._id : ('tag_' + Date.now())
+      const updatedSelected = [...this.data.selectedTagIds, newTagId]
       this.setData({
         allTags: [...db.tags],
-        selectedTagIds: [...this.data.selectedTagIds, newTagId],
+        selectedTagIds: updatedSelected,
+        tagItems: this._buildTagItems(db.tags, updatedSelected),
         showNewTagDialog: false
       })
       this._markDirty()

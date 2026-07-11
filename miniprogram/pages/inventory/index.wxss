@@ -123,37 +123,12 @@
   font-weight: 500;
 }
 
-/* 分页 */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 24rpx;
+/* 加载更多 */
+.load-more {
+  text-align: center;
   padding: 24rpx;
-  background: #ffffff;
-  border-top: 2rpx solid #f0f0f0;
-}
-
-.page-btn {
-  padding: 12rpx 28rpx;
-  background: #f5f5f5;
-  border-radius: 8rpx;
   font-size: 26rpx;
-  color: #333333;
-}
-
-.page-btn:active {
-  background: #e6f7ff;
-}
-
-.page-btn-disabled {
-  color: #cccccc;
-  pointer-events: none;
-}
-
-.page-info {
-  font-size: 26rpx;
-  color: #666666;
+  color: #999999;
 }
 
 /* 弹窗遮罩 */

@@ -1,17 +1,14 @@
 const db = require('../../utils/db')
 const util = require('../../utils/util')
 
-const PAGE_SIZE = 10
-
 Page({
   data: {
     inventories: [],
     inventoryNames: [],
     inventoryIndex: 0,
     currentInventoryId: '',
-    orders: [],
+    allOrders: [],
     filteredOrders: [],
-    pagedOrders: [],
     activeTab: 'all',
     searchKeyword: '',
     filterStatus: '',
@@ -23,59 +20,93 @@ Page({
       { key: 'cancelled', label: '已取消' }
     ],
     showFilter: false,
-    currentPage: 1,
-    totalPages: 1,
+    page: 1,
+    pageSize: 20,
+    hasMore: false,
+    loadingMore: false,
     totalCount: 0
   },
 
   onLoad() {
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
-    const index = inventories.length > 0 ? 0 : 0
     const currentInventoryId = inventories.length > 0 ? inventories[0]._id : ''
     this.setData({
       inventories,
       inventoryNames,
-      currentInventoryId: currentInventoryId,
-      inventoryIndex: index
+      currentInventoryId,
+      inventoryIndex: 0
     })
-    this.loadOrders()
+    this.refreshData()
   },
 
   onShow() {
-    // 刷新库存目录列表（可能从库存页面新增/删除/重命名了目录）
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     let index = this.data.inventoryIndex
     if (index >= inventories.length) index = Math.max(0, inventories.length - 1)
     const currentInventoryId = inventories.length > 0 ? inventories[index]._id : ''
     this.setData({
-      inventories: inventories,
-      inventoryNames: inventoryNames,
+      inventories,
+      inventoryNames,
       inventoryIndex: index,
-      currentInventoryId: currentInventoryId
+      currentInventoryId
     })
-    this.loadOrders()
+    this.refreshData()
   },
 
   async onPullDownRefresh() {
-    const currentInventoryId = this.data.currentInventoryId
-    if (currentInventoryId && db.isBackendMode()) {
-      await db.loadOutboundOrders(currentInventoryId, true)
+    await this.refreshData()
+    wx.stopPullDownRefresh()
+  },
+
+  async refreshData() {
+    if (db.isBackendMode && db.isBackendMode()) {
       await db.loadInventories(true)
     }
-    const inventories = db.inventories
-    const inventoryNames = inventories.map(i => i.name)
-    let index = this.data.inventoryIndex
-    if (index >= inventories.length) index = Math.max(0, inventories.length - 1)
-    this.setData({
-      inventories: inventories,
-      inventoryNames: inventoryNames,
-      inventoryIndex: index,
-      currentInventoryId: inventories.length > 0 ? inventories[index]._id : ''
-    })
-    this.loadOrders()
-    wx.stopPullDownRefresh()
+    var invs = db.inventories
+    var curId = this.data.currentInventoryId
+    if (!curId && invs.length > 0) curId = invs[0]._id
+    this.setData({ inventories: invs, currentInventoryId: curId, allOrders: [], page: 1, hasMore: false })
+    await this.loadPage(1, true)
+  },
+
+  async loadPage(pageNum, forceRefresh) {
+    const invId = this.data.currentInventoryId
+    if (!invId) return
+    if (db.isBackendMode && db.isBackendMode()) {
+      var opts = forceRefresh ? true : { page: pageNum, page_size: this.data.pageSize }
+      var result = await db.loadOutboundOrders(invId, opts)
+      var items = result.items || []
+      var enriched = items.map(function(o) {
+        var inv = db.inventories.find(function(i) { return i._id === o.inventory_id })
+        return {
+          ...o,
+          _inventoryName: inv ? inv.name : '',
+          _typeLabel: o.type === 'reserve' ? '预留' : '出库',
+          _statusLabel: util.getOrderStatusLabel(o.status)
+        }
+      })
+      if (pageNum === 1) {
+        this.setData({ allOrders: enriched, hasMore: result.has_more, page: 1 })
+      } else {
+        this.setData({
+          allOrders: [...this.data.allOrders, ...enriched],
+          hasMore: result.has_more,
+          page: pageNum
+        })
+      }
+    } else {
+      this.loadOrders()
+    }
+    this.applyFilters()
+  },
+
+  async onReachBottom() {
+    if (this.data.loadingMore || !this.data.hasMore) return
+    this.setData({ loadingMore: true })
+    await this.loadPage(this.data.page + 1)
+    this.setData({ loadingMore: false })
   },
 
   onInventoryChange(e) {
@@ -84,7 +115,7 @@ Page({
       inventoryIndex: index,
       currentInventoryId: this.data.inventories[index]._id
     })
-    this.loadOrders()
+    this.refreshData()
   },
 
   loadOrders() {
@@ -95,24 +126,21 @@ Page({
       const statusLabel = util.getOrderStatusLabel(o.status)
       return { ...o, _inventoryName: inv ? inv.name : '', _typeLabel: typeLabel, _statusLabel: statusLabel }
     })
-    this.setData({ orders: ordersWithType })
+    this.setData({ allOrders: ordersWithType })
     this.applyFilters()
   },
 
   applyFilters() {
-    let list = [...this.data.orders]
+    let list = [...this.data.allOrders]
 
-    // Tab filter
     if (this.data.activeTab !== 'all') {
       list = list.filter(o => o.type === this.data.activeTab)
     }
 
-    // Status filter
     if (this.data.filterStatus) {
       list = list.filter(o => o.status === this.data.filterStatus)
     }
 
-    // Search
     if (this.data.searchKeyword) {
       const kw = this.data.searchKeyword.toLowerCase()
       list = list.filter(o =>
@@ -123,40 +151,10 @@ Page({
       )
     }
 
-    const totalCount = list.length
-    const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE))
-    const currentPage = 1
-
     this.setData({
       filteredOrders: list,
-      totalCount,
-      totalPages,
-      currentPage
+      totalCount: list.length
     })
-    this.applyPagination()
-  },
-
-  applyPagination() {
-    const { filteredOrders, currentPage } = this.data
-    const start = (currentPage - 1) * PAGE_SIZE
-    const end = start + PAGE_SIZE
-    this.setData({
-      pagedOrders: filteredOrders.slice(start, end)
-    })
-  },
-
-  onPrevPage() {
-    if (this.data.currentPage <= 1) return
-    this.setData({ currentPage: this.data.currentPage - 1 })
-    this.applyPagination()
-    wx.pageScrollTo({ scrollTop: 0, duration: 200 })
-  },
-
-  onNextPage() {
-    if (this.data.currentPage >= this.data.totalPages) return
-    this.setData({ currentPage: this.data.currentPage + 1 })
-    this.applyPagination()
-    wx.pageScrollTo({ scrollTop: 0, duration: 200 })
   },
 
   onTabChange(e) {
@@ -203,7 +201,6 @@ Page({
     wx.navigateTo({ url: '/pages/outbound/create-reserve' })
   },
 
-  // 阻止弹窗内点击冒泡到遮罩层
   onDialogTap() {},
 
   onOrderTap(e) {

@@ -97,15 +97,15 @@
       <view class="dialog-title">选择标签</view>
       <view class="tag-dialog-list">
         <view
-          class="tag-dialog-item {{isTagSelected(item._id) ? 'tag-dialog-item-selected' : ''}}"
-          wx:for="{{availableTags}}"
+          class="tag-dialog-item {{item._selected ? 'tag-dialog-item-selected' : ''}}"
+          wx:for="{{dialogTagItems}}"
           wx:key="_id"
           bindtap="onToggleTag"
           data-id="{{item._id}}"
         >
           <view class="tag-color-dot" style="background: {{item.color}}"></view>
           <text class="tag-dialog-name">{{item.name}}</text>
-          <text class="tag-dialog-check" wx:if="{{isTagSelected(item._id)}}">✓</text>
+          <text class="tag-dialog-check" wx:if="{{item._selected}}">✓</text>
         </view>
       </view>
       <view class="tag-dialog-new" bindtap="onShowNewTagDialog">+ 新建标签</view>

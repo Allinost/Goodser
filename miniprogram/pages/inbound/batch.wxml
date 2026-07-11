@@ -116,15 +116,15 @@
       <text class="form-label">商品标签</text>
       <view class="tag-select-area">
         <view
-          class="tag-select-item {{currentTagIds.indexOf(item._id) > -1 ? 'tag-select-item-active' : ''}}"
-          wx:for="{{allTags}}"
+          class="tag-select-item {{item._active ? 'tag-select-item-active' : ''}}"
+          wx:for="{{tagItems}}"
           wx:key="_id"
           bindtap="onToggleTag"
           data-id="{{item._id}}"
         >
           <view class="tag-color-dot-sm" style="background: {{item.color}}"></view>
           <text>{{item.name}}</text>
-          <text class="tag-checkmark" wx:if="{{currentTagIds.indexOf(item._id) > -1}}">✓</text>
+          <text class="tag-checkmark" wx:if="{{item._active}}">✓</text>
         </view>
         <view class="tag-inline-add" bindtap="onInlineAddTag">+ 新建</view>
       </view>

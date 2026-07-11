@@ -123,11 +123,18 @@ Page({
     this.setData({ productTags })
   },
 
+  _buildDialogTagItems(tags, selectedIds) {
+    return tags.map(function(t) {
+      return { ...t, _selected: selectedIds.indexOf(t._id) > -1 }
+    })
+  },
+
   // 标签选择
   onAddTag() {
     this.setData({
       showTagPicker: true,
-      availableTags: [...db.tags]
+      availableTags: [...db.tags],
+      dialogTagItems: this._buildDialogTagItems(db.tags, this.data.product.tags || [])
     })
   },
 
@@ -148,7 +155,11 @@ Page({
     }
     // 持久化标签变更
     await db.updateProduct(product._id, { tags: [...product.tags] })
-    this.setData({ product })
+    var newTags = [...product.tags]
+    this.setData({
+      product: { ...product, tags: newTags },
+      dialogTagItems: this._buildDialogTagItems(this.data.availableTags, newTags)
+    })
     this.loadProductTags()
   },
 
@@ -192,11 +203,14 @@ Page({
     const product = this.data.product
     if (!product.tags) product.tags = []
     product.tags.push(newTagId)
-    await db.updateProduct(product._id, { tags: [...product.tags] })
+    var newTags = [...product.tags]
+    var newAvailableTags = [...db.tags]
+    await db.updateProduct(product._id, { tags: newTags })
     this.setData({
       showNewTagDialog: false,
-      availableTags: [...db.tags],
-      product: product
+      availableTags: newAvailableTags,
+      product: { ...product, tags: newTags },
+      dialogTagItems: this._buildDialogTagItems(newAvailableTags, newTags)
     })
     this.loadProductTags()
     wx.showToast({ title: '标签已创建', icon: 'success' })
@@ -209,8 +223,12 @@ Page({
       const idx = product.tags.indexOf(tagId)
       if (idx > -1) {
         product.tags.splice(idx, 1)
-        await db.updateProduct(product._id, { tags: [...product.tags] })
-        this.setData({ product })
+        var newTags = [...product.tags]
+        await db.updateProduct(product._id, { tags: newTags })
+        this.setData({
+          product: { ...product, tags: newTags },
+          dialogTagItems: this._buildDialogTagItems(this.data.availableTags, newTags)
+        })
         this.loadProductTags()
         wx.showToast({ title: '已移除标签', icon: 'success' })
       }
@@ -223,7 +241,11 @@ Page({
     if (!product.tags.includes(tagId)) {
       product.tags.push(tagId)
     }
-    this.setData({ product })
+    var newTags = [...product.tags]
+    this.setData({
+      product: { ...product, tags: newTags },
+      dialogTagItems: this._buildDialogTagItems(this.data.availableTags, newTags)
+    })
   },
 
   onEdit() {

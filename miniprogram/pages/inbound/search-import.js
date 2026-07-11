@@ -94,6 +94,7 @@ Page({
       inventories,
       inventoryNames,
       allTags: [...db.tags],
+      tagItems: this._buildTagItems(db.tags, this.data.selectedTagIds),
       statusCodes: statusCodes,
       statusCodeLabels: statusCodes.map(s => `${s.code} - ${s.label}`)
     })
@@ -236,6 +237,12 @@ Page({
   },
 
   // 标签选择
+  _buildTagItems(tags, selectedIds) {
+    return tags.map(function(t) {
+      return { ...t, _active: selectedIds.indexOf(t._id) > -1 }
+    })
+  },
+
   onToggleTag(e) {
     const tagId = e.currentTarget.dataset.id
     const selectedTagIds = [...this.data.selectedTagIds]
@@ -245,7 +252,10 @@ Page({
     } else {
       selectedTagIds.push(tagId)
     }
-    this.setData({ selectedTagIds })
+    this.setData({
+      selectedTagIds,
+      tagItems: this._buildTagItems(this.data.allTags, selectedTagIds)
+    })
     this._markDirty()
   },
 
@@ -282,9 +292,11 @@ Page({
         color: this.data.newTagColor
       })
       const newTagId = result ? result._id : ('tag_' + Date.now())
+      const updatedSelected = [...this.data.selectedTagIds, newTagId]
       this.setData({
         allTags: [...db.tags],
-        selectedTagIds: [...this.data.selectedTagIds, newTagId],
+        selectedTagIds: updatedSelected,
+        tagItems: this._buildTagItems(db.tags, updatedSelected),
         showNewTagDialog: false
       })
       this._markDirty()

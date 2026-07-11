@@ -60,6 +60,8 @@
           <text class="log-arrow">›</text>
         </view>
       </view>
+      <view class="load-more" wx:if="{{loadingMore}}"><text>加载中...</text></view>
+      <view class="load-more" wx:elif="{{hasMore}}" bindtap="onReachBottom"><text>点击加载更多</text></view>
     </view>
     <empty-state wx:else icon="📥" title="暂无入库记录" />
   </view>

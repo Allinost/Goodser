@@ -341,7 +341,9 @@ function _buildGoRequest(action, data) {
   var RESTFUL_ACTIONS = {
     'syncAll': { method: 'POST', path: '/api/v1/zzz-goodser/syncAll' },
     'loadInventories': { method: 'GET', path: '/api/v1/zzz-goodser/inventories' },
-    'loadProducts': { method: 'GET', path: '/api/v1/zzz-goodser/inventories/{inventory_id}/products' }
+    'loadProducts': { method: 'GET', path: '/api/v1/zzz-goodser/inventories/{inventory_id}/products' },
+    'loadInboundLogs': { method: 'GET', path: '/api/v1/zzz-goodser/inventories/{inventory_id}/inbound-logs' },
+    'loadOutboundOrders': { method: 'GET', path: '/api/v1/zzz-goodser/inventories/{inventory_id}/outbound-orders' }
   }
 
   var spec = RESTFUL_ACTIONS[action]
@@ -352,6 +354,14 @@ function _buildGoRequest(action, data) {
         var val = data[key]
         return val !== undefined && val !== null ? encodeURIComponent(val) : match
       })
+    }
+    // GET 请求的 data 转为 query string
+    if (spec.method === 'GET' && data) {
+      var qs = Object.keys(data)
+        .filter(function(k) { return data[k] !== undefined && data[k] !== null })
+        .map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) })
+        .join('&')
+      if (qs) path += '?' + qs
     }
     return { url: baseUrl + path, method: spec.method, data: spec.method === 'GET' ? null : (data || {}) }
   }
@@ -789,52 +799,56 @@ function _preloadAllFallback() {
  * 加载商品列表（差量同步）
  * 首次全量拉取 → 后续只拉取 updated_at 大于 lastSyncTime 的商品
  */
-async function loadProducts(inventoryId, forceRefresh) {
-  if (!isBackendMode()) return products.filter(function(p) { return p.inventory_id === inventoryId })
+async function loadProducts(inventoryId, options) {
+  if (!isBackendMode()) return { items: products.filter(function(p) { return p.inventory_id === inventoryId }), has_more: false }
 
   var cacheKey = 'products_' + inventoryId
   var ttl = TTL.products
+  var forceRefresh = options === true || (options && options.forceRefresh)
+  var page = (options && options.page) || 1
+  var pageSize = (options && options.page_size) || 20
 
-  // 双层读取：L1 → L2
-  if (!forceRefresh) {
+  // 仅对第 1 页使用双层缓存
+  if (page === 1 && !forceRefresh) {
     var l1 = _getL1(cacheKey, ttl)
-    if (l1) return l1
+    if (l1) return { items: l1, has_more: l1._has_more || false }
     var l2 = _getL2(cacheKey, ttl)
-    if (l2) return l2
+    if (l2) return { items: l2, has_more: l2._has_more || false }
   }
 
   try {
     var allData
+    var hasMore = false
 
     if (_mode === MODE_CLOUD) {
       allData = await _cloudLoadProducts(inventoryId, forceRefresh, cacheKey, ttl)
     } else if (_mode === MODE_NAS) {
-      var res = await _nasRequest('loadProducts', { inventory_id: inventoryId })
-      allData = res.products || res || []
+      var res = await _nasRequest('loadProducts', { inventory_id: inventoryId, page: page, page_size: pageSize })
+      allData = res.products || res.items || res || []
       if (!Array.isArray(allData)) allData = []
+      hasMore = res.has_more || false
     } else {
-      return []
+      return { items: [], has_more: false }
     }
 
-    // 回填到导出数组（替换该仓库的所有商品）
-    // 仅当后端有数据时才替换，避免空结果清空本地已有数据
-    if (allData && allData.length > 0) {
+    // 第 1 页：替换导出数组 + 更新缓存
+    if (page === 1) {
       for (var i = products.length - 1; i >= 0; i--) {
         if (products[i].inventory_id === inventoryId) products.splice(i, 1)
       }
       products.push.apply(products, allData)
+      allData._has_more = hasMore
       _setL1(cacheKey, allData, ttl)
       _setL2(cacheKey, allData)
     }
-    return allData
+    return { items: allData, has_more: hasMore }
   } catch (err) {
     console.error('[DB] loadProducts 失败:', err)
-    // 降级：尝试返回 L2 过期缓存数据
     try {
       var raw = wx.getStorageSync(STORAGE_PREFIX + cacheKey)
-      if (raw) { console.warn('[DB] 使用过期缓存数据'); return JSON.parse(raw) }
+      if (raw) { console.warn('[DB] 使用过期缓存数据'); return { items: JSON.parse(raw), has_more: false } }
     } catch (e) {}
-    return products.filter(function(p) { return p.inventory_id === inventoryId })
+    return { items: products.filter(function(p) { return p.inventory_id === inventoryId }), has_more: false }
   }
 }
 
@@ -1019,22 +1033,26 @@ async function loadInventories(forceRefresh) {
 /**
  * 加载出库单列表
  */
-async function loadOutboundOrders(inventoryId, forceRefresh) {
-  if (!isBackendMode()) return outboundOrders.filter(function(o) { return o.inventory_id === inventoryId })
+async function loadOutboundOrders(inventoryId, options) {
+  if (!isBackendMode()) return { items: outboundOrders.filter(function(o) { return o.inventory_id === inventoryId }), has_more: false }
 
   var cacheKey = 'outbound_' + inventoryId
   var ttl = TTL.outboundOrders
+  var forceRefresh = options === true || (options && options.forceRefresh)
+  var page = (options && options.page) || 1
+  var pageSize = (options && options.page_size) || 20
 
-  if (!forceRefresh) {
-    var l1 = _getL1(cacheKey, ttl); if (l1) return l1
-    var l2 = _getL2(cacheKey, ttl); if (l2) return l2
+  if (page === 1 && !forceRefresh) {
+    var l1 = _getL1(cacheKey, ttl); if (l1) return { items: l1, has_more: l1._has_more || false }
+    var l2 = _getL2(cacheKey, ttl); if (l2) return { items: l2, has_more: l2._has_more || false }
   }
 
   try {
     var data
+    var hasMore = false
     if (_mode === MODE_CLOUD) {
       var coll = _cloudRead('outbound_orders')
-      if (!coll) return []
+      if (!coll) return { items: [], has_more: false }
       var res = await coll
         .where({ inventory_id: inventoryId })
         .orderBy('created_at', 'desc')
@@ -1042,46 +1060,51 @@ async function loadOutboundOrders(inventoryId, forceRefresh) {
         .get()
       data = res.data
     } else if (_mode === MODE_NAS) {
-      var nasRes = await _nasRequest('loadOutboundOrders', { inventory_id: inventoryId })
-      data = nasRes.orders || nasRes || []
+      var nasRes = await _nasRequest('loadOutboundOrders', { inventory_id: inventoryId, page: page, page_size: pageSize })
+      data = nasRes.orders || nasRes.items || nasRes || []
       if (!Array.isArray(data)) data = []
-    } else return []
+      hasMore = nasRes.has_more || false
+    } else return { items: [], has_more: false }
 
-    // 仅当后端有数据时才替换，避免空结果清空本地已有数据
-    if (data && data.length > 0) {
+    if (page === 1) {
       for (var i = outboundOrders.length - 1; i >= 0; i--) {
         if (outboundOrders[i].inventory_id === inventoryId) outboundOrders.splice(i, 1)
       }
       outboundOrders.push.apply(outboundOrders, data)
+      data._has_more = hasMore
       _setL1(cacheKey, data, ttl)
       _setL2(cacheKey, data)
     }
-    return data
+    return { items: data, has_more: hasMore }
   } catch (err) {
     console.error('[DB] loadOutboundOrders 失败:', err)
-    return outboundOrders.filter(function(o) { return o.inventory_id === inventoryId })
+    return { items: outboundOrders.filter(function(o) { return o.inventory_id === inventoryId }), has_more: false }
   }
 }
 
 /**
  * 加载入库日志列表
  */
-async function loadInboundLogs(inventoryId, forceRefresh) {
-  if (!isBackendMode()) return inboundLogs.filter(function(l) { return l.inventory_id === inventoryId })
+async function loadInboundLogs(inventoryId, options) {
+  if (!isBackendMode()) return { items: inboundLogs.filter(function(l) { return l.inventory_id === inventoryId }), has_more: false }
 
   var cacheKey = 'inbound_' + inventoryId
   var ttl = TTL.inboundLogs
+  var forceRefresh = options === true || (options && options.forceRefresh)
+  var page = (options && options.page) || 1
+  var pageSize = (options && options.page_size) || 20
 
-  if (!forceRefresh) {
-    var l1 = _getL1(cacheKey, ttl); if (l1) return l1
-    var l2 = _getL2(cacheKey, ttl); if (l2) return l2
+  if (page === 1 && !forceRefresh) {
+    var l1 = _getL1(cacheKey, ttl); if (l1) return { items: l1, has_more: l1._has_more || false }
+    var l2 = _getL2(cacheKey, ttl); if (l2) return { items: l2, has_more: l2._has_more || false }
   }
 
   try {
     var data
+    var hasMore = false
     if (_mode === MODE_CLOUD) {
       var coll = _cloudRead('inbound_logs')
-      if (!coll) return []
+      if (!coll) return { items: [], has_more: false }
       var res = await coll
         .where({ inventory_id: inventoryId })
         .orderBy('created_at', 'desc')
@@ -1089,24 +1112,25 @@ async function loadInboundLogs(inventoryId, forceRefresh) {
         .get()
       data = res.data
     } else if (_mode === MODE_NAS) {
-      var nasRes = await _nasRequest('loadInboundLogs', { inventory_id: inventoryId })
-      data = nasRes.logs || nasRes || []
+      var nasRes = await _nasRequest('loadInboundLogs', { inventory_id: inventoryId, page: page, page_size: pageSize })
+      data = nasRes.logs || nasRes.items || nasRes || []
       if (!Array.isArray(data)) data = []
-    } else return []
+      hasMore = nasRes.has_more || false
+    } else return { items: [], has_more: false }
 
-    // 仅当后端有数据时才替换，避免空结果清空本地已有数据
-    if (data && data.length > 0) {
+    if (page === 1) {
       for (var i = inboundLogs.length - 1; i >= 0; i--) {
         if (inboundLogs[i].inventory_id === inventoryId) inboundLogs.splice(i, 1)
       }
       inboundLogs.push.apply(inboundLogs, data)
+      data._has_more = hasMore
       _setL1(cacheKey, data, ttl)
       _setL2(cacheKey, data)
     }
-    return data
+    return { items: data, has_more: hasMore }
   } catch (err) {
     console.error('[DB] loadInboundLogs 失败:', err)
-    return inboundLogs.filter(function(l) { return l.inventory_id === inventoryId })
+    return { items: inboundLogs.filter(function(l) { return l.inventory_id === inventoryId }), has_more: false }
   }
 }
 
