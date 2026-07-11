@@ -1260,7 +1260,7 @@ async function createProduct(data) {
       name: data.name, original_price: data.original_price || 0,
       market_price: data.market_price || 0, expected_price: data.expected_price || 0,
       remark: data.remark || '', storage_location: data.storage_location || '',
-      image_url: data.image_url || '', tags: data.tags || [],
+      image_url: data.image_url || '', images: data.images || [], tags: data.tags || [],
       owner_openid: 'user_001',
       created_at: new Date().toLocaleString(), updated_at: new Date().toLocaleString()
     }
@@ -1658,6 +1658,7 @@ async function inboundSingle(data) {
       remark: data.remark || '',
       storage_location: data.storage_location || '',
       image_url: data.image_url || '',
+      images: data.images || [],
       tags: data.tags || []
     })
     var log = await createInboundLog({
@@ -1670,7 +1671,8 @@ async function inboundSingle(data) {
         product_name: data.name,
         product_code: data.code,
         quantity: data.quantity,
-        image_url: data.image_url || ''
+        image_url: data.image_url || '',
+        images: data.images || []
       }]
     })
     return { product: newProduct, log: log }
@@ -1706,6 +1708,7 @@ async function inboundBatch(data) {
         remark: item.remark || '',
         storage_location: item.storage_location || '',
         image_url: item.image_url || '',
+        images: item.images || [],
         tags: item.tags || [],
         owner_openid: 'user_001',
         created_at: new Date().toLocaleString(),
@@ -1717,7 +1720,8 @@ async function inboundBatch(data) {
         product_name: item.name,
         product_code: item.code,
         quantity: item.quantity,
-        image_url: item.image_url || ''
+        image_url: item.image_url || '',
+        images: item.images || []
       })
     })
     var log = await createInboundLog({
@@ -1764,7 +1768,8 @@ async function inboundSearchImport(data) {
         product_name: item.product_name,
         product_code: item.product_code,
         quantity: item.quantity,
-        image_url: item.image_url || ''
+        image_url: item.image_url || '',
+        images: item.images || []
       })
     })
     var log = await createInboundLog({
@@ -1782,6 +1787,46 @@ async function inboundSearchImport(data) {
     await loadInboundLogs(data.inventory_id, true)
   }
   return result
+}
+
+// ========== 图片上传 ==========
+
+async function uploadImage(filePath) {
+  if (_mode !== MODE_NAS) {
+    throw new Error('图片上传仅支持 NAS 模式')
+  }
+  var token = await _getValidToken()
+  var baseUrl = (_nasConfig.baseUrl || '').replace(/\/+$/, '')
+  var url = baseUrl + '/api/v1/zzz-goodser/legacy/uploadImage'
+  return new Promise(function(resolve, reject) {
+    wx.uploadFile({
+      url: url,
+      filePath: filePath,
+      name: 'image',
+      header: {
+        'Authorization': 'Bearer ' + token
+      },
+      success: function(res) {
+        if (res.statusCode === 200) {
+          try {
+            var body = JSON.parse(res.data)
+            if (body && body.code === 0) {
+              resolve(body.data.url)
+            } else {
+              reject(new Error((body && body.message) || '上传失败'))
+            }
+          } catch(e) {
+            reject(new Error('解析响应失败'))
+          }
+        } else {
+          reject(new Error('上传 HTTP ' + res.statusCode))
+        }
+      },
+      fail: function(err) {
+        reject(new Error('上传失败: ' + (err.errMsg || '未知错误')))
+      }
+    })
+  })
 }
 
 // ========== 设置页用：缓存管理 API ==========
@@ -1904,6 +1949,9 @@ module.exports = {
 
   // Go 后端认证
   loginGoBackend: loginGoBackend,
+
+  // 图片上传
+  uploadImage: uploadImage,
 
   // 强制刷新
   forceRefresh: forceRefresh,

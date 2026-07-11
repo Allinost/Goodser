@@ -55,18 +55,21 @@ Page({
     this.loadLogs()
   },
 
-  onPullDownRefresh() {
-    // 刷新库存目录列表
+  async onPullDownRefresh() {
+    const currentInventoryId = this.data.currentInventoryId
+    if (currentInventoryId && db.isBackendMode()) {
+      await db.loadInboundLogs(currentInventoryId, true)
+      await db.loadInventories(true)
+    }
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     let index = this.data.inventoryIndex
     if (index >= inventories.length) index = Math.max(0, inventories.length - 1)
-    const currentInventoryId = inventories.length > 0 ? inventories[index]._id : ''
     this.setData({
       inventories: inventories,
       inventoryNames: inventoryNames,
       inventoryIndex: index,
-      currentInventoryId: currentInventoryId
+      currentInventoryId: inventories.length > 0 ? inventories[index]._id : ''
     })
     this.loadLogs()
     wx.stopPullDownRefresh()

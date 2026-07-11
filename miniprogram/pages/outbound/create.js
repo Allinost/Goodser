@@ -253,8 +253,9 @@ Page({
         wx.showLoading({ title: '创建中...', mask: true })
 
         try {
-          const prefix = inventory.name.substring(0, 2).toUpperCase()
-          const orderNo = util.generateOrderNo(prefix)
+          var ts = new Date()
+          var timeStr = ts.getFullYear() + String(ts.getMonth() + 1).padStart(2, '0') + String(ts.getDate()).padStart(2, '0') + String(ts.getHours()).padStart(2, '0') + String(ts.getMinutes()).padStart(2, '0') + String(ts.getSeconds()).padStart(2, '0')
+          const orderNo = (this.data.orderInfo || inventory.name) + '_' + timeStr
           // 通过 API 创建出库单（后端处理库存扣减）
           await db.createOutboundOrder({
             _id: 'out_' + Date.now(),

@@ -29,6 +29,8 @@ Page({
     currentMainZoneIndex: 0,
     currentSubZoneIndex: 0,
     currentStatusCodeIndex: 0,
+    currentImages: [],
+    currentImageUrl: '',
     currentTagIds: [],
     showNewTagDialog: false,
     newTagName: '',
@@ -126,6 +128,59 @@ Page({
   onCurrentSubZoneChange(e) { this.setData({ currentSubZoneIndex: e.detail.value }); this._markDirty() },
   onCurrentStatusCodeChange(e) { this.setData({ currentStatusCodeIndex: e.detail.value }); this._markDirty() },
 
+  // 图片
+  async onChooseImage() {
+    wx.chooseImage({
+      count: 9,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: async (res) => {
+        wx.showLoading({ title: '处理图片...', mask: true })
+        var newImages = [...this.data.currentImages]
+        for (var i = 0; i < res.tempFilePaths.length; i++) {
+          try {
+            wx.showLoading({ title: '处理图片 ' + (i + 1) + '/' + res.tempFilePaths.length + '...', mask: true })
+            var editRes = await this._editImage(res.tempFilePaths[i])
+            if (db.getMode() === 'nas') {
+              wx.showLoading({ title: '上传图片 ' + (i + 1) + '/' + res.tempFilePaths.length + '...', mask: true })
+              var url = await db.uploadImage(editRes.tempFilePath)
+              newImages.push(url)
+            } else {
+              newImages.push(editRes.tempFilePath)
+            }
+          } catch (err) {
+            wx.hideLoading()
+            wx.showToast({ title: '图片处理失败: ' + (err.message || '未知错误'), icon: 'none' })
+            return
+          }
+        }
+        this.setData({
+          currentImages: newImages,
+          currentImageUrl: newImages[0] || ''
+        })
+        wx.hideLoading()
+        this._markDirty()
+      }
+    })
+  },
+
+  _editImage(src) {
+    return new Promise(function(resolve, reject) {
+      wx.editImage({ src: src, success: resolve, fail: reject })
+    })
+  },
+
+  onRemoveCurrentImage(e) {
+    var index = e.currentTarget.dataset.index
+    var currentImages = [...this.data.currentImages]
+    currentImages.splice(index, 1)
+    this.setData({
+      currentImages: currentImages,
+      currentImageUrl: currentImages[0] || ''
+    })
+    this._markDirty()
+  },
+
   // 标签
   onToggleTag(e) {
     const tagId = e.currentTarget.dataset.id
@@ -212,6 +267,8 @@ Page({
       mainZone: this.data.mainZones[this.data.currentMainZoneIndex],
       subZone: this.data.filteredSubZones[this.data.currentSubZoneIndex],
       statusCode: this.data.statusCodes[this.data.currentStatusCodeIndex].code,
+      imageUrl: this.data.currentImageUrl || '',
+      images: this.data.currentImages || [],
       tagIds: [...this.data.currentTagIds],
       tagNames: this.data.currentTagIds.map(function(tid) {
         var tag = db.tags.find(function(t) { return t._id === tid })
@@ -228,6 +285,8 @@ Page({
       currentQuantity: '',
       currentStorageLocation: '',
       currentRemark: '',
+      currentImages: [],
+      currentImageUrl: '',
       currentTagIds: []
     })
     this._markDirty()
@@ -285,7 +344,8 @@ Page({
               expected_price: parseFloat(item.expectedPrice) || 0,
               remark: item.remark || '',
               storage_location: item.storageLocation || '',
-              image_url: '',
+              image_url: item.imageUrl || '',
+              images: item.images || [],
               tags: item.tagIds || []
             }
           })

@@ -58,17 +58,21 @@ Page({
     this.loadOrders()
   },
 
-  onPullDownRefresh() {
+  async onPullDownRefresh() {
+    const currentInventoryId = this.data.currentInventoryId
+    if (currentInventoryId && db.isBackendMode()) {
+      await db.loadOutboundOrders(currentInventoryId, true)
+      await db.loadInventories(true)
+    }
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     let index = this.data.inventoryIndex
     if (index >= inventories.length) index = Math.max(0, inventories.length - 1)
-    const currentInventoryId = inventories.length > 0 ? inventories[index]._id : ''
     this.setData({
       inventories: inventories,
       inventoryNames: inventoryNames,
       inventoryIndex: index,
-      currentInventoryId: currentInventoryId
+      currentInventoryId: inventories.length > 0 ? inventories[index]._id : ''
     })
     this.loadOrders()
     wx.stopPullDownRefresh()

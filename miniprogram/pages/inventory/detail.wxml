@@ -1,7 +1,12 @@
 <view class="page-detail">
-  <!-- 头图 -->
+  <!-- 图片 -->
   <view class="detail-image-wrapper">
-    <image class="detail-image" src="{{product.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
+    <swiper class="detail-swiper" wx:if="{{displayImages.length > 0}}" indicator-dots="{{displayImages.length > 1}}" autoplay="{{false}}" circular="{{displayImages.length > 1}}">
+      <swiper-item wx:for="{{displayImages}}" wx:key="*this" catchtap="onImagePreview" data-current="{{item}}">
+        <image class="detail-image" src="{{item}}" mode="aspectFill" />
+      </swiper-item>
+    </swiper>
+    <image class="detail-image" wx:else src="/images/placeholder.png" mode="aspectFill" />
   </view>
 
   <!-- 基本信息 -->

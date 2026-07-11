@@ -9,6 +9,7 @@ const COLOR_OPTIONS = [
 Page({
   data: {
     product: {},
+    displayImages: [],
     statusLabel: '',
     statusTagClass: '',
     productTags: [],
@@ -91,12 +92,27 @@ Page({
   },
 
   _renderProduct(product) {
+    var displayImages = []
+    if (product.images && product.images.length > 0) {
+      displayImages = product.images
+    } else if (product.image_url) {
+      displayImages = [product.image_url]
+    }
     this.setData({
       product: { ...product, _createdAt: util.formatTime(product.created_at), _updatedAt: util.formatTime(product.updated_at) },
+      displayImages: displayImages,
       statusLabel: util.getStatusLabel(product.status_code),
       statusTagClass: util.getStatusTagClass(product.status_code)
     })
     this.loadProductTags()
+  },
+
+  onImagePreview(e) {
+    var current = e.currentTarget.dataset.current
+    wx.previewImage({
+      current: current,
+      urls: this.data.displayImages
+    })
   },
 
   loadProductTags() {

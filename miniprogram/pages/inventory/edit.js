@@ -10,6 +10,7 @@ Page({
   data: {
     productId: '',
     imageUrl: '',
+    images: [],
     name: '',
     originalPrice: '',
     marketPrice: '',
@@ -86,6 +87,7 @@ Page({
     this.setData({
       productId: product._id,
       imageUrl: product.image_url || '',
+      images: product.images || [],
       name: product.name,
       originalPrice: String(product.original_price || ''),
       marketPrice: String(product.market_price || ''),
@@ -116,6 +118,7 @@ Page({
       subZoneIndex: subZoneIndex > -1 ? subZoneIndex : 0,
       statusCodeIndex: statusCodeIndex > -1 ? statusCodeIndex : 0,
       imageUrl: product.image_url || '',
+      images: [...(product.images || [])],
       selectedTagIds: [...(product.tags || [])]
     }
 
@@ -123,21 +126,56 @@ Page({
     wx.setNavigationBarTitle({ title: '编辑商品' })
   },
 
-  onChooseImage() {
+  async onChooseImage() {
     wx.chooseImage({
-      count: 1,
+      count: 9,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success: (res) => {
-        wx.editImage({
-          src: res.tempFilePaths[0],
-          success: (editRes) => {
-            this.setData({ imageUrl: editRes.tempFilePath })
-            this._markDirty()
+      success: async (res) => {
+        wx.showLoading({ title: '处理图片...', mask: true })
+        var newImages = [...this.data.images]
+        for (var i = 0; i < res.tempFilePaths.length; i++) {
+          try {
+            wx.showLoading({ title: '处理图片 ' + (i + 1) + '/' + res.tempFilePaths.length + '...', mask: true })
+            var editRes = await this._editImage(res.tempFilePaths[i])
+            if (db.getMode() === 'nas') {
+              wx.showLoading({ title: '上传图片 ' + (i + 1) + '/' + res.tempFilePaths.length + '...', mask: true })
+              var url = await db.uploadImage(editRes.tempFilePath)
+              newImages.push(url)
+            } else {
+              newImages.push(editRes.tempFilePath)
+            }
+          } catch (err) {
+            wx.hideLoading()
+            wx.showToast({ title: '图片处理失败: ' + (err.message || '未知错误'), icon: 'none' })
+            return
           }
+        }
+        this.setData({
+          images: newImages,
+          imageUrl: newImages[0] || ''
         })
+        wx.hideLoading()
+        this._markDirty()
       }
     })
+  },
+
+  _editImage(src) {
+    return new Promise(function(resolve, reject) {
+      wx.editImage({ src: src, success: resolve, fail: reject })
+    })
+  },
+
+  onRemoveImage(e) {
+    var index = e.currentTarget.dataset.index
+    var images = [...this.data.images]
+    images.splice(index, 1)
+    this.setData({
+      images: images,
+      imageUrl: images[0] || ''
+    })
+    this._markDirty()
   },
 
   onNameInput(e) { this.setData({ name: e.detail.value }); this._markDirty() },
@@ -176,6 +214,7 @@ Page({
     if (this.data.subZoneIndex !== this._originalData.subZoneIndex) return this._enableAlert()
     if (this.data.statusCodeIndex !== this._originalData.statusCodeIndex) return this._enableAlert()
     if (this.data.imageUrl !== this._originalData.imageUrl) return this._enableAlert()
+    if (JSON.stringify(this.data.images) !== JSON.stringify(this._originalData.images)) return this._enableAlert()
     if (JSON.stringify(this.data.selectedTagIds) !== JSON.stringify(this._originalData.selectedTagIds)) return this._enableAlert()
   },
 
@@ -316,7 +355,8 @@ Page({
         status_code: statusCode,
         code: code,
         tags: [...this.data.selectedTagIds],
-        image_url: this.data.imageUrl || product.image_url || ''
+        image_url: this.data.imageUrl || product.image_url || '',
+        images: this.data.images || []
       })
 
       // 关闭离开拦截

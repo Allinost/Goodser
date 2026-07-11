@@ -29,6 +29,7 @@
           <view class="batch-item-tags" wx:if="{{item.tagNames.length > 0}}">
             <text class="batch-tag" wx:for="{{item.tagNames}}" wx:key="*this" wx:for-item="tn">{{tn}}</text>
           </view>
+          <image class="batch-item-thumb" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
         </view>
       </view>
     </view>
@@ -66,6 +67,20 @@
     <view class="form-group">
       <text class="form-label">备注信息</text>
       <input class="form-input" placeholder="请输入备注" value="{{currentRemark}}" bindinput="onCurrentRemarkInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">商品图片</text>
+      <text class="image-count-tip" wx:if="{{currentImages.length > 0}}">（{{currentImages.length}}张，首图为主图）</text>
+      <view class="image-grid">
+        <view class="image-grid-item" wx:for="{{currentImages}}" wx:key="*this">
+          <image class="image-grid-preview" src="{{item}}" mode="aspectFill" />
+          <view class="image-grid-remove" bindtap="onRemoveCurrentImage" data-index="{{index}}">✕</view>
+        </view>
+        <view class="image-grid-add" bindtap="onChooseImage">
+          <text class="upload-icon">📷</text>
+          <text class="upload-text">添加图片</text>
+        </view>
+      </view>
     </view>
     <view class="zone-row">
       <view class="form-group flex-1">

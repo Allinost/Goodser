@@ -23,7 +23,7 @@
     <view class="section-title">入库商品</view>
     <view class="item-list">
       <view class="inbound-item" wx:for="{{log.items}}" wx:key="product_id" bindtap="onProductTap" data-id="{{item.product_id}}">
-        <image class="item-image" src="{{item.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
+        <image class="item-image" src="{{item.images && item.images[0] || item.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
         <view class="item-info">
           <text class="item-name">{{item.product_name}}</text>
           <text class="item-code">{{item.product_code}}</text>

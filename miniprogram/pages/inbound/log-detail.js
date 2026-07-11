@@ -220,7 +220,8 @@ Page({
       product_name: product.name,
       product_code: product.code,
       quantity: 1,
-      image_url: product.image_url || ''
+      image_url: product.image_url || '',
+      images: product.images || []
     }
     this.setData({
       editItems: [...this.data.editItems, newItem],
@@ -250,7 +251,8 @@ Page({
         product_name: product.name,
         product_code: product.code,
         quantity: 1,
-        image_url: product.image_url || ''
+        image_url: product.image_url || '',
+        images: product.images || []
       })
     })
     this.setData({
@@ -289,7 +291,8 @@ Page({
         product_name: i.product_name,
         product_code: i.product_code,
         quantity: i.quantity,
-        image_url: i.image_url
+        image_url: i.images && i.images[0] || i.image_url || '',
+        images: i.images || []
       }))
 
       // 通过 API 更新入库记录（后端处理库存调整）
