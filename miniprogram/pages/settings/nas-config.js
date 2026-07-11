@@ -1,83 +1,129 @@
+var db = require('../../utils/db')
+
 Page({
   data: {
     connected: false,
-    vpnTypes: ['Tailscale', 'ZeroTier', 'frp 内网穿透', '直连'],
-    vpnTypeIndex: 0,
-    nasAddress: '',
-    nasPort: '5000',
+    connecting: false,
+    backendAddress: '',
+    backendPort: '29092',
+    username: '',
+    password: '',
     nasPath: '/goodser/images/',
-    nasApiKey: '',
     autoSync: true,
     cleanAfterSync: false
   },
 
-  onVpnTypeChange(e) {
-    this.setData({ vpnTypeIndex: e.detail.value })
-  },
-
-  onAddressInput(e) { this.setData({ nasAddress: e.detail.value }) },
-  onPortInput(e) { this.setData({ nasPort: e.detail.value }) },
-  onPathInput(e) { this.setData({ nasPath: e.detail.value }) },
-  onApiKeyInput(e) { this.setData({ nasApiKey: e.detail.value }) },
+  onAddressInput(e) { this.setData({ backendAddress: e.detail.value }) },
+  onPortInput(e) { this.setData({ backendPort: e.detail.value }) },
+  onUsernameInput(e) { this.setData({ username: e.detail.value }) },
+  onPasswordInput(e) { this.setData({ password: e.detail.value }) },
 
   onAutoSyncChange(e) { this.setData({ autoSync: e.detail.value }) },
   onCleanAfterSyncChange(e) { this.setData({ cleanAfterSync: e.detail.value }) },
 
-  onTestConnection() {
-    if (!this.data.nasAddress) {
-      wx.showToast({ title: '请输入 NAS 地址', icon: 'none' })
+  async onTestConnection() {
+    if (!this.data.backendAddress) {
+      wx.showToast({ title: '请输入后端地址', icon: 'none' })
       return
     }
-    wx.showLoading({ title: '测试连接中...' })
-    setTimeout(() => {
-      this.setData({ connected: false })
+    if (!this.data.username || !this.data.password) {
+      wx.showToast({ title: '请输入用户名和密码', icon: 'none' })
+      return
+    }
+
+    this.setData({ connecting: true })
+    wx.showLoading({ title: '登录验证中...' })
+
+    try {
+      var tokenData = await db.loginGoBackend({
+        address: this.data.backendAddress,
+        port: this.data.backendPort,
+        username: this.data.username,
+        password: this.data.password
+      })
       wx.hideLoading()
+      this.setData({ connecting: false, connected: true })
+      wx.showToast({ title: '连接成功', icon: 'success' })
+    } catch (err) {
+      wx.hideLoading()
+      this.setData({ connecting: false, connected: false })
       wx.showModal({
         title: '连接失败',
-        content: '无法连接到 NAS，请检查地址和组网配置',
+        content: '无法登录到后端服务：' + (err.message || '未知错误'),
         showCancel: false
       })
-    }, 1500)
+    }
   },
 
-  onSave() {
-    // 保存 NAS 配置到 Storage
-    var config = {
-      baseUrl: this.data.nasAddress.replace(/\/+$/, '') + ':' + this.data.nasPort,
-      apiKey: this.data.nasApiKey,
-      nasPath: this.data.nasPath,
-      autoSync: this.data.autoSync,
-      cleanAfterSync: this.data.cleanAfterSync,
-      vpnType: this.data.vpnTypes[this.data.vpnTypeIndex]
+  async onSave() {
+    if (!this.data.backendAddress) {
+      wx.showToast({ title: '请输入后端地址', icon: 'none' })
+      return
     }
-    wx.setStorageSync('nasConfig', JSON.stringify(config))
-    wx.showToast({ title: '配置已保存', icon: 'success' })
-    setTimeout(() => wx.navigateBack(), 1500)
+    if (!this.data.username || !this.data.password) {
+      wx.showToast({ title: '请输入用户名和密码', icon: 'none' })
+      return
+    }
+
+    wx.showLoading({ title: '保存配置...' })
+
+    try {
+      // 登录获取 token
+      var tokenData = await db.loginGoBackend({
+        address: this.data.backendAddress,
+        port: this.data.backendPort,
+        username: this.data.username,
+        password: this.data.password
+      })
+
+      // 保存配置到 Storage
+      var config = {
+        baseUrl: 'http://' + this.data.backendAddress.replace(/\/+$/, '') + ':' + this.data.backendPort,
+        backendAddress: this.data.backendAddress,
+        backendPort: this.data.backendPort,
+        username: this.data.username,
+        password: this.data.password,
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        tokenExpiresIn: tokenData.expires_in,
+        nasPath: this.data.nasPath,
+        autoSync: this.data.autoSync,
+        cleanAfterSync: this.data.cleanAfterSync
+      }
+      wx.setStorageSync('nasConfig', JSON.stringify(config))
+
+      // 初始化 NAS 模式
+      db.initNAS(config)
+
+      wx.hideLoading()
+      wx.showToast({ title: '配置已保存并连接', icon: 'success' })
+      this.setData({ connected: true })
+      setTimeout(() => wx.navigateBack(), 1500)
+    } catch (err) {
+      wx.hideLoading()
+      wx.showModal({
+        title: '保存失败',
+        content: '无法登录后端服务：' + (err.message || '未知错误'),
+        showCancel: false
+      })
+    }
   },
 
   onLoad() {
-    // 恢复已保存的配置
     try {
       var raw = wx.getStorageSync('nasConfig')
       if (raw) {
         var config = JSON.parse(raw)
-        // 从 baseUrl 解析地址和端口
-        var urlMatch = (config.baseUrl || '').match(/^(.+?):(\d+)$/)
-        if (urlMatch) {
-          this.setData({
-            nasAddress: urlMatch[1] || '',
-            nasPort: urlMatch[2] || '5000',
-            nasApiKey: config.apiKey || '',
-            nasPath: config.nasPath || '/goodser/images/',
-            autoSync: config.autoSync !== false,
-            cleanAfterSync: config.cleanAfterSync === true
-          })
-        } else {
-          this.setData({
-            nasAddress: config.baseUrl || '',
-            nasApiKey: config.apiKey || ''
-          })
-        }
+        this.setData({
+          backendAddress: config.backendAddress || '',
+          backendPort: config.backendPort || '29092',
+          username: config.username || '',
+          password: config.password || '',
+          nasPath: config.nasPath || '/goodser/images/',
+          autoSync: config.autoSync !== false,
+          cleanAfterSync: config.cleanAfterSync === true,
+          connected: !!(config.accessToken)
+        })
       }
     } catch (e) {}
   }

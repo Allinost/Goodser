@@ -43,7 +43,7 @@ Page({
   },
 
   _refreshAll() {
-    var cloudEnabled = wx.getStorageSync('cloudDbEnabled') || false
+    var cloudEnabled = wx.getStorageSync('cloudDbEnabled') === true
     var cloudStatusText = cloudEnabled
       ? (db.isCloudReady() ? '已连接' : '连接中…')
       : '未连接'
@@ -65,7 +65,7 @@ Page({
           db.initNAS(savedConfig)
           nasStatusText = db.isNASReady() ? '已连接' : '连接失败'
         } else {
-          nasStatusText = '未连接（请先配置 NAS 地址）'
+          nasStatusText = '未连接（请先配置后端地址）'
         }
       }
     }
@@ -111,7 +111,7 @@ Page({
   onTags() { wx.navigateTo({ url: '/pages/settings/tags' }) },
   onNasConfig() { wx.navigateTo({ url: '/pages/settings/nas-config' }) },
 
-  // ========== NAS 私有云模式开关 ==========
+  // ========== Go 后端模式开关 ==========
 
   async onNASToggle(e) {
     var enabled = e.detail.value
@@ -130,8 +130,8 @@ Page({
 
       if (!nasConfig.baseUrl) {
         wx.showModal({
-          title: '请先配置 NAS',
-          content: '需要先配置 NAS + 私有云的连接信息。\n\n请在「NAS 存储配置」页面填写 NAS API 地址和密钥。',
+          title: '请先配置后端',
+          content: '需要先配置 Go 后端服务的连接信息。\n\n请在「后端服务配置」页面填写地址、端口和登录信息。',
           showCancel: false,
           success: () => {
             this.setData({ nasEnabled: false, nasStatus: '未连接' })
@@ -142,13 +142,13 @@ Page({
         return
       }
 
-      wx.showLoading({ title: '连接 NAS…' })
+      wx.showLoading({ title: '连接后端…' })
       db.initNAS(nasConfig)
       if (!db.isNASReady()) {
         wx.hideLoading()
         wx.showModal({
           title: '连接失败',
-          content: '无法初始化 NAS 模式。\n\n请检查 NAS 地址和 API 密钥是否正确配置。',
+          content: '无法初始化后端连接。\n\n请检查地址、端口和登录信息是否正确配置。',
           showCancel: false
         })
         this.setData({ nasEnabled: false, nasStatus: '未连接' })
@@ -157,7 +157,7 @@ Page({
       }
 
       wx.hideLoading()
-      wx.showToast({ title: 'NAS 模式已连接', icon: 'success' })
+      wx.showToast({ title: '后端模式已连接', icon: 'success' })
       this.setData({ nasStatus: '已连接', nasConnected: true })
       this._refreshAll()
     } else {
@@ -250,7 +250,7 @@ Page({
       return
     }
 
-    var modeName = isCloud ? '云数据库' : 'NAS 私有云'
+    var modeName = isCloud ? '云数据库' : 'Go 后端'
 
     wx.showModal({
       title: '同步所有数据',
@@ -270,53 +270,50 @@ Page({
     wx.showLoading({ title: '正在清除缓存…', mask: true })
 
     try {
-      // 1. 清除所有缓存（包括差量同步标记和 L1/L2）
       await db.forceRefresh('all')
 
-      // 2. 加载基础数据
-      this.setData({ syncProgress: '正在同步库存目录…' })
-      wx.showLoading({ title: '同步库存目录…', mask: true })
-      await db.loadInventories(true)
+      if (isNAS) {
+        // Go 后端：使用 syncAll 一键全量同步
+        this.setData({ syncProgress: '正在全量同步…' })
+        wx.showLoading({ title: '全量同步中…', mask: true })
+        await db.syncAll()
+      } else {
+        // Cloud 模式：逐个加载
+        this.setData({ syncProgress: '正在同步库存目录…' })
+        wx.showLoading({ title: '同步库存目录…', mask: true })
+        await db.loadInventories(true)
 
-      var invs = db.inventories
-      var totalInvs = invs.length
+        var invs = db.inventories
+        for (var i = 0; i < invs.length; i++) {
+          var inv = invs[i]
+          var invName = inv.name || ('仓库 ' + (i + 1))
+          this.setData({ syncProgress: '同步商品 [' + (i+1) + '/' + invs.length + '] ' + invName })
+          wx.showLoading({ title: '同步商品…', mask: true })
+          await db.loadProducts(inv._id, true)
 
-      // 3. 对每个仓库，加载商品、出库单、入库日志
-      for (var i = 0; i < totalInvs; i++) {
-        var inv = invs[i]
-        var invName = inv.name || ('仓库 ' + (i + 1))
-        var idx = i + 1
+          this.setData({ syncProgress: '同步出库单 [' + (i+1) + '/' + invs.length + '] ' + invName })
+          wx.showLoading({ title: '同步出库单…', mask: true })
+          await db.loadOutboundOrders(inv._id, true)
 
-        // 商品
-        this.setData({ syncProgress: '同步商品 [' + idx + '/' + totalInvs + '] ' + invName })
-        wx.showLoading({ title: '同步商品…', mask: true })
-        await db.loadProducts(inv._id, true)
+          this.setData({ syncProgress: '同步入库日志 [' + (i+1) + '/' + invs.length + '] ' + invName })
+          wx.showLoading({ title: '同步入库日志…', mask: true })
+          await db.loadInboundLogs(inv._id, true)
+        }
 
-        // 出库单
-        this.setData({ syncProgress: '同步出库单 [' + idx + '/' + totalInvs + '] ' + invName })
-        wx.showLoading({ title: '同步出库单…', mask: true })
-        await db.loadOutboundOrders(inv._id, true)
+        this.setData({ syncProgress: '正在同步标签…' })
+        wx.showLoading({ title: '同步标签…', mask: true })
+        await db.loadTags(true)
 
-        // 入库日志
-        this.setData({ syncProgress: '同步入库日志 [' + idx + '/' + totalInvs + '] ' + invName })
-        wx.showLoading({ title: '同步入库日志…', mask: true })
-        await db.loadInboundLogs(inv._id, true)
+        this.setData({ syncProgress: '正在同步状态编码…' })
+        wx.showLoading({ title: '同步状态编码…', mask: true })
+        await db.loadStatusCodes(true)
+
+        this.setData({ syncProgress: '正在同步白名单…' })
+        wx.showLoading({ title: '同步白名单…', mask: true })
+        await db.loadWhitelist(true)
       }
 
-      // 4. 加载标签、状态编码、白名单
-      this.setData({ syncProgress: '正在同步标签…' })
-      wx.showLoading({ title: '同步标签…', mask: true })
-      await db.loadTags(true)
-
-      this.setData({ syncProgress: '正在同步状态编码…' })
-      wx.showLoading({ title: '同步状态编码…', mask: true })
-      await db.loadStatusCodes(true)
-
-      this.setData({ syncProgress: '正在同步白名单…' })
-      wx.showLoading({ title: '同步白名单…', mask: true })
-      await db.loadWhitelist(true)
-
-      // 5. 记录同步时间与详情
+      // 记录同步时间与详情
       var now = new Date()
       var timeStr = now.getFullYear() + '-' +
         ('0' + (now.getMonth() + 1)).slice(-2) + '-' +
@@ -326,12 +323,11 @@ Page({
         ('0' + now.getSeconds()).slice(-2)
       wx.setStorageSync('gs_last_full_sync', timeStr)
 
-      // 统计
+      var invs = db.inventories
       var productCount = db.products.length
       var orderCount = db.outboundOrders.length
       var logCount = db.inboundLogs.length
 
-      // 统计各仓库商品数
       var invDetails = invs.map(function(inv) {
         var prods = db.products.filter(function(p) { return p.inventory_id === inv._id })
         var orders = db.outboundOrders.filter(function(o) { return o.inventory_id === inv._id })
@@ -346,7 +342,7 @@ Page({
 
       var syncDetail = {
         syncTime: timeStr,
-        totalInventories: totalInvs,
+        totalInventories: invs.length,
         totalProducts: productCount,
         totalOrders: orderCount,
         totalLogs: logCount,
@@ -369,7 +365,7 @@ Page({
       wx.showModal({
         title: '同步完成',
         content: '所有数据已从后端同步完成！\n\n' +
-          '库存目录：' + totalInvs + ' 个\n' +
+          '库存目录：' + invs.length + ' 个\n' +
           '商品总数：' + productCount + ' 个\n' +
           '出库单：' + orderCount + ' 个\n' +
           '入库日志：' + logCount + ' 条\n' +

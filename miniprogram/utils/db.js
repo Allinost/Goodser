@@ -16,8 +16,6 @@
  * - L1/L2 缓存命中时完全避免后端请求
  */
 
-const mockData = require('./mock-data')
-
 // ========== 内部状态 ==========
 
 // 模式枚举
@@ -33,7 +31,9 @@ var _cloudCmd = null
 
 // NAS 模式状态
 var _nasReady = false
-var _nasConfig = null  // { baseUrl, apiKey }
+var _nasConfig = null  // { baseUrl, apiKey } / { baseUrl, accessToken, refreshToken, username, password }
+// Go 后端 JWT token 管理
+var _goToken = null       // { access_token, refresh_token, expires_in, expires_at }
 
 // ---- 分级 TTL（毫秒）----
 var TTL = {
@@ -103,9 +103,7 @@ function isBackendMode() {
 }
 
 function isCloudEnabled() {
-  // 默认启用云模式（首次启动未设置时返回 true）
   var val = wx.getStorageSync('cloudDbEnabled')
-  if (val === '' || val === undefined || val === null) return true
   return val === true
 }
 
@@ -169,6 +167,43 @@ function initNAS(config) {
 
   try {
     _nasConfig = config || {}
+
+    // 恢复 JWT token
+    if (_nasConfig.accessToken) {
+      _goToken = {
+        access_token: _nasConfig.accessToken,
+        refresh_token: _nasConfig.refreshToken,
+        expires_in: _nasConfig.tokenExpiresIn || 3600,
+        expires_at: _nasConfig.tokenExpiresAt || (Date.now() + 30000)
+      }
+    }
+
+    // 如果有用户名密码但无 token，尝试登录
+    if (!_goToken && _nasConfig.username && _nasConfig.password && _nasConfig.backendAddress) {
+      loginGoBackend({
+        address: _nasConfig.backendAddress,
+        port: _nasConfig.backendPort,
+        username: _nasConfig.username,
+        password: _nasConfig.password
+      }).then(function(token) {
+        // 更新 storage 中的 token
+        try {
+          var raw = wx.getStorageSync('nasConfig')
+          if (raw) {
+            var cfg = JSON.parse(raw)
+            cfg.accessToken = token.access_token
+            cfg.refreshToken = token.refresh_token
+            cfg.tokenExpiresIn = token.expires_in
+            cfg.tokenExpiresAt = token.expires_at
+            wx.setStorageSync('nasConfig', JSON.stringify(cfg))
+          }
+        } catch (e) {}
+        console.log('[DB] Go 后端登录成功')
+      }).catch(function(err) {
+        console.warn('[DB] Go 后端登录失败:', err.message)
+      })
+    }
+
     _nasReady = true
     _mode = MODE_NAS
     console.log('[DB] NAS 模式已初始化，清空 Mock 数据')
@@ -189,23 +224,214 @@ function initNAS(config) {
 }
 
 /**
- * NAS API 请求封装
- * 直接调用 NAS 上运行的 Goodser API（Node.js Fastify/Koa），
- * API 内部操作 MySQL，无 Redis 缓存层（初期）
+ * Go 后端 JWT 登录
+ * @param {Object} opts - { address, port, username, password }
+ * @returns {Promise<Object>} TokenPair
+ */
+function loginGoBackend(opts) {
+  var url = 'http://' + opts.address.replace(/\/+$/, '') + ':' + opts.port + '/api/v1/auth/login'
+  return new Promise(function(resolve, reject) {
+    wx.request({
+      url: url,
+      method: 'POST',
+      header: { 'Content-Type': 'application/json' },
+      data: { username: opts.username, password: opts.password },
+      timeout: 15000,
+      success: function(res) {
+        if (res.statusCode === 200) {
+          var body = res.data
+          if (body && body.code === 0) {
+            var token = body.data
+            // 计算过期时间
+            token.expires_at = Date.now() + (token.expires_in || 3600) * 1000
+            _goToken = token
+            resolve(token)
+          } else {
+            reject(new Error((body && body.message) || '登录失败'))
+          }
+        } else {
+          reject(new Error('登录 HTTP ' + res.statusCode))
+        }
+      },
+      fail: function(err) {
+        reject(new Error('连接失败: ' + (err.errMsg || '未知错误')))
+      }
+    })
+  })
+}
+
+/**
+ * 刷新 Go 后端 JWT token
+ */
+function _refreshGoToken() {
+  if (!_goToken || !_goToken.refresh_token) {
+    return Promise.reject(new Error('无 refresh_token，需要重新登录'))
+  }
+  var baseUrl = (_nasConfig && _nasConfig.baseUrl || '').replace(/\/+$/, '')
+  var url = baseUrl + '/api/v1/auth/refresh'
+  return new Promise(function(resolve, reject) {
+    wx.request({
+      url: url,
+      method: 'POST',
+      header: { 'Content-Type': 'application/json' },
+      data: { refresh_token: _goToken.refresh_token },
+      timeout: 15000,
+      success: function(res) {
+        if (res.statusCode === 200) {
+          var body = res.data
+          if (body && body.code === 0) {
+            var token = body.data
+            token.expires_at = Date.now() + (token.expires_in || 3600) * 1000
+            _goToken = token
+            // 更新 storage 中的 token
+            try {
+              var raw = wx.getStorageSync('nasConfig')
+              if (raw) {
+                var cfg = JSON.parse(raw)
+                cfg.accessToken = token.access_token
+                cfg.refreshToken = token.refresh_token
+                cfg.tokenExpiresIn = token.expires_in
+                wx.setStorageSync('nasConfig', JSON.stringify(cfg))
+              }
+            } catch (e) {}
+            resolve(token)
+          } else {
+            reject(new Error((body && body.message) || '刷新 token 失败'))
+          }
+        } else {
+          reject(new Error('刷新 token HTTP ' + res.statusCode))
+        }
+      },
+      fail: function(err) {
+        reject(new Error('刷新 token 连接失败: ' + (err.errMsg || '未知错误')))
+      }
+    })
+  })
+}
+
+/**
+ * 获取有效的 access_token（自动刷新）
+ */
+function _getValidToken() {
+  if (!_goToken) {
+    return Promise.reject(new Error('未登录'))
+  }
+  // token 还有效（提前 60 秒刷新）
+  if (Date.now() < (_goToken.expires_at - 60000)) {
+    return Promise.resolve(_goToken.access_token)
+  }
+  // token 过期，尝试刷新
+  return _refreshGoToken().then(function(token) {
+    return token.access_token
+  })
+}
+
+/**
+ * Go 后端 API 请求封装
+ * 使用 JWT Bearer token 认证
+ */
+/**
+ * 构建 Go 后端请求 URL 和方法
+ * 用于处理 legacy 和 RESTful 混合的 API 风格
+ */
+function _buildGoRequest(action, data) {
+  var baseUrl = (_nasConfig.baseUrl || '').replace(/\/+$/, '')
+
+  // 需要特殊处理的 action 映射
+  var RESTFUL_ACTIONS = {
+    'syncAll': { method: 'POST', path: '/api/v1/zzz-goodser/syncAll' },
+    'loadInventories': { method: 'GET', path: '/api/v1/zzz-goodser/inventories' },
+    'loadProducts': { method: 'GET', path: '/api/v1/zzz-goodser/inventories/{inventory_id}/products' }
+  }
+
+  var spec = RESTFUL_ACTIONS[action]
+  if (spec) {
+    var path = spec.path
+    if (data) {
+      path = path.replace(/\{(\w+)\}/g, function(match, key) {
+        var val = data[key]
+        return val !== undefined && val !== null ? encodeURIComponent(val) : match
+      })
+    }
+    return { url: baseUrl + path, method: spec.method, data: spec.method === 'GET' ? null : (data || {}) }
+  }
+
+  // 默认 legacy POST
+  return { url: baseUrl + '/api/v1/zzz-goodser/legacy/' + action, method: 'POST', data: data || {} }
+}
+
+/**
+ * Go 后端 API 请求封装
+ * 使用 JWT Bearer token 认证
  */
 function _nasRequest(action, data) {
   if (!_nasReady || !_nasConfig) {
     return Promise.reject(new Error('NAS 未就绪'))
   }
+
+  return _getValidToken().then(function(token) {
+    var req = _buildGoRequest(action, data)
+    return new Promise(function(resolve, reject) {
+      wx.request({
+        url: req.url,
+        method: req.method,
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        data: req.data,
+        timeout: 15000,
+        success: function(res) {
+          if (res.statusCode === 200) {
+            var body = res.data
+            if (body && body.code === 0) {
+              resolve(body.data)
+            } else {
+              reject(new Error((body && body.message) || 'API 返回错误'))
+            }
+          } else if (res.statusCode === 401) {
+            _goToken.expires_at = 0
+            reject(new Error('认证失败'))
+          } else {
+            reject(new Error('API HTTP ' + res.statusCode))
+          }
+        },
+        fail: function(err) {
+          reject(new Error('连接失败: ' + (err.errMsg || '未知错误')))
+        }
+      })
+    })
+  }).catch(function(err) {
+    if (err.message.indexOf('重新登录') !== -1 || err.message.indexOf('认证失败') !== -1) {
+      if (_nasConfig && _nasConfig.username && _nasConfig.password) {
+        return loginGoBackend({
+          address: _nasConfig.backendAddress,
+          port: _nasConfig.backendPort,
+          username: _nasConfig.username,
+          password: _nasConfig.password
+        }).then(function(token) {
+          var req = _buildGoRequest(action, data)
+          return _doGoRequest(req, token.access_token)
+        })
+      }
+    }
+    throw err
+  })
+}
+
+/**
+ * 内部实际发起请求（使用指定 token）
+ */
+function _doGoRequest(req, token) {
   return new Promise(function(resolve, reject) {
     wx.request({
-      url: (_nasConfig.baseUrl || '').replace(/\/+$/, '') + '/api/' + action,
-      method: 'POST',
+      url: req.url,
+      method: req.method,
       header: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + (_nasConfig.apiKey || '')
+        'Authorization': 'Bearer ' + token
       },
-      data: data || {},
+      data: req.data,
       timeout: 15000,
       success: function(res) {
         if (res.statusCode === 200) {
@@ -213,14 +439,14 @@ function _nasRequest(action, data) {
           if (body && body.code === 0) {
             resolve(body.data)
           } else {
-            reject(new Error((body && body.message) || 'NAS API 返回错误'))
+            reject(new Error((body && body.message) || 'API 返回错误'))
           }
         } else {
-          reject(new Error('NAS API HTTP ' + res.statusCode))
+          reject(new Error('API HTTP ' + res.statusCode))
         }
       },
       fail: function(err) {
-        reject(new Error('NAS 连接失败: ' + (err.errMsg || '未知错误')))
+        reject(new Error('连接失败: ' + (err.errMsg || '未知错误')))
       }
     })
   })
@@ -442,15 +668,14 @@ function getMode() {
   return _mode
 }
 
-// ========== 直接导出数组（兼容 mock-data 的直接访问）==========
-// 使用独立副本，确保云模式下可清空而不影响 mockData 源数据
-var inventories = mockData.inventories.slice()
-var products = mockData.products.slice()
-var outboundOrders = mockData.outboundOrders.slice()
-var inboundLogs = mockData.inboundLogs.slice()
-var whitelist = mockData.whitelist.slice()
-var statusCodes = mockData.statusCodes.slice()
-var tags = mockData.tags.slice()
+// ========== 直接导出数组（初始为空，Go 后端加载后填充）==========
+var inventories = []
+var products = []
+var outboundOrders = []
+var inboundLogs = []
+var whitelist = []
+var statusCodes = []
+var tags = []
 
 /**
  * 清空导出数组（保留引用，云模式切换时调用）
@@ -469,8 +694,79 @@ function _clearExportArrays() {
  * 预加载所有核心数据到导出数组
  * 在 initCloud() / initNAS() 后异步调用
  */
+/**
+ * 全量同步：调用 syncAll 端点填充所有导出数组
+ */
+function syncAll() {
+  return _nasRequest('syncAll', {}).then(function(data) {
+    if (!data) return
+    if (data.inventories) {
+      inventories.splice(0, inventories.length)
+      inventories.push.apply(inventories, data.inventories)
+      _setL1('inventories', data.inventories, TTL.inventories)
+      _setL2('inventories', data.inventories)
+    }
+    if (data.products) {
+      Object.keys(data.products).forEach(function(invId) {
+        var prods = data.products[invId]
+        for (var i = products.length - 1; i >= 0; i--) {
+          if (products[i].inventory_id === invId) products.splice(i, 1)
+        }
+        products.push.apply(products, prods)
+        _setL1('products_' + invId, prods, TTL.products)
+        _setL2('products_' + invId, prods)
+      })
+    }
+    if (data.outbound_orders) {
+      Object.keys(data.outbound_orders).forEach(function(invId) {
+        var orders = data.outbound_orders[invId]
+        for (var i = outboundOrders.length - 1; i >= 0; i--) {
+          if (outboundOrders[i].inventory_id === invId) outboundOrders.splice(i, 1)
+        }
+        outboundOrders.push.apply(outboundOrders, orders)
+        _setL1('outbound_' + invId, orders, TTL.outboundOrders)
+        _setL2('outbound_' + invId, orders)
+      })
+    }
+    if (data.inbound_logs) {
+      Object.keys(data.inbound_logs).forEach(function(invId) {
+        var logs = data.inbound_logs[invId]
+        for (var i = inboundLogs.length - 1; i >= 0; i--) {
+          if (inboundLogs[i].inventory_id === invId) inboundLogs.splice(i, 1)
+        }
+        inboundLogs.push.apply(inboundLogs, logs)
+        _setL1('inbound_' + invId, logs, TTL.inboundLogs)
+        _setL2('inbound_' + invId, logs)
+      })
+    }
+    if (data.tags) {
+      tags.splice(0, tags.length)
+      tags.push.apply(tags, data.tags)
+      _setL1('tags', data.tags, TTL.tags)
+      _setL2('tags', data.tags)
+    }
+    if (data.status_codes) {
+      statusCodes.splice(0, statusCodes.length)
+      statusCodes.push.apply(statusCodes, data.status_codes)
+      _setL1('statusCodes', data.status_codes, TTL.statusCodes)
+      _setL2('statusCodes', data.status_codes)
+    }
+    console.log('[DB] 全量同步完成')
+  })
+}
+
 function _preloadAll() {
   if (!isBackendMode()) return Promise.resolve()
+  if (_mode === MODE_NAS) {
+    return syncAll().catch(function(err) {
+      console.warn('[DB] 全量预加载失败，回退逐个加载:', err.message)
+      return _preloadAllFallback()
+    })
+  }
+  return _preloadAllFallback()
+}
+
+function _preloadAllFallback() {
   return loadInventories().then(function () {
     var tasks = [loadTags(), loadStatusCodes(), loadWhitelist()]
     if (inventories.length > 0) {
@@ -513,7 +809,7 @@ async function loadProducts(inventoryId, forceRefresh) {
     if (_mode === MODE_CLOUD) {
       allData = await _cloudLoadProducts(inventoryId, forceRefresh, cacheKey, ttl)
     } else if (_mode === MODE_NAS) {
-      var res = await _nasRequest('loadProducts', { inventoryId: inventoryId })
+      var res = await _nasRequest('loadProducts', { inventory_id: inventoryId })
       allData = res.products || res || []
       if (!Array.isArray(allData)) allData = []
     } else {
@@ -746,7 +1042,7 @@ async function loadOutboundOrders(inventoryId, forceRefresh) {
         .get()
       data = res.data
     } else if (_mode === MODE_NAS) {
-      var nasRes = await _nasRequest('loadOutboundOrders', { inventoryId: inventoryId })
+      var nasRes = await _nasRequest('loadOutboundOrders', { inventory_id: inventoryId })
       data = nasRes.orders || nasRes || []
       if (!Array.isArray(data)) data = []
     } else return []
@@ -793,7 +1089,7 @@ async function loadInboundLogs(inventoryId, forceRefresh) {
         .get()
       data = res.data
     } else if (_mode === MODE_NAS) {
-      var nasRes = await _nasRequest('loadInboundLogs', { inventoryId: inventoryId })
+      var nasRes = await _nasRequest('loadInboundLogs', { inventory_id: inventoryId })
       data = nasRes.logs || nasRes || []
       if (!Array.isArray(data)) data = []
     } else return []
@@ -1032,7 +1328,7 @@ async function allocateSeqNumber(inventoryId, mainZone, subZone) {
     return result.seqNumber
   }
   if (_mode === MODE_NAS) {
-    var nasResult = await _nasRequest('allocateSeq', { inventoryId: inventoryId, mainZone: mainZone, subZone: subZone })
+    var nasResult = await _nasRequest('allocateSeq', { inventory_id: inventoryId, main_zone: mainZone, sub_zone: subZone })
     return nasResult.seqNumber || nasResult.seq_number || 0
   }
   return 0
@@ -1068,6 +1364,14 @@ async function confirmOutbound(id) {
       order.status = 'confirmed'
       order.confirmed_at = new Date().toLocaleString()
       order.updated_at = new Date().toLocaleString()
+      // 扣减库存（不操作 reserved，因为出库单无预留）
+      order.items.forEach(function(item) {
+        var product = products.find(function(p) { return p._id === item.product_id })
+        if (product) {
+          product.quantity = Math.max(0, product.quantity - item.quantity)
+          product.updated_at = new Date().toLocaleString()
+        }
+      })
     }
     return order
   }
@@ -1086,10 +1390,13 @@ async function cancelOutbound(id) {
   if (!isBackendMode()) {
     var order = outboundOrders.find(function(o) { return o._id === id })
     if (order) {
-      order.items.forEach(function(item) {
-        var product = products.find(function(p) { return p._id === item.product_id })
-        if (product) { product.quantity += item.quantity; product.updated_at = new Date().toLocaleString() }
-      })
+      // 仅已确认的出库单需要恢复库存
+      if (order.status === 'confirmed') {
+        order.items.forEach(function(item) {
+          var product = products.find(function(p) { return p._id === item.product_id })
+          if (product) { product.quantity += item.quantity; product.updated_at = new Date().toLocaleString() }
+        })
+      }
       order.status = 'cancelled'
       order.cancelled_at = new Date().toLocaleString()
       order.updated_at = new Date().toLocaleString()
@@ -1141,7 +1448,11 @@ async function reserveToOutbound(id, data) {
       reserve.updated_at = new Date().toLocaleString()
       reserve.items.forEach(function(item) {
         var product = products.find(function(p) { return p._id === item.product_id })
-        if (product) { product.reserved_quantity = Math.max(0, product.reserved_quantity - item.quantity); product.updated_at = new Date().toLocaleString() }
+        if (product) {
+          product.reserved_quantity = Math.max(0, product.reserved_quantity - item.quantity)
+          product.quantity = Math.max(0, product.quantity - item.quantity)
+          product.updated_at = new Date().toLocaleString()
+        }
       })
       var newOrder = {
         _id: data._id || ('out_' + Date.now()), inventory_id: data.inventory_id,
@@ -1582,6 +1893,7 @@ module.exports = {
   getMode: getMode,
 
   // 数据加载（支持 forceRefresh 参数）
+  syncAll: syncAll,
   loadProducts: loadProducts,
   loadTags: loadTags,
   loadStatusCodes: loadStatusCodes,
@@ -1589,6 +1901,9 @@ module.exports = {
   loadOutboundOrders: loadOutboundOrders,
   loadInboundLogs: loadInboundLogs,
   loadWhitelist: loadWhitelist,
+
+  // Go 后端认证
+  loginGoBackend: loginGoBackend,
 
   // 强制刷新
   forceRefresh: forceRefresh,

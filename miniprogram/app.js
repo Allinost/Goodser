@@ -4,29 +4,28 @@ App({
   onLaunch() {
     console.log('Goodser 库存管理启动')
 
-    // 默认启用云数据库模式（首次启动自动启用）
-    if (db.isCloudEnabled()) {
+    // 1. 优先检测 Go 后端配置
+    var nasConfig = {}
+    try {
+      var raw = wx.getStorageSync('nasConfig')
+      if (raw) nasConfig = JSON.parse(raw)
+    } catch (e) {
+      nasConfig = {}
+    }
+
+    if (nasConfig && nasConfig.baseUrl && nasConfig.username && nasConfig.password) {
+      // 自动启用 Go 后端模式
+      wx.setStorageSync('nasEnabled', true)
+      console.log('[App] Go 后端模式已启用，正在初始化...')
+      db.initNAS(nasConfig)
+    } else if (db.isCloudEnabled()) {
       console.log('[App] 云数据库模式已启用，正在初始化...')
       db.initCloud()
 
       // 检查云数据库是否已初始化（种子数据）
       this.checkCloudInit()
-    } else if (db.isNASEnabled()) {
-      console.log('[App] NAS 私有云模式已启用，正在初始化...')
-      var nasConfig = {}
-      try {
-        var raw = wx.getStorageSync('nasConfig')
-        if (raw) nasConfig = JSON.parse(raw)
-      } catch (e) {
-        nasConfig = {}
-      }
-      if (nasConfig.baseUrl) {
-        db.initNAS(nasConfig)
-      } else {
-        console.warn('[App] NAS 模式已启用但未配置地址，回退到 Mock 模式')
-      }
     } else {
-      console.log('[App] 使用本地 Mock 数据模式')
+      console.log('[App] 无后端配置，使用空数据模式（请先在设置中配置后端服务）')
     }
   },
 

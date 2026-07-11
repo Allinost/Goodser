@@ -85,8 +85,13 @@ Page({
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: (res) => {
-        this.setData({ imageUrl: res.tempFilePaths[0] })
-        this._markDirty()
+        wx.editImage({
+          src: res.tempFilePaths[0],
+          success: (editRes) => {
+            this.setData({ imageUrl: editRes.tempFilePath })
+            this._markDirty()
+          }
+        })
       }
     })
   },
@@ -101,10 +106,9 @@ Page({
 
   onMainZoneChange(e) {
     var idx = e.detail.value
-    var filteredSubZones = util.ZONES.slice(idx)
     this.setData({
       mainZoneIndex: idx,
-      filteredSubZones: filteredSubZones,
+      filteredSubZones: util.ZONES,
       subZoneIndex: 0
     })
     this.updatePreview()

@@ -13,7 +13,7 @@
       <view class="product-tags" wx:if="{{productTags.length > 0}}">
         <text class="product-tag" wx:for="{{productTags}}" wx:key="_id" style="background: {{item.color}}20; color: {{item.color}}">{{item.name}}</text>
       </view>
-      <text class="product-quantity">库存: {{product.quantity}}{{product.reserved_quantity > 0 ? ' + ' + product.reserved_quantity : ''}}</text>
+      <text class="product-quantity">库存: {{product.quantity - (product.reserved_quantity || 0)}}{{product.reserved_quantity > 0 ? ' + ' + product.reserved_quantity : ''}}</text>
     </view>
   </view>
 </view>

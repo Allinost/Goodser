@@ -42,7 +42,7 @@
     <view class="divider"></view>
     <view class="info-row">
       <text class="label">库存数量</text>
-      <text class="value highlight">{{product.quantity}}{{product.reserved_quantity > 0 ? '（预留 ' + product.reserved_quantity + '）' : ''}}</text>
+      <text class="value highlight">{{product.quantity - (product.reserved_quantity || 0)}}{{product.reserved_quantity > 0 ? '（预留 ' + product.reserved_quantity + '）' : ''}}</text>
     </view>
     <view class="info-row">
       <text class="label">仓储位置</text>

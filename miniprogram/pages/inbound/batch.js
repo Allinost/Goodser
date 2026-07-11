@@ -116,10 +116,9 @@ Page({
   onCurrentRemarkInput(e) { this.setData({ currentRemark: e.detail.value }); this._markDirty() },
   onCurrentMainZoneChange(e) {
     var idx = e.detail.value
-    var filteredSubZones = util.ZONES.slice(idx)
     this.setData({
       currentMainZoneIndex: idx,
-      filteredSubZones: filteredSubZones,
+      filteredSubZones: util.ZONES,
       currentSubZoneIndex: 0
     })
     this._markDirty()
