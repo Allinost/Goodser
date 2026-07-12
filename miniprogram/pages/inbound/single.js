@@ -326,18 +326,11 @@ Page({
           const statusCode = this.data.statusCodes[this.data.statusCodeIndex].code
           const qty = parseInt(this.data.quantity)
 
-          // 生成序号和编码
-          const seqNumber = util.getNextSeqNumber(db.products, inventory._id, mainZone, subZone)
-          const code = util.generateProductCode(mainZone, subZone, seqNumber, qty, statusCode)
+          // 通过 API 获取可用序号
+          const seqNumber = await db.allocateSeqNumber(inventory._id, mainZone, subZone)
 
-          // 生成入库单号
-          const prefix = inventory.name.substring(0, 2).toUpperCase()
-          const orderNo = util.generateOrderNo(prefix)
-
-          // 统一入库（产品创建 + 入库日志）
           await db.inboundSingle({
             inventory_id: inventory._id,
-            code: code,
             main_zone: mainZone,
             sub_zone: subZone,
             seq_number: seqNumber,
@@ -351,8 +344,7 @@ Page({
             storage_location: this.data.storageLocation.trim(),
             image_url: this.data.imageUrl || '',
             images: this.data.images || [],
-            tags: [...this.data.selectedTagIds],
-            order_no: orderNo
+            tags: [...this.data.selectedTagIds]
           })
 
           // 关闭离开拦截

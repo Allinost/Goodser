@@ -78,11 +78,7 @@ Page({
     var subZoneIndex = util.ZONES.indexOf(product.sub_zone)
     var statusCodeIndex = statusCodes.findIndex(function(s) { return s.code === product.status_code })
 
-    // 子分区联动：根据主分区过滤可用的子分区
-    var filteredSubZones = util.ZONES.slice(mainZoneIndex > -1 ? mainZoneIndex : 0)
-    if (subZoneIndex > -1 && subZoneIndex < mainZoneIndex) {
-      subZoneIndex = mainZoneIndex
-    }
+    var filteredSubZones = util.ZONES
 
     this.setData({
       productId: product._id,

@@ -1664,12 +1664,28 @@ async function removeStatusCode(id) {
 
 // --- 入库操作（事务性）---
 
+function _generateProductCode(mainZone, subZone, seqNumber, quantity, statusCode) {
+  var seqStr = String(seqNumber).padStart(4, '0')
+  var qtyStr = String(quantity).padStart(4, '0')
+  return mainZone + '-' + subZone + '-' + seqStr + '-' + qtyStr + '-' + statusCode
+}
+
+function _generateOrderNo(prefix) {
+  var now = new Date()
+  var Y = now.getFullYear()
+  var M = String(now.getMonth() + 1).padStart(2, '0')
+  var D = String(now.getDate()).padStart(2, '0')
+  var seq = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')
+  return (prefix || 'RK') + Y + M + D + seq
+}
+
 async function inboundSingle(data) {
   if (!isBackendMode()) {
-    // Mock 模式：本地创建商品 + 入库日志
+    var code = data.code || _generateProductCode(data.main_zone, data.sub_zone, data.seq_number, data.quantity, data.status_code)
+    var orderNo = data.order_no || _generateOrderNo()
     var newProduct = await createProduct({
       inventory_id: data.inventory_id,
-      code: data.code,
+      code: code,
       main_zone: data.main_zone,
       sub_zone: data.sub_zone,
       seq_number: data.seq_number,
@@ -1687,13 +1703,13 @@ async function inboundSingle(data) {
     })
     var log = await createInboundLog({
       inventory_id: data.inventory_id,
-      order_no: data.order_no,
+      order_no: orderNo,
       type: 'single',
       remark: data.remark || '',
       items: [{
         product_id: newProduct._id,
         product_name: data.name,
-        product_code: data.code,
+        product_code: code,
         quantity: data.quantity,
         image_url: data.image_url || '',
         images: data.images || []
@@ -1713,12 +1729,14 @@ async function inboundSingle(data) {
 async function inboundBatch(data) {
   if (!isBackendMode()) {
     // Mock 模式：逐个创建商品 + 一条批量入库日志
+    var orderNo = data.order_no || _generateOrderNo('PL')
     var logItems = []
     data.items.forEach(function(item) {
+      var code = item.code || _generateProductCode(item.main_zone, item.sub_zone, item.seq_number, item.quantity, item.status_code)
       var newProduct = {
         _id: 'prod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
         inventory_id: data.inventory_id,
-        code: item.code,
+        code: code,
         main_zone: item.main_zone,
         sub_zone: item.sub_zone,
         seq_number: item.seq_number,
@@ -1742,7 +1760,7 @@ async function inboundBatch(data) {
       logItems.push({
         product_id: newProduct._id,
         product_name: item.name,
-        product_code: item.code,
+        product_code: code,
         quantity: item.quantity,
         image_url: item.image_url || '',
         images: item.images || []
@@ -1750,7 +1768,7 @@ async function inboundBatch(data) {
     })
     var log = await createInboundLog({
       inventory_id: data.inventory_id,
-      order_no: data.order_no,
+      order_no: orderNo,
       type: 'batch',
       items: logItems
     })

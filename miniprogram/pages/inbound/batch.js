@@ -339,13 +339,19 @@ Page({
         wx.showLoading({ title: '入库中...', mask: true })
 
         try {
-          const prefix = inventory.name.substring(0, 2).toUpperCase()
-          const orderNo = util.generateOrderNo(prefix)
-          // 构建批量入库数据
-          var batchItems = this.data.items.map(function(item) {
-            var seqNumber = util.getNextSeqNumber(db.products, inventory._id, item.mainZone, item.subZone)
-            return {
-              code: util.generateProductCode(item.mainZone, item.subZone, seqNumber, item.quantity, item.statusCode),
+          // 为每个 item 分配独立序号，跟踪同一 zone 内已分配的序号防止冲突
+          var allocatedSeqs = {}
+          var batchItems = []
+          for (var _bi = 0; _bi < this.data.items.length; _bi++) {
+            var item = this.data.items[_bi]
+            var zoneKey = item.mainZone + '|' + item.subZone
+            if (!allocatedSeqs[zoneKey]) allocatedSeqs[zoneKey] = []
+            var seqNumber = await db.allocateSeqNumber(inventory._id, item.mainZone, item.subZone)
+            while (allocatedSeqs[zoneKey].indexOf(seqNumber) !== -1) {
+              seqNumber++
+            }
+            allocatedSeqs[zoneKey].push(seqNumber)
+            batchItems.push({
               main_zone: item.mainZone,
               sub_zone: item.subZone,
               seq_number: seqNumber,
@@ -360,12 +366,11 @@ Page({
               image_url: item.imageUrl || '',
               images: item.images || [],
               tags: item.tagIds || []
-            }
-          })
+            })
+          }
           // 统一入库（产品创建 + 入库日志）
           await db.inboundBatch({
             inventory_id: inventory._id,
-            order_no: orderNo,
             items: batchItems
           })
 
