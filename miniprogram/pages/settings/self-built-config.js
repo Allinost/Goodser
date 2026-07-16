@@ -13,7 +13,7 @@ Page({
     if (preset === 'public') {
       address = 'test.hailong.site:8408'
     } else if (preset === 'easytier') {
-      address = 'et.hailong.site:8080'
+      address = 'http://et.hailong.site:29090'
     } else {
       address = ''
     }
@@ -49,7 +49,7 @@ Page({
     wx.showLoading({ title: '测试连接中…' })
     var that = this
     wx.request({
-      url: baseUrl.replace(/\/+$/, '') + '/api/loadStatusCodes',
+      url: baseUrl.replace(/\/+$/, '') + '/api/v1/zzz-goodser/legacy/loadStatusCodes',
       method: 'POST',
       header: {
         'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ Page({
         var address = (config.baseUrl || '').replace(/^https?:\/\//, '')
         var preset = 'custom'
         if (address === 'test.hailong.site:8408') preset = 'public'
-        else if (address === 'et.hailong.site:8080') preset = 'easytier'
+        else if (address === 'et.hailong.site:29090') preset = 'easytier'
         this.setData({
           backendAddress: address,
           apiKey: config.apiKey || '',

@@ -239,7 +239,7 @@ function _nasRequest(action, data) {
   }
   return new Promise(function(resolve, reject) {
     wx.request({
-      url: (config.baseUrl || '').replace(/\/+$/, '') + '/api/' + action,
+      url: (config.baseUrl || '').replace(/\/+$/, '') + '/api/v1/zzz-goodser/legacy/' + action,
       method: 'POST',
       header: {
         'Content-Type': 'application/json',
