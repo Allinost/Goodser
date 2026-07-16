@@ -1,0 +1,23 @@
+R_DEF: Internal format may change without notice
+local
+color accent
+color background
+color divider
+color error
+color on_background
+color on_primary
+color on_surface
+color primary
+color primary_dark
+color surface
+color tag_blue
+color tag_gray
+color tag_green
+color tag_orange
+color tag_red
+color text_secondary
+drawable ic_launcher
+mipmap ic_launcher
+mipmap ic_launcher_round
+string app_name
+style Theme.Goodser
