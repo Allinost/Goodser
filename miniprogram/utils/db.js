@@ -711,14 +711,15 @@ function syncAll() {
   return _nasRequest('syncAll', {}).then(function(data) {
     if (!data) return
     if (data.inventories) {
+      var normInvs = data.inventories.map(_normalizeRustId)
       inventories.splice(0, inventories.length)
-      inventories.push.apply(inventories, data.inventories)
-      _setL1('inventories', data.inventories, TTL.inventories)
-      _setL2('inventories', data.inventories)
+      inventories.push.apply(inventories, normInvs)
+      _setL1('inventories', normInvs, TTL.inventories)
+      _setL2('inventories', normInvs)
     }
     if (data.products) {
       Object.keys(data.products).forEach(function(invId) {
-        var prods = data.products[invId]
+        var prods = (data.products[invId] || []).map(_normalizeRustProduct)
         for (var i = products.length - 1; i >= 0; i--) {
           if (products[i].inventory_id === invId) products.splice(i, 1)
         }
@@ -729,7 +730,7 @@ function syncAll() {
     }
     if (data.outbound_orders) {
       Object.keys(data.outbound_orders).forEach(function(invId) {
-        var orders = data.outbound_orders[invId]
+        var orders = (data.outbound_orders[invId] || []).map(_normalizeRustId)
         for (var i = outboundOrders.length - 1; i >= 0; i--) {
           if (outboundOrders[i].inventory_id === invId) outboundOrders.splice(i, 1)
         }
@@ -740,7 +741,7 @@ function syncAll() {
     }
     if (data.inbound_logs) {
       Object.keys(data.inbound_logs).forEach(function(invId) {
-        var logs = data.inbound_logs[invId]
+        var logs = (data.inbound_logs[invId] || []).map(_normalizeRustId)
         for (var i = inboundLogs.length - 1; i >= 0; i--) {
           if (inboundLogs[i].inventory_id === invId) inboundLogs.splice(i, 1)
         }
@@ -750,16 +751,18 @@ function syncAll() {
       })
     }
     if (data.tags) {
+      var normTags = data.tags.map(_normalizeRustId)
       tags.splice(0, tags.length)
-      tags.push.apply(tags, data.tags)
-      _setL1('tags', data.tags, TTL.tags)
-      _setL2('tags', data.tags)
+      tags.push.apply(tags, normTags)
+      _setL1('tags', normTags, TTL.tags)
+      _setL2('tags', normTags)
     }
     if (data.status_codes) {
+      var normCodes = data.status_codes.map(_normalizeRustId)
       statusCodes.splice(0, statusCodes.length)
-      statusCodes.push.apply(statusCodes, data.status_codes)
-      _setL1('statusCodes', data.status_codes, TTL.statusCodes)
-      _setL2('statusCodes', data.status_codes)
+      statusCodes.push.apply(statusCodes, normCodes)
+      _setL1('statusCodes', normCodes, TTL.statusCodes)
+      _setL2('statusCodes', normCodes)
     }
     console.log('[DB] 全量同步完成')
   })
@@ -791,6 +794,35 @@ function _preloadAllFallback() {
   }).catch(function (err) {
     console.warn('[DB] ' + _mode + ' 数据预加载失败:', err)
   })
+}
+
+function _normalizeRustId(item) {
+  if (!item || item._id) return item
+  var norm = { _id: item.id }
+  Object.keys(item).forEach(function(k) {
+    if (k !== 'id') norm[k] = item[k]
+  })
+  return norm
+}
+
+function _normalizeRustProduct(p) {
+  if (!p || p._id) return p
+  var norm = { _id: p.id }
+  // 兼容 Rust 后端：image_list（JSON 数组）→ images
+  if (p.image_list) {
+    if (Array.isArray(p.image_list)) {
+      norm.images = p.image_list.map(function(img) {
+        return typeof img === 'string' ? img : (img.url || img)
+      })
+    } else if (typeof p.image_list === 'string') {
+      norm.images = [p.image_list]
+    }
+  }
+  if (p.image_url && !norm.images) norm.images = [p.image_url]
+  Object.keys(p).forEach(function(k) {
+    if (k !== 'id' && k !== 'image_list') norm[k] = p[k]
+  })
+  return norm
 }
 
 // ========== 云模式数据加载 ==========
@@ -826,6 +858,8 @@ async function loadProducts(inventoryId, options) {
       var res = await _nasRequest('loadProducts', { inventory_id: inventoryId, page: page, page_size: pageSize })
       allData = res.products || res.items || res || []
       if (!Array.isArray(allData)) allData = []
+      // 兼容 Rust 后端字段命名（id → _id）
+      allData = allData.map(_normalizeRustProduct)
       hasMore = res.has_more || false
     } else {
       return { items: [], has_more: false }
@@ -935,6 +969,7 @@ async function loadTags(forceRefresh) {
       var nasRes = await _nasRequest('loadTags', {})
       data = nasRes.tags || nasRes || []
       if (!Array.isArray(data)) data = []
+      data = data.map(_normalizeRustId)
     } else return []
 
     if (data && data.length > 0) {
@@ -975,6 +1010,7 @@ async function loadStatusCodes(forceRefresh) {
       var nasRes = await _nasRequest('loadStatusCodes', {})
       data = nasRes.statusCodes || nasRes || []
       if (!Array.isArray(data)) data = []
+      data = data.map(_normalizeRustId)
     } else return []
 
     if (data && data.length > 0) {
@@ -1015,6 +1051,7 @@ async function loadInventories(forceRefresh) {
       var nasRes = await _nasRequest('loadInventories', {})
       data = nasRes.inventories || nasRes || []
       if (!Array.isArray(data)) data = []
+      data = data.map(_normalizeRustId)
     } else return []
 
     if (data && data.length > 0) {
@@ -1063,6 +1100,7 @@ async function loadOutboundOrders(inventoryId, options) {
       var nasRes = await _nasRequest('loadOutboundOrders', { inventory_id: inventoryId, page: page, page_size: pageSize })
       data = nasRes.orders || nasRes.items || nasRes || []
       if (!Array.isArray(data)) data = []
+      data = data.map(_normalizeRustId)
       hasMore = nasRes.has_more || false
     } else return { items: [], has_more: false }
 
@@ -1115,6 +1153,7 @@ async function loadInboundLogs(inventoryId, options) {
       var nasRes = await _nasRequest('loadInboundLogs', { inventory_id: inventoryId, page: page, page_size: pageSize })
       data = nasRes.logs || nasRes.items || nasRes || []
       if (!Array.isArray(data)) data = []
+      data = data.map(_normalizeRustId)
       hasMore = nasRes.has_more || false
     } else return { items: [], has_more: false }
 
@@ -1159,6 +1198,7 @@ async function loadWhitelist(forceRefresh) {
       var nasRes = await _nasRequest('loadWhitelist', {})
       data = nasRes.whitelist || nasRes || []
       if (!Array.isArray(data)) data = []
+      data = data.map(_normalizeRustId)
     } else return []
 
     if (data && data.length > 0) {

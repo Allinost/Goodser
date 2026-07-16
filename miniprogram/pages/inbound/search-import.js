@@ -333,7 +333,7 @@ Page({
           if (!modalRes.confirm) return
 
           this.setData({ submitting: true })
-          wx.showLoading({ title: '导入中...', mask: true })
+          wx.showNavigationBarLoading()
 
           try {
             // 如果启用了分区修改，先更新所有选中商品的分区
@@ -379,11 +379,11 @@ Page({
               this._disableAlert()
               this._disableAlert = null
             }
-            wx.hideLoading()
+            wx.hideNavigationBarLoading()
             wx.showToast({ title: '导入成功', icon: 'success' })
             setTimeout(() => wx.navigateBack(), 1200)
           } catch (err) {
-            wx.hideLoading()
+            wx.hideNavigationBarLoading()
             this.setData({ submitting: false })
             console.error('[搜索导入] 失败:', err)
             wx.showToast({ title: '导入失败: ' + (err.message || '未知错误'), icon: 'none', duration: 2500 })
@@ -414,7 +414,7 @@ Page({
         if (!modalRes.confirm) return
 
         this.setData({ submitting: true })
-        wx.showLoading({ title: '导入中...', mask: true })
+        wx.showNavigationBarLoading()
 
         try {
           const prefixSingle = inventorySingle.name.substring(0, 2).toUpperCase()
@@ -435,11 +435,11 @@ Page({
             this._disableAlert()
             this._disableAlert = null
           }
-          wx.hideLoading()
+          wx.hideNavigationBarLoading()
           wx.showToast({ title: '导入成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1200)
         } catch (err) {
-          wx.hideLoading()
+          wx.hideNavigationBarLoading()
           this.setData({ submitting: false })
           console.error('[搜索导入] 失败:', err)
           wx.showToast({ title: '导入失败: ' + (err.message || '未知错误'), icon: 'none', duration: 2500 })

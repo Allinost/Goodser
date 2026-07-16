@@ -88,21 +88,19 @@ Page({
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success: async (res) => {
-        wx.showLoading({ title: '处理图片...', mask: true })
+        wx.showNavigationBarLoading()
         var newImages = [...this.data.images]
         for (var i = 0; i < res.tempFilePaths.length; i++) {
           try {
-            wx.showLoading({ title: '处理图片 ' + (i + 1) + '/' + res.tempFilePaths.length + '...', mask: true })
             var editRes = await this._editImage(res.tempFilePaths[i])
             if (db.getMode() === 'nas') {
-              wx.showLoading({ title: '上传图片 ' + (i + 1) + '/' + res.tempFilePaths.length + '...', mask: true })
               var url = await db.uploadImage(editRes.tempFilePath)
               newImages.push(url)
             } else {
               newImages.push(editRes.tempFilePath)
             }
           } catch (err) {
-            wx.hideLoading()
+            wx.hideNavigationBarLoading()
             wx.showToast({ title: '图片处理失败: ' + (err.message || '未知错误'), icon: 'none' })
             return
           }
@@ -111,7 +109,7 @@ Page({
           images: newImages,
           imageUrl: newImages[0] || ''
         })
-        wx.hideLoading()
+        wx.hideNavigationBarLoading()
         this._markDirty()
       }
     })
@@ -318,7 +316,7 @@ Page({
         if (!modalRes.confirm) return
 
         this.setData({ submitting: true })
-        wx.showLoading({ title: '入库中...', mask: true })
+        wx.showNavigationBarLoading()
 
         try {
           const mainZone = this.data.mainZones[this.data.mainZoneIndex]
@@ -328,9 +326,13 @@ Page({
 
           // 通过 API 获取可用序号
           const seqNumber = await db.allocateSeqNumber(inventory._id, mainZone, subZone)
+          const code = util.generateProductCode(mainZone, subZone, seqNumber, qty, statusCode)
+          const prefix = inventory.name.substring(0, 2).toUpperCase()
+          const orderNo = util.generateOrderNo(prefix)
 
           await db.inboundSingle({
             inventory_id: inventory._id,
+            code: code,
             main_zone: mainZone,
             sub_zone: subZone,
             seq_number: seqNumber,
@@ -344,7 +346,8 @@ Page({
             storage_location: this.data.storageLocation.trim(),
             image_url: this.data.imageUrl || '',
             images: this.data.images || [],
-            tags: [...this.data.selectedTagIds]
+            tags: [...this.data.selectedTagIds],
+            order_no: orderNo
           })
 
           // 关闭离开拦截
@@ -353,11 +356,11 @@ Page({
             this._disableAlert = null
           }
 
-          wx.hideLoading()
+          wx.hideNavigationBarLoading()
           wx.showToast({ title: '入库成功', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1200)
         } catch (err) {
-          wx.hideLoading()
+          wx.hideNavigationBarLoading()
           this.setData({ submitting: false })
           console.error('[入库] 失败:', err)
           wx.showToast({ title: '入库失败: ' + (err.message || '未知错误'), icon: 'none', duration: 2500 })
