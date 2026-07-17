@@ -1,6 +1,7 @@
 ﻿package com.goodser.app.ui.outbound
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +35,7 @@ fun OutboundDetailScreen(
     orderId: String,
     onBack: () -> Unit,
     inventoryId: String = "",
+    onProductClick: (String) -> Unit = {},
     viewModel: OutboundDetailViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -159,7 +161,7 @@ fun OutboundDetailScreen(
                             Spacer(Modifier.height(12.dp))
                             order.items?.forEach { item ->
                                 Row(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { onProductClick(item.productId) },
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     AsyncImage(

@@ -21,6 +21,8 @@ class TokenManager(private val context: Context) {
         private val PASSWORD = stringPreferencesKey("password")
         private val SERVER_URL = stringPreferencesKey("server_url")
         private val REMEMBER_ME = booleanPreferencesKey("remember_me")
+        private val LAST_SYNC_TIME = stringPreferencesKey("last_sync_time")
+        private val LAST_SYNC_DETAIL = stringPreferencesKey("last_sync_detail")
     }
 
     val accessTokenFlow: Flow<String?> = context.dataStore.data.map { it[ACCESS_TOKEN] }
@@ -61,6 +63,21 @@ class TokenManager(private val context: Context) {
     }
 
     suspend fun getRememberMe(): Boolean = context.dataStore.data.first()[REMEMBER_ME] ?: false
+
+    val lastSyncTimeFlow: Flow<String?> = context.dataStore.data.map { it[LAST_SYNC_TIME] }
+    val lastSyncDetailFlow: Flow<String?> = context.dataStore.data.map { it[LAST_SYNC_DETAIL] }
+
+    suspend fun getLastSyncTime(): String? = context.dataStore.data.first()[LAST_SYNC_TIME]
+
+    suspend fun saveLastSyncTime(time: String) {
+        context.dataStore.edit { it[LAST_SYNC_TIME] = time }
+    }
+
+    suspend fun getLastSyncDetail(): String? = context.dataStore.data.first()[LAST_SYNC_DETAIL]
+
+    suspend fun saveLastSyncDetail(detail: String) {
+        context.dataStore.edit { it[LAST_SYNC_DETAIL] = detail }
+    }
 
     suspend fun clear() {
         context.dataStore.edit { it.clear() }

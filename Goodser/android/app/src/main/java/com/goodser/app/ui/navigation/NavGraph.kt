@@ -87,7 +87,7 @@ fun GoodserNavGraph() {
         NavHost(
             navController = navController,
             startDestination = startDest!!,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             composable(Screen.Login.route) {
                 LoginScreen(
@@ -163,7 +163,10 @@ fun GoodserNavGraph() {
                 OutboundDetailScreen(
                     orderId = orderId,
                     onBack = { navController.popBackStack() },
-                    inventoryId = appState.currentInventory?.id ?: ""
+                    inventoryId = appState.currentInventory?.id ?: "",
+                    onProductClick = { productId ->
+                        navController.navigate(Screen.ProductDetail.createRoute(productId))
+                    }
                 )
             }
             composable(Screen.CreateOutbound.route) {
@@ -205,7 +208,10 @@ fun GoodserNavGraph() {
                 InboundLogDetailScreen(
                     logId = logId,
                     currentInventoryId = appState.currentInventory?.id ?: "",
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onProductClick = { productId ->
+                        navController.navigate(Screen.ProductDetail.createRoute(productId))
+                    }
                 )
             }
             composable(Screen.InboundSingle.route) {

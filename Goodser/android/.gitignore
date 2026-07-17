@@ -1,0 +1,8 @@
+*.iml
+.gradle
+.idea
+.kotlin
+build
+local.properties
+err.txt
+secret.md

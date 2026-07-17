@@ -65,11 +65,11 @@ fun InventoryListScreen(
             }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(Background)) {
+    Column(modifier = Modifier.fillMaxSize().background(Background).windowInsetsPadding(WindowInsets.statusBars)) {
         Surface(shadowElevation = 2.dp) {
             Column {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Surface(
@@ -91,23 +91,18 @@ fun InventoryListScreen(
                             Text("▼", fontSize = 10.sp, color = TextSecondary)
                         }
                     }
+                    TextButton(onClick = { showRenameDialog = true }, modifier = Modifier.height(32.dp)) {
+                        Text("重命名", fontSize = 12.sp, color = TextSecondary)
+                    }
+                    TextButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.height(32.dp)) {
+                        Text("删除", fontSize = 12.sp, color = Error)
+                    }
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick = { viewModel.search() }) {
                         Icon(Icons.Default.Refresh, "刷新", tint = TextSecondary, modifier = Modifier.size(20.dp))
                     }
                     IconButton(onClick = { showCreateDialog = true }) {
                         Icon(Icons.Default.Add, "新建", tint = TextSecondary, modifier = Modifier.size(20.dp))
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = { showRenameDialog = true }) {
-                        Text("重命名", fontSize = 13.sp, color = TextSecondary)
-                    }
-                    TextButton(onClick = { showDeleteConfirm = true }) {
-                        Text("删除", fontSize = 13.sp, color = Error)
                     }
                 }
             }
@@ -273,7 +268,7 @@ fun InventoryListScreen(
             title = "重命名目录",
             initialValue = appState.currentInventory!!.name,
             placeholder = "新名称",
-            onConfirm = { showRenameDialog = false },
+            onConfirm = { appViewModel.renameInventory(appState.currentInventory!!.id, it); showRenameDialog = false },
             onDismiss = { showRenameDialog = false }
         )
     }

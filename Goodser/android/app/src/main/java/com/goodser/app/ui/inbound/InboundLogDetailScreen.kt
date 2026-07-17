@@ -46,7 +46,8 @@ private fun typeLabel(type: String): String = when (type) {
 fun InboundLogDetailScreen(
     logId: String,
     currentInventoryId: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onProductClick: (String) -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val repo = remember { InboundRepository() }
@@ -160,7 +161,7 @@ fun InboundLogDetailScreen(
                             Text("暂无商品", fontSize = 13.sp, color = TextSecondary)
                         } else {
                             items.forEachIndexed { idx, item ->
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { onProductClick(item.productId) }) {
                                     if (!item.imageUrl.isNullOrBlank()) {
                                         AsyncImage(model = item.imageUrl, contentDescription = null, modifier = Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)), contentScale = ContentScale.Crop)
                                         Spacer(Modifier.width(10.dp))

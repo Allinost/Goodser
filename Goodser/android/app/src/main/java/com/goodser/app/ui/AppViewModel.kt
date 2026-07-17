@@ -57,6 +57,15 @@ class AppViewModel : ViewModel() {
         }
     }
 
+    fun renameInventory(id: String, name: String) {
+        viewModelScope.launch {
+            inventoryRepo.update(id, name).fold(
+                onSuccess = { loadInventories() },
+                onFailure = { _state.value = _state.value.copy(error = it.message) }
+            )
+        }
+    }
+
     fun deleteInventory(id: String) {
         viewModelScope.launch {
             inventoryRepo.delete(id).fold(

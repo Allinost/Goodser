@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +32,7 @@ fun StatusCodeScreen(onBack: () -> Unit) {
     var codes by remember { mutableStateOf<List<StatusCode>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var showCreate by remember { mutableStateOf(false) }
+    var showEdit by remember { mutableStateOf<StatusCode?>(null) }
     var showDelete by remember { mutableStateOf<StatusCode?>(null) }
 
     LaunchedEffect(Unit) {
@@ -63,6 +65,7 @@ fun StatusCodeScreen(onBack: () -> Unit) {
                                 if (code.isSystem) Text("系统预设", fontSize = 11.sp, color = TextSecondary)
                             }
                             if (!code.isSystem) {
+                                IconButton(onClick = { showEdit = code }) { Icon(Icons.Default.Edit, "编辑", tint = Primary) }
                                 IconButton(onClick = { showDelete = code }) { Icon(Icons.Default.Delete, "删除", tint = Error) }
                             }
                         }
@@ -98,8 +101,22 @@ fun StatusCodeScreen(onBack: () -> Unit) {
             shape = RoundedCornerShape(12.dp)
         )
     }
+    showEdit?.let { code ->
+        var editLabel by remember(code.id) { mutableStateOf(code.label) }
+        AlertDialog(
+            onDismissRequest = { showEdit = null },
+            title = { Text("编辑状态编码「${code.code}」") },
+            text = { OutlinedTextField(value = editLabel, onValueChange = { editLabel = it }, label = { Text("名称") }, singleLine = true, modifier = Modifier.fillMaxWidth()) },
+            confirmButton = { TextButton(onClick = {
+                scope.launch { repo.update(code.id, editLabel).fold(onSuccess = { updated -> codes = codes.map { if (it.id == code.id) updated else it } }, onFailure = {}) }
+                showEdit = null
+            }) { Text("保存") } },
+            dismissButton = { TextButton(onClick = { showEdit = null }) { Text("取消") } },
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
     showDelete?.let { code ->
-        ConfirmDialog(title = "删除状态编码", message = "确定删除编码「 - 」？", onConfirm = {
+        ConfirmDialog(title = "删除状态编码", message = "确定删除编码「${code.code}」？", onConfirm = {
             scope.launch { repo.remove(code.id).fold(onSuccess = { codes = codes.filter { it.id != code.id } }, onFailure = {}) }
             showDelete = null
         }, onDismiss = { showDelete = null }, isDestructive = true)
