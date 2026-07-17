@@ -30,7 +30,7 @@ import com.goodser.app.ui.AppViewModel
 import com.goodser.app.ui.components.*
 import com.goodser.app.ui.theme.*
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 
 @Composable
 fun InventoryListScreen(
@@ -72,25 +72,31 @@ fun InventoryListScreen(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.clickable { showInventoryPicker = true },
-                        verticalAlignment = Alignment.CenterVertically
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color(0xFFF5F5F5),
+                        onClick = { showInventoryPicker = true }
                     ) {
-                        Text(
-                            appState.currentInventory?.name ?: "ѡ��ֿ�",
-                            fontSize = 16.sp,
-                            color = Primary,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(if (showInventoryPicker) "��" else "��", fontSize = 10.sp, color = Primary)
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                appState.currentInventory?.name ?: "选择库存",
+                                fontSize = 14.sp,
+                                color = OnBackground,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text("▼", fontSize = 10.sp, color = TextSecondary)
+                        }
                     }
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick = { viewModel.search() }) {
-                        Icon(Icons.Default.Refresh, "ˢ��", tint = TextSecondary, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Refresh, "刷新", tint = TextSecondary, modifier = Modifier.size(20.dp))
                     }
                     IconButton(onClick = { showCreateDialog = true }) {
-                        Icon(Icons.Default.Add, "����", tint = TextSecondary, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Add, "新建", tint = TextSecondary, modifier = Modifier.size(20.dp))
                     }
                 }
                 Row(
@@ -98,10 +104,10 @@ fun InventoryListScreen(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = { showRenameDialog = true }) {
-                        Text("������", fontSize = 13.sp, color = TextSecondary)
+                        Text("重命名", fontSize = 13.sp, color = TextSecondary)
                     }
                     TextButton(onClick = { showDeleteConfirm = true }) {
-                        Text("ɾ��", fontSize = 13.sp, color = Error)
+                        Text("删除", fontSize = 13.sp, color = Error)
                     }
                 }
             }
@@ -118,13 +124,13 @@ fun InventoryListScreen(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "�� ${state.totalCount} ����Ʒ����ǰ��ʾ ${state.products.size} ��",
+                    "共 ${state.totalCount} 件商品，当前显示 ${state.products.size} 件",
                     fontSize = 12.sp,
                     color = TextSecondary,
                     modifier = Modifier.weight(1f)
                 )
                 val totalStock = state.products.sumOf { it.quantity + it.reservedQuantity }
-                Text("�ܿ�� $totalStock", fontSize = 12.sp, color = Primary, fontWeight = FontWeight.Medium)
+                Text("总库存 $totalStock", fontSize = 12.sp, color = Primary, fontWeight = FontWeight.Medium)
             }
 
             Spacer(Modifier.height(8.dp))
@@ -137,9 +143,9 @@ fun InventoryListScreen(
                     modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    SortChip("Ĭ��", active = sortBy == null, onClick = { sortBy = null; sortOrder = null })
+                    SortChip("默认", active = sortBy == null, onClick = { sortBy = null; sortOrder = null })
                     SortChip(
-                        "����${if (sortBy == "code") if (sortOrder == "asc") "��" else "��" else ""}",
+                        "编码${if (sortBy == "code") if (sortOrder == "asc") "↑" else "↓" else ""}",
                         active = sortBy == "code",
                         onClick = {
                             if (sortBy == "code" && sortOrder == "asc") { sortBy = "code"; sortOrder = "desc" }
@@ -147,7 +153,7 @@ fun InventoryListScreen(
                         }
                     )
                     SortChip(
-                        "����${if (sortBy == "name") if (sortOrder == "asc") "��" else "��" else ""}",
+                        "名称${if (sortBy == "name") if (sortOrder == "asc") "↑" else "↓" else ""}",
                         active = sortBy == "name",
                         onClick = {
                             if (sortBy == "name" && sortOrder == "asc") { sortBy = "name"; sortOrder = "desc" }
@@ -155,7 +161,7 @@ fun InventoryListScreen(
                         }
                     )
                     SortChip(
-                        "����${if (sortBy == "quantity") if (sortOrder == "asc") "��" else "��" else ""}",
+                        "数量${if (sortBy == "quantity") if (sortOrder == "asc") "↑" else "↓" else ""}",
                         active = sortBy == "quantity",
                         onClick = {
                             if (sortBy == "quantity" && sortOrder == "asc") { sortBy = "quantity"; sortOrder = "desc" }
@@ -163,7 +169,7 @@ fun InventoryListScreen(
                         }
                     )
                     SortChip(
-                        "�۸�${if (sortBy == "expected_price") if (sortOrder == "asc") "��" else "��" else ""}",
+                        "价格${if (sortBy == "expected_price") if (sortOrder == "asc") "↑" else "↓" else ""}",
                         active = sortBy == "expected_price",
                         onClick = {
                             if (sortBy == "expected_price" && sortOrder == "asc") { sortBy = "expected_price"; sortOrder = "desc" }
@@ -174,7 +180,7 @@ fun InventoryListScreen(
                 Spacer(Modifier.width(4.dp))
                 val hasFilter = state.selectedZone != null || state.selectedStatusCode != null || state.selectedTagId != null
                 IconButton(onClick = { showFilterSheet = true }, modifier = Modifier.size(36.dp)) {
-                    Icon(Icons.Default.FilterList, "ɸѡ", tint = if (hasFilter) Primary else TextSecondary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.FilterList, "筛选", tint = if (hasFilter) Primary else TextSecondary, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -183,9 +189,9 @@ fun InventoryListScreen(
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else if (state.products.isEmpty()) {
             EmptyState(
-                icon = "??",
-                title = if (state.query.isNotBlank() || state.selectedZone != null) "��ƥ����Ʒ" else "������Ʒ",
-                description = if (state.query.isBlank() && state.selectedZone == null) "������Ͻ� + �½����������" else null
+                icon = "📦",
+                title = if (state.query.isNotBlank() || state.selectedZone != null) "未匹配商品" else "暂无商品",
+                description = if (state.query.isBlank() && state.selectedZone == null) "点击右上角 + 新建商品来添加" else null
             )
         } else {
             LazyColumn(
@@ -211,7 +217,7 @@ fun InventoryListScreen(
     if (showInventoryPicker) {
         ModalBottomSheet(onDismissRequest = { showInventoryPicker = false }) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("ѡ��ֿ�", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = OnBackground)
+                Text("选择库存", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = OnBackground)
                 Spacer(Modifier.height(12.dp))
                 appState.inventories.forEach { inv ->
                     Row(
@@ -225,7 +231,7 @@ fun InventoryListScreen(
                     ) {
                         Text(inv.name, fontSize = 14.sp, color = OnBackground, modifier = Modifier.weight(1f))
                         if (inv.id == appState.currentInventory?.id) {
-                            Text("?", color = Primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text("✓", color = Primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                     HorizontalDivider(color = Divider)
@@ -255,8 +261,8 @@ fun InventoryListScreen(
 
     if (showCreateDialog) {
         InputDialog(
-            title = "�½����Ŀ¼",
-            placeholder = "Ŀ¼����",
+            title = "新建库存目录",
+            placeholder = "目录名称",
             onConfirm = { appViewModel.createInventory(it); showCreateDialog = false },
             onDismiss = { showCreateDialog = false }
         )
@@ -264,9 +270,9 @@ fun InventoryListScreen(
 
     if (showRenameDialog && appState.currentInventory != null) {
         InputDialog(
-            title = "������Ŀ¼",
+            title = "重命名目录",
             initialValue = appState.currentInventory!!.name,
-            placeholder = "������",
+            placeholder = "新名称",
             onConfirm = { showRenameDialog = false },
             onDismiss = { showRenameDialog = false }
         )
@@ -274,9 +280,9 @@ fun InventoryListScreen(
 
     if (showDeleteConfirm && appState.currentInventory != null) {
         ConfirmDialog(
-            title = "ɾ��Ŀ¼",
-            message = "ȷ��ɾ����${appState.currentInventory!!.name}�����ò������ɻָ���",
-            confirmText = "ɾ��",
+            title = "删除目录",
+            message = "确认删除 ${appState.currentInventory!!.name}？此操作不可恢复。",
+            confirmText = "删除",
             onConfirm = { appViewModel.deleteInventory(appState.currentInventory!!.id); showDeleteConfirm = false },
             onDismiss = { showDeleteConfirm = false },
             isDestructive = true
@@ -301,6 +307,7 @@ fun SortChip(text: String, active: Boolean, onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterSheet(
     zones: List<String>,
@@ -316,14 +323,14 @@ fun FilterSheet(
     onConfirm: () -> Unit
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
-        Text("ɸѡ", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = OnBackground)
+        Text("筛选", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = OnBackground)
         Spacer(Modifier.height(16.dp))
 
         if (zones.isNotEmpty()) {
-            Text("������", fontSize = 13.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
+            Text("主分区", fontSize = 13.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterTagChip("ȫ��", active = selectedZone == null, onClick = { onZoneChange(null) })
+                FilterTagChip("全部", active = selectedZone == null, onClick = { onZoneChange(null) })
                 zones.forEach { zone ->
                     FilterTagChip(zone, active = selectedZone == zone, onClick = { onZoneChange(if (selectedZone == zone) null else zone) })
                 }
@@ -332,10 +339,10 @@ fun FilterSheet(
         }
 
         if (statusCodes.isNotEmpty()) {
-            Text("״̬", fontSize = 13.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
+            Text("状态", fontSize = 13.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterTagChip("ȫ��", active = selectedStatusCode == null, onClick = { onStatusCodeChange(null) })
+                FilterTagChip("全部", active = selectedStatusCode == null, onClick = { onStatusCodeChange(null) })
                 statusCodes.forEach { code ->
                     FilterTagChip(code, active = selectedStatusCode == code, onClick = { onStatusCodeChange(if (selectedStatusCode == code) null else code) })
                 }
@@ -344,10 +351,10 @@ fun FilterSheet(
         }
 
         if (tags.isNotEmpty()) {
-            Text("��ǩ", fontSize = 13.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
+            Text("标签", fontSize = 13.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(8.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterTagChip("ȫ��", active = selectedTagId == null, onClick = { onTagChange(null) })
+                FilterTagChip("全部", active = selectedTagId == null, onClick = { onTagChange(null) })
                 tags.forEach { tag ->
                     FilterTagChip(tag.name, active = selectedTagId == tag.id, onClick = { onTagChange(if (selectedTagId == tag.id) null else tag.id) })
                 }
@@ -363,7 +370,7 @@ fun FilterSheet(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text("����", color = TextSecondary)
+                Text("重置", color = TextSecondary)
             }
             Button(
                 onClick = onConfirm,
@@ -371,7 +378,7 @@ fun FilterSheet(
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary)
             ) {
-                Text("ȷ��ɸѡ", color = OnPrimary)
+                Text("确认筛选", color = OnPrimary)
             }
         }
         Spacer(Modifier.height(16.dp))
@@ -394,5 +401,3 @@ fun FilterTagChip(text: String, active: Boolean, onClick: () -> Unit) {
         )
     }
 }
-
-

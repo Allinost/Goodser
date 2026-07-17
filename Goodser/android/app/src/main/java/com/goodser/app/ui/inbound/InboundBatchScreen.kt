@@ -54,7 +54,7 @@ private fun parseTagColor(hex: String): Color {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 
 @Composable
 fun InboundBatchScreen(
@@ -228,7 +228,7 @@ private fun BatchItemRow(index: Int, item: InboundBatchItem, tags: List<GoodserT
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 
 @Composable
 private fun BatchAddForm(
@@ -438,6 +438,7 @@ private fun BatchAddForm(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NewTagDialog(
     tagRepo: TagRepository,

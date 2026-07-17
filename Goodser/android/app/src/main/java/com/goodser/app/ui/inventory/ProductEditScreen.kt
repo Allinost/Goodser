@@ -554,7 +554,7 @@ fun ProductEditScreen(
                         tagColors.forEach { colorHex ->
                             val isSelected = newTagColor == colorHex
                             Box(
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(36.dp)
                                     .clip(CircleShape)
                                     .background(parseTagColor(colorHex))
                                     .clickable { newTagColor = colorHex },
@@ -598,8 +598,6 @@ fun ProductEditScreen(
             }
         )
     }
-}
-
 }
 
 private val tagColors = listOf(

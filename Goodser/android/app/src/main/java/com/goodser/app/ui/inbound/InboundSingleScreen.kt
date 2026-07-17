@@ -41,7 +41,7 @@ import kotlinx.coroutines.launch
 
 private val ZONES = listOf("A", "B", "C", "D", "E", "F", "G", "H")
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 
 @Composable
 fun InboundSingleScreen(

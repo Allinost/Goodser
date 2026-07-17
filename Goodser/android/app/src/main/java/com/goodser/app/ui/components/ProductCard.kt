@@ -1,5 +1,6 @@
 package com.goodser.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -26,14 +28,14 @@ fun ProductCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Surface)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Column(modifier = modifier.fillMaxWidth().background(Surface)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         AsyncImage(
             model = product.imageUrl ?: product.images?.firstOrNull(),
             contentDescription = null,
@@ -46,7 +48,7 @@ fun ProductCard(
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(product.code, fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                Text(product.code, fontSize = 12.sp, color = TextSecondary, fontFamily = FontFamily.Monospace, modifier = Modifier.weight(1f))
                 StatusTag(
                     text = statusLabel(product.statusCode),
                     bg = TagBlueBg, textColor = TagBlueText
@@ -63,6 +65,15 @@ fun ProductCard(
                 modifier = Modifier.widthIn(max = 200.dp)
             )
             Spacer(Modifier.height(2.dp))
+            if (product.expectedPrice != null) {
+                Text(
+                    "¥${"%.2f".format(product.expectedPrice)}",
+                    fontSize = 13.sp,
+                    color = TextSecondary,
+                    fontFamily = FontFamily.Monospace
+                )
+                Spacer(Modifier.height(2.dp))
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "库存: ${product.quantity}",
@@ -85,6 +96,8 @@ fun ProductCard(
             }
         }
     }
+    HorizontalDivider(color = Divider, thickness = 0.5.dp)
+}
 }
 
 @Composable

@@ -1,13 +1,13 @@
 ﻿package com.goodser.app.ui.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.outlined.Assignment
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -22,7 +22,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector?
         fun createRoute(productId: String) = "product_edit/$productId"
         const val NEW_FLAG = "new"
     }
-    object Outbound : Screen("outbound", "出库", Icons.Filled.Logout)
+    object Outbound : Screen("outbound", "出库", Icons.AutoMirrored.Filled.Logout)
     object InboundLogDetail : Screen("inbound_log_detail/{logId}", "入库单详情") {
         fun createRoute(logId: String) = "inbound_log_detail/$logId"
     }
@@ -31,7 +31,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector?
     }
     object CreateOutbound : Screen("create_outbound", "新建出库单")
     object CreateReserve : Screen("create_reserve", "新建预留单")
-    object Inbound : Screen("inbound", "入库", Icons.Filled.Assignment)
+    object Inbound : Screen("inbound", "入库", Icons.AutoMirrored.Filled.Assignment)
     object InboundSingle : Screen("inbound_single", "单独入库")
     object InboundBatch : Screen("inbound_batch", "批量入库")
     object InboundSearch : Screen("inbound_search", "搜索导入")
@@ -51,7 +51,7 @@ data class BottomNavItem(
 
 val bottomNavItems = listOf(
     BottomNavItem(Screen.Inventory, Icons.Filled.Inventory2, Icons.Outlined.Inventory2, "库存"),
-    BottomNavItem(Screen.Outbound, Icons.Filled.Logout, Icons.Outlined.Logout, "出库"),
-    BottomNavItem(Screen.Inbound, Icons.Filled.Assignment, Icons.Outlined.Assignment, "入库"),
+    BottomNavItem(Screen.Outbound, Icons.AutoMirrored.Filled.Logout, Icons.AutoMirrored.Outlined.Logout, "出库"),
+    BottomNavItem(Screen.Inbound, Icons.AutoMirrored.Filled.Assignment, Icons.AutoMirrored.Outlined.Assignment, "入库"),
     BottomNavItem(Screen.Settings, Icons.Filled.Settings, Icons.Outlined.Settings, "设置")
 )

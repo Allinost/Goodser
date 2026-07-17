@@ -3,6 +3,7 @@ package com.goodser.app.ui.inventory
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -37,7 +38,7 @@ import com.goodser.app.ui.components.InputDialog
 import com.goodser.app.ui.theme.*
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 
 @Composable
 fun ProductDetailScreen(
@@ -78,8 +79,8 @@ fun ProductDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("��Ʒ����") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "����") } },
+                title = { Text("商品详情") },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") } },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Primary, titleContentColor = OnPrimary,
                     navigationIconContentColor = OnPrimary
@@ -101,7 +102,7 @@ fun ProductDetailScreen(
                         ) {
                             Icon(Icons.Default.Delete, null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("ɾ��")
+                            Text("删除")
                         }
                         Button(
                             onClick = { onEdit?.invoke(product.id) },
@@ -111,7 +112,7 @@ fun ProductDetailScreen(
                         ) {
                             Icon(Icons.Default.Edit, null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("�༭")
+                            Text("编辑")
                         }
                     }
                 }
@@ -122,7 +123,7 @@ fun ProductDetailScreen(
         if (state.loading && product == null) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else if (product == null) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { Text("��Ʒ������", color = TextSecondary) }
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { Text("商品未找到", color = TextSecondary) }
         } else {
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).background(Background)
@@ -141,7 +142,7 @@ fun ProductDetailScreen(
                                 contentScale = ContentScale.Crop
                             )
                         } else {
-                            Text("����ͼƬ", color = TextSecondary, fontSize = 14.sp)
+                            Text("暂无图片", color = TextSecondary, fontSize = 14.sp)
                         }
                     }
                 }
@@ -181,14 +182,24 @@ fun ProductDetailScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("��ǩ", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = OnBackground, modifier = Modifier.weight(1f))
-                                    TextButton(onClick = {
-                                        tagPickerSelection = productTagIds.toSet()
-                                        showTagPicker = true
-                                    }) {
-                                        Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp), tint = Primary)
-                                        Spacer(Modifier.width(2.dp))
-                                        Text("+ ��ǩ", fontSize = 13.sp, color = Primary)
+                                    Text("标签", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = OnBackground, modifier = Modifier.weight(1f))
+                                    Surface(
+                                        onClick = {
+                                            tagPickerSelection = productTagIds.toSet()
+                                            showTagPicker = true
+                                        },
+                                        shape = RoundedCornerShape(24.dp),
+                                        border = BorderStroke(1.dp, Color(0xFFD9D9D9)),
+                                        color = Color.Transparent,
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp), tint = TextSecondary)
+                                            Spacer(Modifier.width(2.dp))
+                                            Text("+ 标签", fontSize = 13.sp, color = TextSecondary)
+                                        }
                                     }
                                 }
                                 if (productTags.isNotEmpty()) {
@@ -231,33 +242,33 @@ fun ProductDetailScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             if (product.originalPrice != null && product.originalPrice > 0) {
-                                InfoRow("ԭ��", "��%.2f".format(product.originalPrice))
+                                InfoRow("原价", "¥%.2f".format(product.originalPrice))
                             }
                             if (product.marketPrice != null && product.marketPrice > 0) {
-                                InfoRow("�г���", "��%.2f".format(product.marketPrice))
+                                InfoRow("市场价", "¥%.2f".format(product.marketPrice))
                             }
                             if (product.expectedPrice != null && product.expectedPrice > 0) {
-                                InfoRow("Ԥ�ڳ��ۼ�", "��%.2f".format(product.expectedPrice), highlight = true)
+                                InfoRow("预期出售价", "¥%.2f".format(product.expectedPrice), highlight = true)
                             }
                             HorizontalDivider(color = Divider, modifier = Modifier.padding(vertical = 4.dp))
                             val qtyStr = if (product.reservedQuantity > 0) {
-                                "${product.quantity}����Ԥ�� ${product.reservedQuantity}��"
+                                "${product.quantity}（已预留 ${product.reservedQuantity}件）"
                             } else product.quantity.toString()
-                            InfoRow("�������", qtyStr, highlight = true)
+                            InfoRow("库存数量", qtyStr, highlight = true)
                             if (!product.storageLocation.isNullOrBlank()) {
-                                InfoRow("�ִ�λ��", product.storageLocation)
+                                InfoRow("仓储位置", product.storageLocation)
                             }
                             HorizontalDivider(color = Divider, modifier = Modifier.padding(vertical = 4.dp))
-                            InfoRow("������", product.mainZone)
-                            InfoRow("�ӷ���", product.subZone)
-                            InfoRow("���", product.seqNumber.toString().padStart(4, '0'))
-                            InfoRow("״̬", statusLabel(product.statusCode))
+                            InfoRow("主分区", product.mainZone)
+                            InfoRow("子分区", product.subZone)
+                            InfoRow("序号", product.seqNumber.toString().padStart(4, '0'))
+                            InfoRow("状态", statusLabel(product.statusCode))
                             HorizontalDivider(color = Divider, modifier = Modifier.padding(vertical = 4.dp))
                             if (!product.remark.isNullOrBlank()) {
-                                InfoRow("��ע", product.remark)
+                                InfoRow("备注", product.remark)
                             }
-                            InfoRow("����ʱ��", product.createdAt.take(19))
-                            InfoRow("����ʱ��", product.updatedAt.take(19))
+                            InfoRow("创建时间", product.createdAt.take(19))
+                            InfoRow("更新时间", product.updatedAt.take(19))
                         }
                     }
                 }
@@ -269,9 +280,9 @@ fun ProductDetailScreen(
 
     if (showDeleteConfirm && state.product != null) {
         ConfirmDialog(
-            title = "ɾ����Ʒ",
-            message = "ȷ��ɾ����${state.product!!.name}�����˲������ɻָ���",
-            confirmText = "ɾ��",
+            title = "删除商品",
+            message = "确认删除 ${state.product!!.name}？此操作不可恢复。",
+            confirmText = "删除",
             onConfirm = { viewModel.deleteProduct(state.product!!.id); showDeleteConfirm = false },
             onDismiss = { showDeleteConfirm = false },
             isDestructive = true
@@ -282,7 +293,7 @@ fun ProductDetailScreen(
         AlertDialog(
             onDismissRequest = { showTagPicker = false },
             shape = RoundedCornerShape(12.dp),
-            title = { Text("ѡ���ǩ", fontWeight = FontWeight.Bold) },
+            title = { Text("选择标签", fontWeight = FontWeight.Bold) },
             text = {
                 Column {
                     allTags.forEach { tag ->
@@ -305,7 +316,7 @@ fun ProductDetailScreen(
                             Spacer(Modifier.width(10.dp))
                             Text(tag.name, fontSize = 14.sp, color = OnBackground, modifier = Modifier.weight(1f))
                             if (tag.id in tagPickerSelection) {
-                                Text("?", color = Primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Text("✓", color = Primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -315,7 +326,7 @@ fun ProductDetailScreen(
                     ) {
                         Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp), tint = Primary)
                         Spacer(Modifier.width(4.dp))
-                        Text("�½���ǩ", color = Primary)
+                        Text("新建标签", color = Primary)
                     }
                 }
             },
@@ -332,12 +343,12 @@ fun ProductDetailScreen(
                         )
                     }
                 }) {
-                    Text("���", color = Primary)
+                    Text("确认", color = Primary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showTagPicker = false }) {
-                    Text("ȡ��", color = TextSecondary)
+                    Text("取消", color = TextSecondary)
                 }
             }
         )
@@ -347,18 +358,18 @@ fun ProductDetailScreen(
         AlertDialog(
             onDismissRequest = { showNewTagDialog = false },
             shape = RoundedCornerShape(12.dp),
-            title = { Text("�½���ǩ", fontWeight = FontWeight.Bold) },
+            title = { Text("新建标签", fontWeight = FontWeight.Bold) },
             text = {
                 Column {
                     OutlinedTextField(
                         value = newTagName,
                         onValueChange = { newTagName = it },
-                        label = { Text("��ǩ����") },
+                        label = { Text("标签名称") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(12.dp))
-                    Text("ѡ����ɫ", fontSize = 13.sp, color = TextSecondary)
+                    Text("选择颜色", fontSize = 13.sp, color = TextSecondary)
                     Spacer(Modifier.height(8.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         tagColors.forEach { colorHex ->
@@ -371,7 +382,7 @@ fun ProductDetailScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (isSelected) {
-                                    Text("?", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                    Text("✓", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -401,12 +412,12 @@ fun ProductDetailScreen(
                     },
                     enabled = newTagName.isNotBlank()
                 ) {
-                    Text("����", color = Primary)
+                    Text("创建", color = Primary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showNewTagDialog = false }) {
-                    Text("ȡ��", color = TextSecondary)
+                    Text("取消", color = TextSecondary)
                 }
             }
         )
@@ -435,7 +446,7 @@ fun TagChip(tag: GoodserTag, onRemove: () -> Unit) {
             Text(tag.name, fontSize = 12.sp, color = tagColor, fontWeight = FontWeight.Medium)
             Spacer(Modifier.width(4.dp))
             Text(
-                "?",
+                "✕",
                 fontSize = 12.sp,
                 color = tagColor.copy(alpha = 0.6f),
                 modifier = Modifier.clickable(onClick = onRemove).padding(2.dp)
@@ -475,11 +486,9 @@ fun InfoRow(label: String, value: String, highlight: Boolean = false) {
 }
 
 private fun statusLabel(code: String): String = when (code) {
-    "A" -> "�ڿ�"
-    "B" -> "����"
-    "C" -> "����"
-    "D" -> "����"
+    "A" -> "在库"
+    "B" -> "售出"
+    "C" -> "退货"
+    "D" -> "借出"
     else -> code
 }
-
-

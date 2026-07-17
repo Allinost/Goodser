@@ -49,7 +49,7 @@ private fun parseTagColor(hex: String): Color {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 
 @Composable
 fun InboundSearchScreen(
@@ -100,7 +100,7 @@ fun InboundSearchScreen(
     }
     LaunchedEffect(success) { if (success) onBack() }
 
-    val selectedInventoryName = inventories.find { it.id == selectedInventoryId }?.name ?: "δѡ��"
+    val selectedInventoryName = inventories.find { it.id == selectedInventoryId }?.name ?: "未选择"
 
     val multiSelectedProductsList = if (isMultiSelect) searchResults.filter { it.id in selectedProductIds } else emptyList()
     val multiQtyInputs = remember { mutableStateMapOf<String, String>() }
@@ -130,8 +130,8 @@ fun InboundSearchScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("�����������") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "����") } },
+                title = { Text("入库搜索") },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回") } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Primary, titleContentColor = OnPrimary, navigationIconContentColor = OnPrimary)
             )
         },
@@ -159,7 +159,7 @@ fun InboundSearchScreen(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             if (submitting) CircularProgressIndicator(modifier = Modifier.size(20.dp), color = OnPrimary)
-                            else Text("ȷ�ϵ������", fontWeight = FontWeight.Medium)
+                            else Text("确认导入入库", fontWeight = FontWeight.Medium)
                         }
                     }
                 }
@@ -175,14 +175,14 @@ fun InboundSearchScreen(
             ) {
                 Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("���Ŀ¼", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
+                        Text("入库目录", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                         Spacer(Modifier.height(8.dp))
                         ExposedDropdownMenuBox(expanded = inventoryExpanded, onExpandedChange = { inventoryExpanded = it }) {
                             OutlinedTextField(
                                 value = selectedInventoryName,
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("��ѡ�����Ŀ¼ *") },
+                                label = { Text("请选择入库目录 *") },
                                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = inventoryExpanded) },
                                 modifier = Modifier.fillMaxWidth().menuAnchor(),
                                 singleLine = true
@@ -198,7 +198,7 @@ fun InboundSearchScreen(
 
                 Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("������Ʒ", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
+                        Text("搜索商品", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             OutlinedTextField(
@@ -206,7 +206,7 @@ fun InboundSearchScreen(
                                 onValueChange = { query = it },
                                 modifier = Modifier.weight(1f),
                                 singleLine = true,
-                                placeholder = { Text("������Ʒ���ƻ����") }
+                                placeholder = { Text("搜索商品名称或编码") }
                             )
                             Spacer(Modifier.width(8.dp))
                             Button(
@@ -221,7 +221,7 @@ fun InboundSearchScreen(
                                     }
                                 },
                                 enabled = !loading
-                            ) { Text("����", fontSize = 13.sp) }
+                            ) { Text("搜索", fontSize = 13.sp) }
                         }
 
                         if (loading) {
@@ -230,21 +230,21 @@ fun InboundSearchScreen(
                         } else if (searched && searchResults.isEmpty()) {
                             Spacer(Modifier.height(24.dp))
                             Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("?", fontSize = 36.sp, color = TextSecondary)
+                                Text("🔍", fontSize = 36.sp, color = TextSecondary)
                                 Spacer(Modifier.height(8.dp))
-                                Text("δ�ҵ���Ʒ", color = TextSecondary, fontSize = 14.sp)
+                                Text("未找到商品", color = TextSecondary, fontSize = 14.sp)
                             }
                         } else if (searchResults.isNotEmpty()) {
                             Spacer(Modifier.height(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("�������: ${searchResults.size} ��", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                                Text("搜索结果: ${searchResults.size} 个", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.weight(1f))
                                 if (!isMultiSelect) {
                                     TextButton(onClick = { isMultiSelect = true; selectedProductIds = emptySet() }) {
-                                        Text("��ѡ", color = Primary, fontSize = 13.sp)
+                                        Text("多选", color = Primary, fontSize = 13.sp)
                                     }
                                 } else {
                                     TextButton(onClick = { isMultiSelect = false; selectedProductIds = emptySet(); singleSelectedProduct = null }) {
-                                        Text("ȡ����ѡ", color = Primary, fontSize = 13.sp)
+                                        Text("取消多选", color = Primary, fontSize = 13.sp)
                                     }
                                 }
                             }
@@ -268,7 +268,7 @@ fun InboundSearchScreen(
                             }
                         } else if (!searched) {
                             Spacer(Modifier.height(24.dp))
-                            Text("����ؼ�������������Ʒ", color = TextSecondary, fontSize = 14.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                            Text("输入关键词搜索商品", color = TextSecondary, fontSize = 14.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                         }
                     }
                 }
@@ -276,44 +276,44 @@ fun InboundSearchScreen(
                 if (isMultiSelect && multiSelectedProductsList.isNotEmpty()) {
                     Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("��ѡ ${multiSelectedProductsList.size} ����Ʒ", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
+                            Text("已选 ${multiSelectedProductsList.size} 个商品", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                             Spacer(Modifier.height(8.dp))
                             multiSelectedProductsList.forEach { p ->
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(p.name, fontWeight = FontWeight.Medium, fontSize = 14.sp, color = TextPrimary)
-                                        Text("${p.code} | ���: ${p.quantity}", fontSize = 12.sp, color = TextSecondary)
+                                        Text("${p.code} | 库存: ${p.quantity}", fontSize = 12.sp, color = TextSecondary)
                                     }
                                     OutlinedTextField(
                                         value = multiQtyInputs[p.id] ?: "1",
                                         onValueChange = { multiQtyInputs[p.id] = it.filter { c -> c.isDigit() } },
                                         modifier = Modifier.width(70.dp),
                                         singleLine = true,
-                                        placeholder = { Text("����") },
+                                        placeholder = { Text("数量") },
                                         textStyle = LocalTextStyle.current.copy(fontSize = 13.sp, textAlign = TextAlign.Center)
                                     )
                                     IconButton(onClick = { selectedProductIds = selectedProductIds - p.id; multiQtyInputs.remove(p.id) }) {
-                                        Icon(Icons.Default.Close, "�Ƴ�", tint = Error, modifier = Modifier.size(18.dp))
+                                        Icon(Icons.Default.Close, "移除", tint = Error, modifier = Modifier.size(18.dp))
                                     }
                                 }
                                 HorizontalDivider(color = Divider, modifier = Modifier.padding(vertical = 2.dp))
                             }
                             Spacer(Modifier.height(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("�޸�����ѡ����Ʒ�ķ���", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                                Text("修改已选商品的区域", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.weight(1f))
                                 Switch(checked = multiUpdateZone, onCheckedChange = { multiUpdateZone = it })
                             }
                             if (multiUpdateZone) {
                                 Spacer(Modifier.height(8.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     ExposedDropdownMenuBox(expanded = multiMainZoneExpanded, onExpandedChange = { multiMainZoneExpanded = it }, modifier = Modifier.weight(1f)) {
-                                        OutlinedTextField(value = multiMainZone, onValueChange = {}, readOnly = true, label = { Text("������") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = multiMainZoneExpanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), singleLine = true)
+                                        OutlinedTextField(value = multiMainZone, onValueChange = {}, readOnly = true, label = { Text("主分区") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = multiMainZoneExpanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), singleLine = true)
                                         ExposedDropdownMenu(expanded = multiMainZoneExpanded, onDismissRequest = { multiMainZoneExpanded = false }) {
                                             ZONES.forEach { z -> DropdownMenuItem(text = { Text(z) }, onClick = { multiMainZone = z; multiMainZoneExpanded = false }) }
                                         }
                                     }
                                     ExposedDropdownMenuBox(expanded = multiSubZoneExpanded, onExpandedChange = { multiSubZoneExpanded = it }, modifier = Modifier.weight(1f)) {
-                                        OutlinedTextField(value = multiSubZone, onValueChange = {}, readOnly = true, label = { Text("�ӷ���") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = multiSubZoneExpanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), singleLine = true)
+                                        OutlinedTextField(value = multiSubZone, onValueChange = {}, readOnly = true, label = { Text("子分区") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = multiSubZoneExpanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), singleLine = true)
                                         ExposedDropdownMenu(expanded = multiSubZoneExpanded, onDismissRequest = { multiSubZoneExpanded = false }) {
                                             ZONES.forEach { z -> DropdownMenuItem(text = { Text(z) }, onClick = { multiSubZone = z; multiSubZoneExpanded = false }) }
                                         }
@@ -322,7 +322,7 @@ fun InboundSearchScreen(
                             }
                             Spacer(Modifier.height(8.dp))
                             ExposedDropdownMenuBox(expanded = multiStatusExpanded, onExpandedChange = { multiStatusExpanded = it }) {
-                                OutlinedTextField(value = statusCodes.find { it.code == multiStatusCode }?.let { "${it.code} - ${it.label}" } ?: multiStatusCode, onValueChange = {}, readOnly = true, label = { Text("״̬����") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = multiStatusExpanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), singleLine = true)
+                                OutlinedTextField(value = statusCodes.find { it.code == multiStatusCode }?.let { "${it.code} - ${it.label}" } ?: multiStatusCode, onValueChange = {}, readOnly = true, label = { Text("状态编码") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = multiStatusExpanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), singleLine = true)
                                 ExposedDropdownMenu(expanded = multiStatusExpanded, onDismissRequest = { multiStatusExpanded = false }) {
                                     statusCodes.forEach { sc -> DropdownMenuItem(text = { Text("${sc.code} - ${sc.label}", fontSize = 14.sp) }, onClick = { multiStatusCode = sc.code; multiStatusExpanded = false }) }
                                 }
@@ -346,27 +346,27 @@ fun InboundSearchScreen(
                                 }
                             }
                             Spacer(Modifier.height(12.dp))
-                            OutlinedTextField(value = singleQty, onValueChange = { singleQty = it.filter { c -> c.isDigit() } }, label = { Text("�������� *") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(value = singleQty, onValueChange = { singleQty = it.filter { c -> c.isDigit() } }, label = { Text("导入数量 *") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Spacer(Modifier.height(8.dp))
-                            Text("����ѡ��: ����ԭ���� (${product.mainZone}-${product.subZone})", fontSize = 13.sp, color = TextSecondary)
+                            Text("沿用分区: 沿用原分区 (${product.mainZone}-${product.subZone})", fontSize = 13.sp, color = TextSecondary)
                             Spacer(Modifier.height(8.dp))
                             ExposedDropdownMenuBox(expanded = singleStatusExpanded, onExpandedChange = { singleStatusExpanded = it }) {
-                                OutlinedTextField(value = statusCodes.find { it.code == singleStatusCode }?.let { "${it.code} - ${it.label}" } ?: singleStatusCode, onValueChange = {}, readOnly = true, label = { Text("״̬����") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = singleStatusExpanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), singleLine = true)
+                                OutlinedTextField(value = statusCodes.find { it.code == singleStatusCode }?.let { "${it.code} - ${it.label}" } ?: singleStatusCode, onValueChange = {}, readOnly = true, label = { Text("状态编码") }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = singleStatusExpanded) }, modifier = Modifier.fillMaxWidth().menuAnchor(), singleLine = true)
                                 ExposedDropdownMenu(expanded = singleStatusExpanded, onDismissRequest = { singleStatusExpanded = false }) {
                                     statusCodes.forEach { sc -> DropdownMenuItem(text = { Text("${sc.code} - ${sc.label}", fontSize = 14.sp) }, onClick = { singleStatusCode = sc.code; singleStatusExpanded = false }) }
                                 }
                             }
                             Spacer(Modifier.height(12.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("��Ʒ��ǩ", fontWeight = FontWeight.Medium, fontSize = 13.sp, color = TextPrimary, modifier = Modifier.weight(1f))
+                                Text("商品标签", fontWeight = FontWeight.Medium, fontSize = 13.sp, color = TextPrimary, modifier = Modifier.weight(1f))
                                 TextButton(onClick = { showNewTagDialog = true }) {
                                     Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp), tint = Primary)
-                                    Spacer(Modifier.width(2.dp)); Text("�½�", fontSize = 13.sp, color = Primary)
+                                    Spacer(Modifier.width(2.dp)); Text("新建", fontSize = 13.sp, color = Primary)
                                 }
                             }
                             Spacer(Modifier.height(4.dp))
                             if (availableTags.isEmpty()) {
-                                Text("���ޱ�ǩ", fontSize = 13.sp, color = TextSecondary)
+                                Text("暂无标签", fontSize = 13.sp, color = TextSecondary)
                             } else {
                                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     availableTags.forEach { tag ->
@@ -423,19 +423,20 @@ private fun SearchResultItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, fontWeight = FontWeight.Medium, fontSize = 14.sp, color = TextPrimary)
                 Text(product.code, fontSize = 12.sp, color = TextSecondary)
-                Text("��ǰ���: ${product.quantity}", fontSize = 12.sp, color = TextSecondary)
+                Text("当前库存: ${product.quantity}", fontSize = 12.sp, color = TextSecondary)
             }
             if (isMultiSelect) {
                 Checkbox(checked = isSelected, onCheckedChange = { onToggle() }, colors = CheckboxDefaults.colors(checkedColor = Primary))
             } else {
                 if (isSelected) {
-                    Text("?", color = Primary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("✓", color = Primary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NewTagSearchDialog(
     tagRepo: TagRepository,
@@ -449,18 +450,18 @@ private fun NewTagSearchDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(12.dp),
-        title = { Text("�½���ǩ", fontWeight = FontWeight.Bold) },
+        title = { Text("新建标签", fontWeight = FontWeight.Bold) },
         text = {
             Column {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("��ǩ����") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("标签名称") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(12.dp))
-                Text("ѡ����ɫ", fontSize = 13.sp, color = TextSecondary)
+                Text("选择颜色", fontSize = 13.sp, color = TextSecondary)
                 Spacer(Modifier.height(8.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     TAG_COLORS.forEach { hex ->
                         val isSelected = color == hex
                         Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(parseTagColor(hex)).clickable { color = hex }, contentAlignment = Alignment.Center) {
-                            if (isSelected) Text("?", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            if (isSelected) Text("✓", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -479,10 +480,8 @@ private fun NewTagSearchDialog(
                     }
                 },
                 enabled = name.isNotBlank()
-            ) { Text("����", color = Primary) }
+            ) { Text("创建", color = Primary) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("ȡ��", color = TextSecondary) } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消", color = TextSecondary) } }
     )
 }
-
-
