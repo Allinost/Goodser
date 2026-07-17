@@ -86,7 +86,7 @@ fun OutboundListScreen(
         typeMatch && statusMatch
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(Background)) {
+    Column(modifier = Modifier.fillMaxSize().background(Background).windowInsetsPadding(WindowInsets.statusBars)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -158,20 +158,7 @@ fun OutboundListScreen(
         TabRow(
             selectedTabIndex = selectedTab,
             containerColor = Surface,
-            divider = { HorizontalDivider(color = Divider, thickness = 0.5.dp) },
-            indicator = { tabPositions ->
-                if (selectedTab < tabPositions.size) {
-                    val tabWidth = tabPositions[selectedTab].width
-                    val tabOffset = tabPositions[selectedTab].left
-                    Box(
-                        modifier = Modifier
-                            .offset(x = tabOffset)
-                            .width(tabWidth)
-                            .height(3.dp)
-                            .background(when (selectedTab) { 2 -> Warning; else -> Primary })
-                    )
-                }
-            }
+            divider = { HorizontalDivider(color = Divider, thickness = 0.5.dp) }
         ) {
             tabs.forEachIndexed { index, label ->
                 Tab(

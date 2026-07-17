@@ -27,15 +27,16 @@ to this project's gradle.properties.
 > Task :app:parseDebugLocalResources UP-TO-DATE
 > Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
 > Task :app:extractDeepLinksDebug UP-TO-DATE
-> Task :app:processDebugMainManifest
-> Task :app:processDebugManifest
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
 > Task :app:javaPreCompileDebug UP-TO-DATE
 > Task :app:mergeDebugShaders UP-TO-DATE
 > Task :app:compileDebugShaders NO-SOURCE
 > Task :app:generateDebugAssets UP-TO-DATE
 > Task :app:mergeDebugAssets UP-TO-DATE
 > Task :app:compressDebugAssets UP-TO-DATE
-> Task :app:processDebugManifestForPackage
 > Task :app:desugarDebugFileDependencies UP-TO-DATE
 > Task :app:checkDebugDuplicateClasses UP-TO-DATE
 > Task :app:mergeDebugStartupProfile UP-TO-DATE
@@ -47,7 +48,6 @@ to this project's gradle.properties.
 > Task :app:validateSigningDebug UP-TO-DATE
 > Task :app:writeDebugAppMetadata UP-TO-DATE
 > Task :app:writeDebugSigningConfigVersions UP-TO-DATE
-> Task :app:processDebugResources
 > Task :app:compileDebugKotlin
 > Task :app:compileDebugJavaWithJavac NO-SOURCE
 > Task :app:dexBuilderDebug
@@ -59,5 +59,5 @@ to this project's gradle.properties.
 > Task :app:createDebugApkListingFileRedirect
 > Task :app:assembleDebug
 
-BUILD SUCCESSFUL in 20s
-36 actionable tasks: 9 executed, 27 up-to-date
+BUILD SUCCESSFUL in 12s
+36 actionable tasks: 5 executed, 31 up-to-date

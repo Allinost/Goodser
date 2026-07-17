@@ -3,6 +3,9 @@ package com.goodser.app.ui.inventory
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -38,7 +41,7 @@ import com.goodser.app.ui.components.InputDialog
 import com.goodser.app.ui.theme.*
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 
 @Composable
 fun ProductDetailScreen(
@@ -128,22 +131,46 @@ fun ProductDetailScreen(
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).background(Background)
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth().height(240.dp),
-                    color = Color(0xFFF0F0F0)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        val imageUrl = product.images?.firstOrNull() ?: product.imageUrl
-                        if (imageUrl != null) {
+                val allImages = product.images?.takeIf { it.isNotEmpty() } ?: product.imageUrl?.let { listOf(it) } ?: emptyList()
+                if (allImages.isNotEmpty()) {
+                    val pagerState = rememberPagerState(pageCount = { allImages.size }, initialPage = 0)
+                    Box(modifier = Modifier.fillMaxWidth().height(240.dp).background(Color(0xFFF0F0F0))) {
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.fillMaxSize()
+                        ) { page ->
                             AsyncImage(
-                                model = imageUrl,
+                                model = allImages[page],
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
-                        } else {
-                            Text("暂无图片", color = TextSecondary, fontSize = 14.sp)
                         }
+                        if (allImages.size > 1) {
+                            Row(
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                repeat(allImages.size) { i ->
+                                    Box(
+                                        modifier = Modifier
+                                            .size(if (pagerState.currentPage == i) 8.dp else 6.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                if (pagerState.currentPage == i) Primary
+                                                else Color.White.copy(alpha = 0.5f)
+                                            )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(240.dp).background(Color(0xFFF0F0F0)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("暂无图片", color = TextSecondary, fontSize = 14.sp)
                     }
                 }
 
