@@ -111,7 +111,6 @@ class InventoryListViewModel : ViewModel() {
                 keyword = _state.value.query.ifBlank { null },
                 statusCode = _state.value.selectedStatusCode,
                 mainZone = _state.value.selectedZone?.take(1),
-                subZone = _state.value.selectedZone?.drop(1)?.take(1)?.ifBlank { null },
                 tagId = _state.value.selectedTagId,
                 sortBy = _state.value.sortBy,
                 sortOrder = _state.value.sortOrder

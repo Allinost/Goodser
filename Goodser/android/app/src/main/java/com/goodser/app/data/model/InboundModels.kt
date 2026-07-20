@@ -28,6 +28,7 @@ data class InboundSingleReq(
     @SerializedName("remark") val remark: String? = null,
     @SerializedName("storage_location") val storageLocation: String? = null,
     @SerializedName("image_url") val imageUrl: String? = null,
+    @SerializedName("images") val images: List<String>? = null,
     @SerializedName("tags") val tags: List<String>? = null
 )
 
@@ -52,6 +53,7 @@ data class InboundBatchItem(
     @SerializedName("remark") val remark: String? = null,
     @SerializedName("storage_location") val storageLocation: String? = null,
     @SerializedName("image_url") val imageUrl: String? = null,
+    @SerializedName("images") val images: List<String>? = null,
     @SerializedName("tags") val tags: List<String>? = null
 )
 

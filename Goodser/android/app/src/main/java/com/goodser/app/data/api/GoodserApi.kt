@@ -27,7 +27,7 @@ interface GoodserApi {
     suspend fun loadProducts(@Body req: PaginatedReq): ApiResponse<PaginatedResp<Product>>
 
     @POST("zzz-goodser/legacy/queryProducts")
-    suspend fun queryProducts(@Body req: QueryProductsReq): ApiResponse<List<Product>>
+    suspend fun queryProducts(@Body req: QueryProductsReq): ApiResponse<PaginatedResp<Product>>
 
     @POST("zzz-goodser/legacy/createProduct")
     suspend fun createProduct(@Body req: CreateProductReq): ApiResponse<Product>

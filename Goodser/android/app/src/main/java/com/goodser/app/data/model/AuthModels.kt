@@ -11,7 +11,8 @@ data class ApiResponse<T>(
 
 data class PaginatedResp<T>(
     @SerializedName("items") val items: List<T>,
-    @SerializedName("has_more") val hasMore: Boolean
+    @SerializedName("has_more") val hasMore: Boolean,
+    @SerializedName("total") val total: Int
 )
 
 data class LoginRequest(

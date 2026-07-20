@@ -19,7 +19,7 @@ class ProductRepository {
 
     suspend fun queryProducts(req: QueryProductsReq): Result<List<Product>> = runCatching {
         val resp = api.queryProducts(req)
-        if (resp.code == 0 && resp.data != null) resp.data
+        if (resp.code == 0 && resp.data != null) resp.data.items
         else throw Exception(resp.message ?: "搜索商品失败")
     }
 

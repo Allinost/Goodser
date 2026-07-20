@@ -40,11 +40,13 @@ data class CreateProductReq(
     @SerializedName("remark") val remark: String? = null,
     @SerializedName("storage_location") val storageLocation: String? = null,
     @SerializedName("image_url") val imageUrl: String? = null,
+    @SerializedName("images") val images: List<String>? = null,
     @SerializedName("tags") val tags: List<String>? = null
 )
 
 data class UpdateProductReq(
     @SerializedName("id") val id: String,
+    @SerializedName("inventory_id") val inventoryId: String? = null,
     @SerializedName("name") val name: String? = null,
     @SerializedName("main_zone") val mainZone: String? = null,
     @SerializedName("sub_zone") val subZone: String? = null,
@@ -58,6 +60,7 @@ data class UpdateProductReq(
     @SerializedName("remark") val remark: String? = null,
     @SerializedName("storage_location") val storageLocation: String? = null,
     @SerializedName("image_url") val imageUrl: String? = null,
+    @SerializedName("images") val images: List<String>? = null,
     @SerializedName("tags") val tags: List<String>? = null
 )
 
@@ -76,7 +79,6 @@ data class QueryProductsReq(
     @SerializedName("keyword") val keyword: String? = null,
     @SerializedName("status_code") val statusCode: String? = null,
     @SerializedName("main_zone") val mainZone: String? = null,
-    @SerializedName("sub_zone") val subZone: String? = null,
     @SerializedName("tag_id") val tagId: String? = null,
     @SerializedName("page") val page: Int? = 1,
     @SerializedName("page_size") val pageSize: Int? = 20,
