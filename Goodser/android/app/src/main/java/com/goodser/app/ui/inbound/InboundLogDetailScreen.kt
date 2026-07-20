@@ -31,6 +31,7 @@ import coil.compose.AsyncImage
 import com.goodser.app.data.model.*
 import com.goodser.app.data.repository.*
 import com.goodser.app.ui.components.ConfirmDialog
+import com.goodser.app.ui.components.PullRefreshBox
 import com.goodser.app.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -61,8 +62,9 @@ fun InboundLogDetailScreen(
     var showEditSheet by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var deleted by remember { mutableStateOf(false) }
+    var refreshKey by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(logId, currentInventoryId) {
+    LaunchedEffect(logId, currentInventoryId, refreshKey) {
         loading = true
         inventoryRepo.loadInventories().fold(onSuccess = { inventories = it }, onFailure = {})
         repo.loadLogs(currentInventoryId).fold(
@@ -114,14 +116,19 @@ fun InboundLogDetailScreen(
             }
         }
     ) { padding ->
-        if (loading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        } else if (log == null) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text(if (error != null) error!! else "入库单不存在", color = TextSecondary)
-            }
-        } else {
-            val inboundLog = log!!
+        PullRefreshBox(
+            refreshing = loading,
+            onRefresh = { refreshKey++ },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+            if (loading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            } else if (log == null) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(if (error != null) error!! else "入库单不存在", color = TextSecondary)
+                }
+            } else {
+            val inboundLog = log ?: return@PullRefreshBox
             val items = inboundLog.items ?: emptyList()
             val totalQty = items.sumOf { it.quantity }
 
@@ -186,8 +193,10 @@ fun InboundLogDetailScreen(
             }
         }
     }
+}
 
-    if (showDeleteConfirm && log != null) {
+    val deleteLog = log
+    if (showDeleteConfirm && deleteLog != null) {
         ConfirmDialog(
             title = "删除入库单",
             message = "确定删除此入库单？此操作不可恢复。",
@@ -195,7 +204,7 @@ fun InboundLogDetailScreen(
             onConfirm = {
                 showDeleteConfirm = false
                 scope.launch {
-                    repo.deleteLog(log!!.id).fold(
+                    repo.deleteLog(deleteLog.id).fold(
                         onSuccess = { deleted = true },
                         onFailure = { error = it.message }
                     )
@@ -206,9 +215,10 @@ fun InboundLogDetailScreen(
         )
     }
 
-    if (showEditSheet && log != null) {
+    val editLog = log
+    if (showEditSheet && editLog != null) {
         EditLogSheet(
-            log = log!!,
+            log = editLog,
             inventoryId = currentInventoryId,
             productRepo = productRepo,
             repo = repo,
@@ -380,7 +390,7 @@ private fun EditLogSheet(
                                 modifier = Modifier.size(28.dp)
                             ) { Icon(Icons.Default.Add, "增加", modifier = Modifier.size(18.dp), tint = Primary) }
                         }
-                        IconButton(onClick = { editItems = editItems.toMutableList().also { it.removeAt(idx) } }) {
+                        IconButton(onClick = { editItems = editItems.toMutableList().also { list -> if (idx < list.size) list.removeAt(idx) } }) {
                             Icon(Icons.Default.Close, "移除", tint = Error, modifier = Modifier.size(18.dp))
                         }
                     }

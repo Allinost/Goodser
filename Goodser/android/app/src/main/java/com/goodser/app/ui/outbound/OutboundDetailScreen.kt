@@ -26,6 +26,7 @@ import com.goodser.app.data.repository.InventoryRepository
 import com.goodser.app.data.repository.OrderRepository
 import com.goodser.app.ui.components.ConfirmDialog
 import com.goodser.app.ui.components.OrderStatusTag
+import com.goodser.app.ui.components.PullRefreshBox
 import com.goodser.app.ui.components.TypeTag
 import com.goodser.app.ui.theme.*
 
@@ -46,33 +47,32 @@ fun OutboundDetailScreen(
     val repo = remember { OrderRepository() }
     val invRepo = remember { InventoryRepository() }
     var loading by remember { mutableStateOf(true) }
+    var refreshKey by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(orderId) {
-        if (order?.id != orderId) {
-            suspend fun loadFromInventory(invId: String) {
-                repo.loadOrders(invId).fold(
-                    onSuccess = { paginated ->
-                        val found = paginated.items.find { it.id == orderId }
-                        if (found != null) {
-                            viewModel.setOrder(found)
-                            loading = false
-                        }
-                    },
-                    onFailure = { }
-                )
-            }
-            if (inventoryId.isNotBlank()) {
-                loadFromInventory(inventoryId)
-            } else {
-                invRepo.loadInventories().onSuccess { inventories ->
-                    for (inv in inventories) {
-                        if (!loading) break
-                        loadFromInventory(inv.id)
-                    }
+    suspend fun loadFromInventory(invId: String) {
+        repo.loadOrders(invId).fold(
+            onSuccess = { paginated ->
+                val found = paginated.items.find { it.id == orderId }
+                if (found != null) {
+                    viewModel.setOrder(found)
+                    loading = false
                 }
-                loading = false
-            }
+            },
+            onFailure = { }
+        )
+    }
+
+    LaunchedEffect(orderId, refreshKey) {
+        loading = true
+        if (inventoryId.isNotBlank()) {
+            loadFromInventory(inventoryId)
         } else {
+            invRepo.loadInventories().onSuccess { inventories ->
+                for (inv in inventories) {
+                    if (!loading) break
+                    loadFromInventory(inv.id)
+                }
+            }
             loading = false
         }
     }
@@ -88,11 +88,16 @@ fun OutboundDetailScreen(
             )
         }
     ) { padding ->
-        if (loading || order == null) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Primary)
-            }
-        } else {
+        PullRefreshBox(
+            refreshing = loading,
+            onRefresh = { refreshKey++ },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+            if (loading || order == null) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Primary)
+                }
+            } else {
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).background(Background)
             ) {
@@ -251,6 +256,7 @@ fun OutboundDetailScreen(
             }
         }
     }
+}
 
     if (showConfirm && order != null) {
         ConfirmDialog(

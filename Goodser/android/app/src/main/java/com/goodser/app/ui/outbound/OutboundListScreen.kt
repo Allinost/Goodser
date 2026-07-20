@@ -19,8 +19,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.goodser.app.data.model.Inventory
 import com.goodser.app.data.repository.InventoryRepository
+import com.goodser.app.ui.SyncEventBus
 import com.goodser.app.ui.components.EmptyState
 import com.goodser.app.ui.components.OrderCard
+import com.goodser.app.ui.components.PullRefreshBox
 import com.goodser.app.ui.components.SearchBar
 import com.goodser.app.ui.theme.*
 
@@ -39,6 +41,7 @@ fun OutboundListScreen(
     var showFilter by remember { mutableStateOf(false) }
     var filterStatus by remember { mutableStateOf<String?>(null) }
     var tempFilterStatus by remember { mutableStateOf<String?>(null) }
+    var pullRefreshKey by remember { mutableIntStateOf(0) }
 
     val tabs = listOf("全部", "出库单", "预留单")
     val statusFilters = listOf(
@@ -60,7 +63,17 @@ fun OutboundListScreen(
         selectedInventoryId = currentInventoryId
     }
 
-    LaunchedEffect(selectedInventoryId) {
+    fun refreshOrders() {
+        if (selectedInventoryId.isNotBlank()) {
+            viewModel.loadOrders(selectedInventoryId)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        SyncEventBus.events.collect { pullRefreshKey++; refreshOrders() }
+    }
+
+    LaunchedEffect(selectedInventoryId, pullRefreshKey) {
         if (selectedInventoryId.isNotBlank()) {
             viewModel.loadOrders(selectedInventoryId)
             inventoryRepo.loadInventories().onSuccess { inventories = it }
@@ -195,23 +208,29 @@ fun OutboundListScreen(
             }
         }
 
-        if (state.loading && state.orders.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Primary)
-            }
-        } else if (filteredOrders.isEmpty()) {
-            EmptyState(
-                icon = "📦",
-                title = if (searchQuery.isNotBlank() || filterStatus != null) "未找到匹配的订单" else "暂无出库单",
-                description = if (searchQuery.isBlank() && filterStatus == null) "点击上方「出库」或「预留」创建" else "试试调整筛选条件"
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(filteredOrders, key = { it.id }) { order ->
-                    OrderCard(order = order, onClick = { onOrderClick(order.id) })
+        PullRefreshBox(
+            refreshing = state.loading,
+            onRefresh = { refreshOrders() },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (state.loading && state.orders.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Primary)
+                }
+            } else if (filteredOrders.isEmpty()) {
+                EmptyState(
+                    icon = "📦",
+                    title = if (searchQuery.isNotBlank() || filterStatus != null) "未找到匹配的订单" else "暂无出库单",
+                    description = if (searchQuery.isBlank() && filterStatus == null) "点击上方「出库」或「预留」创建" else "试试调整筛选条件"
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(filteredOrders, key = { it.id }) { order ->
+                        OrderCard(order = order, onClick = { onOrderClick(order.id) })
+                    }
                 }
             }
         }

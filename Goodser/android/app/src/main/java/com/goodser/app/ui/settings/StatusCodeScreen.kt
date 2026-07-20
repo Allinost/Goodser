@@ -18,8 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.goodser.app.data.model.*
 import com.goodser.app.data.repository.StatusCodeRepository
+import com.goodser.app.ui.SyncEventBus
 import com.goodser.app.ui.components.ConfirmDialog
 import com.goodser.app.ui.components.InputDialog
+import com.goodser.app.ui.components.PullRefreshBox
 import com.goodser.app.ui.theme.*
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
@@ -34,8 +36,13 @@ fun StatusCodeScreen(onBack: () -> Unit) {
     var showCreate by remember { mutableStateOf(false) }
     var showEdit by remember { mutableStateOf<StatusCode?>(null) }
     var showDelete by remember { mutableStateOf<StatusCode?>(null) }
+    var refreshKey by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
+        SyncEventBus.events.collect { refreshKey++ }
+    }
+
+    LaunchedEffect(Unit, refreshKey) {
         repo.loadStatusCodes().fold(
             onSuccess = { codes = it; loading = false },
             onFailure = { loading = false }
@@ -52,10 +59,15 @@ fun StatusCodeScreen(onBack: () -> Unit) {
             )
         }
     ) { padding ->
-        if (loading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        PullRefreshBox(
+            refreshing = loading,
+            onRefresh = { refreshKey++ },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+            if (loading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(codes, key = { it.id }) { code ->
                     Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {
                         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -74,6 +86,7 @@ fun StatusCodeScreen(onBack: () -> Unit) {
             }
         }
     }
+}
 
     if (showCreate) {
         var newCode by remember { mutableStateOf("") }

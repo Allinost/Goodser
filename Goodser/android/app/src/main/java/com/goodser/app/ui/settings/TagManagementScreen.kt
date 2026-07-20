@@ -21,8 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.goodser.app.data.model.*
 import com.goodser.app.data.repository.TagRepository
+import com.goodser.app.ui.SyncEventBus
 import com.goodser.app.ui.components.ConfirmDialog
 import com.goodser.app.ui.components.InputDialog
+import com.goodser.app.ui.components.PullRefreshBox
 import com.goodser.app.ui.theme.*
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
@@ -37,8 +39,13 @@ fun TagManagementScreen(onBack: () -> Unit) {
     var showCreate by remember { mutableStateOf(false) }
     var showEdit by remember { mutableStateOf<GoodserTag?>(null) }
     var showDelete by remember { mutableStateOf<GoodserTag?>(null) }
+    var refreshKey by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
+        SyncEventBus.events.collect { refreshKey++ }
+    }
+
+    LaunchedEffect(Unit, refreshKey) {
         repo.loadTags().fold(
             onSuccess = { tags = it; loading = false },
             onFailure = { loading = false }
@@ -55,14 +62,19 @@ fun TagManagementScreen(onBack: () -> Unit) {
             )
         }
     ) { padding ->
-        if (loading) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        PullRefreshBox(
+            refreshing = loading,
+            onRefresh = { refreshKey++ },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+            if (loading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(tags, key = { it.id }) { tag ->
                     Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {
                         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(Color(android.graphics.Color.parseColor(tag.color))))
+                            Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(safeParseColor(tag.color)))
                             Spacer(Modifier.width(12.dp))
                             Text(tag.name, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
                             IconButton(onClick = { showEdit = tag }) { Icon(Icons.Default.Edit, "编辑", tint = Primary) }
@@ -73,6 +85,7 @@ fun TagManagementScreen(onBack: () -> Unit) {
             }
         }
     }
+}
 
     if (showCreate) {
         InputDialog(title = "新建标签", placeholder = "标签名称", onConfirm = { name ->
@@ -97,7 +110,7 @@ fun TagManagementScreen(onBack: () -> Unit) {
         }, onDismiss = { showEdit = null })
     }
     showDelete?.let { tag ->
-        ConfirmDialog(title = "删除标签", message = "确定删除标签「」？", onConfirm = {
+        ConfirmDialog(title = "删除标签", message = "确定删除标签「${tag.name}」？", onConfirm = {
             scope.launch {
                 repo.delete(tag.id).fold(
                     onSuccess = { tags = tags.filter { it.id != tag.id } },
@@ -106,5 +119,14 @@ fun TagManagementScreen(onBack: () -> Unit) {
             }
             showDelete = null
         }, onDismiss = { showDelete = null }, isDestructive = true)
+    }
+}
+
+private fun safeParseColor(hex: String): androidx.compose.ui.graphics.Color {
+    return try {
+        val colorInt = android.graphics.Color.parseColor(hex)
+        androidx.compose.ui.graphics.Color(colorInt)
+    } catch (_: Exception) {
+        com.goodser.app.ui.theme.TagBlueText
     }
 }

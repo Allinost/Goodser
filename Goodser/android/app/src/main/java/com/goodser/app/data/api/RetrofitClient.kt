@@ -1,5 +1,6 @@
 package com.goodser.app.data.api
 
+import android.util.Log
 import com.goodser.app.util.TokenManager
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
@@ -11,6 +12,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     private var _baseUrl = ""
+    private var _initError: String? = null
     private var tokenManager: TokenManager? = null
     private var _retrofit: Retrofit? = null
     private var _authApi: AuthApi? = null
@@ -32,8 +34,10 @@ object RetrofitClient {
 
     private fun authInterceptor() = Interceptor { chain ->
         val original = chain.request()
-        val token = tokenManager?.let {
-            runBlocking { it.getAccessToken() }
+        val token = try {
+            tokenManager?.let { runBlocking { it.getAccessToken() } }
+        } catch (e: Exception) {
+            Log.e("RetrofitClient", "获取Token失败", e); null
         }
         val request = if (token != null) {
             original.newBuilder()
@@ -46,35 +50,48 @@ object RetrofitClient {
     }
 
     private fun retrofit(): Retrofit {
+        if (_baseUrl.isBlank()) throw IllegalStateException("RetrofitClient: baseUrl未设置，请先调用init()")
         if (_retrofit == null || _retrofit?.baseUrl().toString().trimEnd('/') != _baseUrl.trimEnd('/')) {
-            _retrofit = Retrofit.Builder()
-                .baseUrl(_baseUrl)
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+            _retrofit = try {
+                Retrofit.Builder()
+                    .baseUrl(_baseUrl)
+                    .client(okHttpClient)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+            } catch (e: Exception) {
+                _retrofit = null
+                throw IllegalStateException("RetrofitClient: 创建Retrofit失败 - ${e.message}")
+            }
             _authApi = null
             _goodserApi = null
         }
-        return _retrofit!!
+        return _retrofit ?: throw IllegalStateException("RetrofitClient: Retrofit实例不可用")
     }
 
     val authApi: AuthApi get() {
         if (_authApi == null) _authApi = retrofit().create(AuthApi::class.java)
-        return _authApi!!
+        return _authApi ?: throw IllegalStateException("RetrofitClient: AuthApi不可用")
     }
 
     val goodserApi: GoodserApi get() {
         if (_goodserApi == null) _goodserApi = retrofit().create(GoodserApi::class.java)
-        return _goodserApi!!
+        return _goodserApi ?: throw IllegalStateException("RetrofitClient: GoodserApi不可用")
     }
 
     fun init(tokenManager: TokenManager) {
         this.tokenManager = tokenManager
-        val savedUrl = runBlocking { tokenManager.getServerUrl() }
+        val savedUrl = try {
+            runBlocking { tokenManager.getActiveServerUrl() }
+        } catch (e: Exception) {
+            _initError = "读取服务器地址失败: ${e.message}"
+            Log.e("RetrofitClient", "init失败", e); null
+        }
         if (!savedUrl.isNullOrBlank()) {
             updateBaseUrl(savedUrl)
         }
     }
+
+    fun getInitError(): String? = _initError
 
     fun updateBaseUrl(url: String) {
         val normalized = if (url.endsWith("/")) url else "$url/"

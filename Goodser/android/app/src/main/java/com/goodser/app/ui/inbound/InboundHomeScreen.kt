@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.goodser.app.data.model.InboundLog
 import com.goodser.app.data.repository.InboundRepository
+import com.goodser.app.ui.components.PullRefreshBox
 import com.goodser.app.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -34,14 +35,24 @@ fun InboundHomeScreen(
     val scope = rememberCoroutineScope()
     val repo = remember { InboundRepository() }
     var recentLogs by remember { mutableStateOf<List<InboundLog>>(emptyList()) }
+    var refreshing by remember { mutableStateOf(false) }
+    var refreshKey by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(Unit) {
+    fun loadRecentLogs() {
         if (currentInventoryId.isNotBlank()) {
-            repo.loadLogs(currentInventoryId, pageSize = 5).fold(
-                onSuccess = { recentLogs = it.items },
-                onFailure = {}
-            )
+            scope.launch {
+                refreshing = true
+                repo.loadLogs(currentInventoryId, pageSize = 5).fold(
+                    onSuccess = { recentLogs = it.items },
+                    onFailure = {}
+                )
+                refreshing = false
+            }
         }
+    }
+
+    LaunchedEffect(Unit, refreshKey) {
+        loadRecentLogs()
     }
 
     Scaffold(
@@ -52,8 +63,10 @@ fun InboundHomeScreen(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).background(Background)
+        PullRefreshBox(
+            refreshing = refreshing,
+            onRefresh = { refreshKey++ },
+            modifier = Modifier.fillMaxSize().padding(padding)
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 item {

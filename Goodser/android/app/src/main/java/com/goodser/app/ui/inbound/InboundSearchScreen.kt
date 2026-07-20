@@ -331,8 +331,9 @@ fun InboundSearchScreen(
                     }
                 }
 
-                if (!isMultiSelect && singleSelectedProduct != null) {
-                    val product = singleSelectedProduct!!
+                val ssp = singleSelectedProduct
+                if (!isMultiSelect && ssp != null) {
+                    val product = ssp
                     Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {

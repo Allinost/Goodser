@@ -14,6 +14,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.goodser.app.data.api.RetrofitClient
+import com.goodser.app.data.model.ServerEntry
 import com.goodser.app.data.repository.AuthRepository
 import com.goodser.app.ui.theme.*
 import com.goodser.app.util.TokenManager
@@ -38,7 +39,7 @@ fun LoginScreen(
     var testing by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        tokenManager.getServerUrl()?.let { serverUrl = it }
+        tokenManager.getActiveServerUrl()?.let { serverUrl = it }
         tokenManager.getRememberMe().let { rm ->
             rememberMe = rm
             if (rm) {
@@ -78,7 +79,7 @@ fun LoginScreen(
                         testing = true; error = null
                         try {
                             RetrofitClient.updateBaseUrl(serverUrl)
-                            tokenManager.saveServerUrl(serverUrl)
+                            updateServerUrl(tokenManager, serverUrl)
                             error = "连接成功"
                         } catch (e: Exception) {
                             error = "连接失败: ${e.message}"
@@ -126,7 +127,7 @@ fun LoginScreen(
                 scope.launch {
                     loading = true; error = null
                     RetrofitClient.updateBaseUrl(serverUrl)
-                    tokenManager.saveServerUrl(serverUrl)
+                    updateServerUrl(tokenManager, serverUrl)
                     repository.login(username, password).fold(
                         onSuccess = {
                             tokenManager.saveUsername(username)
@@ -150,5 +151,18 @@ fun LoginScreen(
         TextButton(onClick = onNavigateToRegister) {
             Text("没有账号？立即注册", color = Primary)
         }
+    }
+}
+
+private suspend fun updateServerUrl(tokenManager: TokenManager, url: String) {
+    val list = tokenManager.getServerList()
+    val active = list.firstOrNull { it.active }
+    if (active != null) {
+        if (active.url != url) {
+            val updated = list.map { if (it.id == active.id) it.copy(url = url) else it }
+            tokenManager.saveServerList(updated)
+        }
+    } else {
+        tokenManager.addServer(url)
     }
 }

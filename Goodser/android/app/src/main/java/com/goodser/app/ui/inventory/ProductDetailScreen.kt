@@ -36,8 +36,10 @@ import com.goodser.app.data.model.QueryProductsReq
 import com.goodser.app.data.model.UpdateProductReq
 import com.goodser.app.data.repository.ProductRepository
 import com.goodser.app.data.repository.TagRepository
+import com.goodser.app.ui.SyncEventBus
 import com.goodser.app.ui.components.ConfirmDialog
 import com.goodser.app.ui.components.InputDialog
+import com.goodser.app.ui.components.PullRefreshBox
 import com.goodser.app.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -62,8 +64,13 @@ fun ProductDetailScreen(
     var tagPickerSelection by remember { mutableStateOf<Set<String>>(emptySet()) }
     var newTagName by remember { mutableStateOf("") }
     var newTagColor by remember { mutableStateOf("#1890ff") }
+    var refreshKey by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(productId, currentInventoryId) {
+    LaunchedEffect(Unit) {
+        SyncEventBus.events.collect { refreshKey++ }
+    }
+
+    LaunchedEffect(productId, currentInventoryId, refreshKey) {
         if (currentInventoryId.isBlank()) return@LaunchedEffect
         viewModel.loadProduct(productId)
         productRepo.queryProducts(QueryProductsReq(inventoryId = currentInventoryId, pageSize = 200)).fold(
@@ -122,14 +129,22 @@ fun ProductDetailScreen(
             }
         }
     ) { padding ->
-        val product = state.product
-        if (state.loading && product == null) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        } else if (product == null) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { Text("商品未找到", color = TextSecondary) }
-        } else {
+        PullRefreshBox(
+            refreshing = state.loading,
+            onRefresh = { refreshKey++ },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+            val product = state.product
+            if (state.loading && product == null) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            } else if (product == null) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("商品未找到", color = TextSecondary) }
+            } else {
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).background(Background)
+                // Note: padding is kept here intentionally - the Column is the main content area
+                // and needs padding from Scaffold. The PullRefreshBox wraps around it for gesture handling.
+            
             ) {
                 val allImages = product.images?.takeIf { it.isNotEmpty() } ?: product.imageUrl?.let { listOf(it) } ?: emptyList()
                 if (allImages.isNotEmpty()) {
@@ -304,13 +319,15 @@ fun ProductDetailScreen(
             }
         }
     }
+}
 
-    if (showDeleteConfirm && state.product != null) {
+    val productForDelete = state.product
+    if (showDeleteConfirm && productForDelete != null) {
         ConfirmDialog(
             title = "删除商品",
-            message = "确认删除 ${state.product!!.name}？此操作不可恢复。",
+            message = "确认删除 ${productForDelete.name}？此操作不可恢复。",
             confirmText = "删除",
-            onConfirm = { viewModel.deleteProduct(state.product!!.id); showDeleteConfirm = false },
+            onConfirm = { viewModel.deleteProduct(productForDelete.id); showDeleteConfirm = false },
             onDismiss = { showDeleteConfirm = false },
             isDestructive = true
         )

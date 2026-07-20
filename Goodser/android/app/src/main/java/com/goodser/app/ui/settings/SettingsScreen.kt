@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.goodser.app.data.api.RetrofitClient
 import com.goodser.app.data.model.SyncAllResp
 import com.goodser.app.data.repository.AuthRepository
+import com.goodser.app.ui.SyncEventBus
 import com.goodser.app.ui.theme.*
 import com.goodser.app.util.TokenManager
 import kotlinx.coroutines.launch
@@ -85,6 +86,7 @@ fun SettingsScreen(
                                     tokenManager.saveLastSyncTime(timeStr)
                                     val detail = buildSyncDetail(timeStr, d)
                                     tokenManager.saveLastSyncDetail(detail)
+                                    SyncEventBus.notifyRefresh()
                                 } else {
                                     syncError = resp.message ?: "同步失败"
                                 }
@@ -143,18 +145,18 @@ fun SettingsScreen(
             onDismissRequest = { showSyncDetail = false },
             title = { Text("全量同步详情", fontWeight = FontWeight.Bold) },
             text = {
-                val data = syncDetailData!!
+                val data = syncDetailData ?: return@AlertDialog
                 Column {
-                    DetailRow("同步时间", data["sync_time"]?.toString() ?: "未知")
+                    DetailRow("同步时间", (data["sync_time"] as? String) ?: "未知")
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     Text("汇总统计", fontWeight = FontWeight.Medium, fontSize = 14.sp)
                     Spacer(Modifier.height(8.dp))
-                    DetailRow("库存目录", "${data["inventories"] ?: 0} 个")
-                    DetailRow("商品总数", "${data["products"] ?: 0} 个")
-                    DetailRow("出库单", "${data["orders"] ?: 0} 个")
-                    DetailRow("入库日志", "${data["logs"] ?: 0} 条")
-                    DetailRow("标签", "${data["tags"] ?: 0} 个")
-                    DetailRow("状态编码", "${data["status_codes"] ?: 0} 个")
+                    DetailRow("库存目录", "${(data["inventories"] as? Number)?.toInt() ?: 0} 个")
+                    DetailRow("商品总数", "${(data["products"] as? Number)?.toInt() ?: 0} 个")
+                    DetailRow("出库单", "${(data["orders"] as? Number)?.toInt() ?: 0} 个")
+                    DetailRow("入库日志", "${(data["logs"] as? Number)?.toInt() ?: 0} 条")
+                    DetailRow("标签", "${(data["tags"] as? Number)?.toInt() ?: 0} 个")
+                    DetailRow("状态编码", "${(data["status_codes"] as? Number)?.toInt() ?: 0} 个")
                 }
             },
             confirmButton = { TextButton(onClick = { showSyncDetail = false }) { Text("关闭") } },
@@ -166,12 +168,12 @@ fun SettingsScreen(
 private fun buildSyncDetail(timeStr: String, data: SyncAllResp): String {
     val json = JSONObject()
     json.put("sync_time", timeStr)
-    json.put("inventories", data.inventories.size)
+    json.put("inventories", data.inventories?.size ?: 0)
     json.put("products", data.products?.values?.sumOf { it.size } ?: 0)
     json.put("orders", data.outboundOrders?.values?.sumOf { it.size } ?: 0)
     json.put("logs", data.inboundLogs?.values?.sumOf { it.size } ?: 0)
-    json.put("tags", data.tags.size)
-    json.put("status_codes", data.statusCodes.size)
+    json.put("tags", data.tags?.size ?: 0)
+    json.put("status_codes", data.statusCodes?.size ?: 0)
     return json.toString()
 }
 

@@ -168,7 +168,7 @@ fun InboundBatchScreen(
                                     index = index + 1,
                                     item = item,
                                     tags = availableTags,
-                                    onDelete = { items = items.toMutableList().also { it.removeAt(index) } }
+                                    onDelete = { items = items.toMutableList().also { list -> if (index < list.size) list.removeAt(index) } }
                                 )
                                 if (index < items.size - 1) HorizontalDivider(color = Divider, modifier = Modifier.padding(vertical = 2.dp))
                             }
@@ -314,7 +314,7 @@ private fun BatchAddForm(
             imageUrls.forEachIndexed { idx, url ->
                 Box(modifier = Modifier.size(80.dp)) {
                     AsyncImage(model = url, contentDescription = null, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
-                    Box(modifier = Modifier.align(Alignment.TopEnd).size(20.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.5f)).clickable { imageUrls = imageUrls.toMutableList().also { it.removeAt(idx) } }, contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.align(Alignment.TopEnd).size(20.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.5f)).clickable { imageUrls = imageUrls.toMutableList().also { list -> if (idx < list.size) list.removeAt(idx) } }, contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.Close, "移除", tint = Color.White, modifier = Modifier.size(14.dp))
                     }
                 }

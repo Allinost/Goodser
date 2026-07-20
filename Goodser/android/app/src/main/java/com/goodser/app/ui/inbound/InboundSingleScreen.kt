@@ -119,7 +119,7 @@ fun InboundSingleScreen(
                             images.forEachIndexed { index, url ->
                                 Box(modifier = Modifier.size(80.dp)) {
                                     AsyncImage(model = url, contentDescription = null, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
-                                    IconButton(onClick = { images = images.toMutableList().also { it.removeAt(index) } }, modifier = Modifier.align(Alignment.TopEnd).size(20.dp)) {
+                                    IconButton(onClick = { images = images.toMutableList().also { list -> if (index < list.size) list.removeAt(index) } }, modifier = Modifier.align(Alignment.TopEnd).size(20.dp)) {
                                         Icon(Icons.Default.Close, "删除", tint = Error, modifier = Modifier.size(14.dp))
                                     }
                                 }

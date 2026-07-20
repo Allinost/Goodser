@@ -2,11 +2,31 @@ package com.goodser.app.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.goodser.app.ui.theme.*
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun PullRefreshBox(
+    refreshing: Boolean,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val state = rememberPullRefreshState(refreshing, onRefresh)
+    Box(modifier.pullRefresh(state)) {
+        content()
+        PullRefreshIndicator(refreshing, state, Modifier.align(Alignment.TopCenter))
+    }
+}
 
 @Composable
 fun ConfirmDialog(

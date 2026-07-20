@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.goodser.app.data.model.InboundLog
 import com.goodser.app.data.repository.InboundRepository
+import com.goodser.app.ui.SyncEventBus
+import com.goodser.app.ui.components.PullRefreshBox
 import com.goodser.app.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -33,8 +35,13 @@ fun InboundLogsScreen(
     var logs by remember { mutableStateOf<List<InboundLog>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var refreshKey by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(currentInventoryId) {
+    LaunchedEffect(Unit) {
+        SyncEventBus.events.collect { refreshKey++ }
+    }
+
+    LaunchedEffect(currentInventoryId, refreshKey) {
         if (currentInventoryId.isNotBlank()) {
             loading = true
             repo.loadLogs(currentInventoryId, pageSize = 50).fold(
@@ -53,7 +60,11 @@ fun InboundLogsScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding).background(Background)) {
+        PullRefreshBox(
+            refreshing = loading,
+            onRefresh = { refreshKey++ },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
             if (loading) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             } else if (logs.isEmpty()) {
@@ -99,10 +110,11 @@ fun InboundLogsScreen(
                                     Spacer(Modifier.height(4.dp))
                                     Text(log.createdAt.take(16), fontSize = 12.sp, color = TextSecondary)
                                 }
-                                if (log.items != null) {
+                                val logItems = log.items
+                                if (logItems != null && logItems.isNotEmpty()) {
                                     Column(horizontalAlignment = Alignment.End) {
-                                        Text("+${log.items!!.sumOf { it.quantity }}", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Success)
-                                        Text("${log.items!!.size}种", fontSize = 11.sp, color = TextSecondary)
+                                        Text("+${logItems.sumOf { it.quantity }}", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Success)
+                                        Text("${logItems.size}种", fontSize = 11.sp, color = TextSecondary)
                                     }
                                 }
                                 Icon(Icons.Default.ChevronRight, null, tint = TextSecondary, modifier = Modifier.size(20.dp).padding(start = 4.dp))

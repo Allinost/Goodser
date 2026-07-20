@@ -46,11 +46,18 @@ data class UploadImageResp(
     @SerializedName("url") val url: String
 )
 
+data class ServerEntry(
+    val id: String = java.util.UUID.randomUUID().toString(),
+    val url: String,
+    val active: Boolean = true,
+    val order: Int = 0
+)
+
 data class SyncAllResp(
-    @SerializedName("inventories") val inventories: List<Inventory>,
+    @SerializedName("inventories") val inventories: List<Inventory>?,
     @SerializedName("products") val products: Map<String, List<Product>>?,
     @SerializedName("outbound_orders") val outboundOrders: Map<String, List<OutboundOrder>>?,
     @SerializedName("inbound_logs") val inboundLogs: Map<String, List<InboundLog>>?,
-    @SerializedName("tags") val tags: List<GoodserTag>,
-    @SerializedName("status_codes") val statusCodes: List<StatusCode>
+    @SerializedName("tags") val tags: List<GoodserTag>?,
+    @SerializedName("status_codes") val statusCodes: List<StatusCode>?
 )

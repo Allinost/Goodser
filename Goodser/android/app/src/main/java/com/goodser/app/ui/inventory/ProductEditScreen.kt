@@ -194,7 +194,7 @@ fun ProductEditScreen(
                                             .size(20.dp)
                                             .clip(CircleShape)
                                             .background(Color.Black.copy(alpha = 0.5f))
-                                            .clickable { imageUrls = imageUrls.toMutableList().also { it.removeAt(index) } },
+                                            .clickable { imageUrls = imageUrls.toMutableList().also { list -> if (index < list.size) list.removeAt(index) } },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(Icons.Default.Close, "移除", tint = Color.White, modifier = Modifier.size(14.dp))

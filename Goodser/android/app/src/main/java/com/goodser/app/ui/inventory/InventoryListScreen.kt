@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.goodser.app.data.model.GoodserTag
 import com.goodser.app.ui.AppViewModel
+import com.goodser.app.ui.SyncEventBus
 import com.goodser.app.ui.components.*
 import com.goodser.app.ui.theme.*
 
@@ -47,7 +48,12 @@ fun InventoryListScreen(
     var showFilterSheet by remember { mutableStateOf(false) }
     var sortBy by remember { mutableStateOf<String?>(null) }
     var sortOrder by remember { mutableStateOf<String?>(null) }
+    var pullRefreshKey by remember { mutableIntStateOf(0) }
     val listState = rememberLazyListState()
+
+    LaunchedEffect(Unit) {
+        SyncEventBus.events.collect { pullRefreshKey++; viewModel.search() }
+    }
 
     LaunchedEffect(appState.currentInventory?.id) {
         appState.currentInventory?.let { inv ->
@@ -180,28 +186,34 @@ fun InventoryListScreen(
             }
         }
 
-        if (state.loading && state.products.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        } else if (state.products.isEmpty()) {
-            EmptyState(
-                icon = "📦",
-                title = if (state.query.isNotBlank() || state.selectedZone != null) "未匹配商品" else "暂无商品",
-                description = if (state.query.isBlank() && state.selectedZone == null) "点击右上角 + 新建商品来添加" else null
-            )
-        } else {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                items(state.products, key = { it.id }) { product ->
-                    ProductCard(product = product, onClick = { onProductClick(product.id) })
-                }
-                if (state.hasMore) {
-                    item {
-                        Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+        PullRefreshBox(
+            refreshing = state.loading,
+            onRefresh = { viewModel.search() },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (state.loading && state.products.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            } else if (state.products.isEmpty()) {
+                EmptyState(
+                    icon = "📦",
+                    title = if (state.query.isNotBlank() || state.selectedZone != null) "未匹配商品" else "暂无商品",
+                    description = if (state.query.isBlank() && state.selectedZone == null) "点击右上角 + 新建商品来添加" else null
+                )
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    items(state.products, key = { it.id }) { product ->
+                        ProductCard(product = product, onClick = { onProductClick(product.id) })
+                    }
+                    if (state.hasMore) {
+                        item {
+                            Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                            }
                         }
                     }
                 }
@@ -263,22 +275,23 @@ fun InventoryListScreen(
         )
     }
 
-    if (showRenameDialog && appState.currentInventory != null) {
+    val currentInv = appState.currentInventory
+    if (showRenameDialog && currentInv != null) {
         InputDialog(
             title = "重命名目录",
-            initialValue = appState.currentInventory!!.name,
+            initialValue = currentInv.name,
             placeholder = "新名称",
-            onConfirm = { appViewModel.renameInventory(appState.currentInventory!!.id, it); showRenameDialog = false },
+            onConfirm = { appViewModel.renameInventory(currentInv.id, it); showRenameDialog = false },
             onDismiss = { showRenameDialog = false }
         )
     }
 
-    if (showDeleteConfirm && appState.currentInventory != null) {
+    if (showDeleteConfirm && currentInv != null) {
         ConfirmDialog(
             title = "删除目录",
-            message = "确认删除 ${appState.currentInventory!!.name}？此操作不可恢复。",
+            message = "确认删除 ${currentInv.name}？此操作不可恢复。",
             confirmText = "删除",
-            onConfirm = { appViewModel.deleteInventory(appState.currentInventory!!.id); showDeleteConfirm = false },
+            onConfirm = { appViewModel.deleteInventory(currentInv.id); showDeleteConfirm = false },
             onDismiss = { showDeleteConfirm = false },
             isDestructive = true
         )
