@@ -102,8 +102,14 @@ fun ServerConfigScreen(onBack: () -> Unit) {
                             scope.launch {
                                 testingId = server.id; testResult = null
                                 try {
-                                    RetrofitClient.updateBaseUrl(server.url)
-                                    testResult = server.id to "连接成功"
+                                    val url = server.url.trimEnd('/')
+                                    val request = okhttp3.Request.Builder().url(url).build()
+                                    val resp = okhttp3.OkHttpClient.Builder()
+                                        .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                                        .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                                        .build().newCall(request).execute()
+                                    testResult = server.id to (if (resp.isSuccessful) "连接成功" else "响应 ${resp.code}")
+                                    resp.close()
                                 } catch (e: Exception) {
                                     testResult = server.id to "连接失败: ${e.message}"
                                 }
@@ -175,9 +181,7 @@ private fun ServerCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(server.url, fontSize = 14.sp, color = OnBackground, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    if (server.active) {
-                        Text("当前使用", fontSize = 11.sp, color = Success)
-                    }
+                    Text("#${server.order + 1} ${if (server.active) "启用" else "停用"}", fontSize = 11.sp, color = if (server.active) Success else TextSecondary)
                 }
                 Switch(
                     checked = server.active,

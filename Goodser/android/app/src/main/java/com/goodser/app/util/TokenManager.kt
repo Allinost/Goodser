@@ -80,7 +80,11 @@ class TokenManager(private val context: Context) {
     }
 
     suspend fun getActiveServerUrl(): String? {
-        return getServerList().firstOrNull { it.active }?.url
+        return getActiveServerUrls().firstOrNull()
+    }
+
+    suspend fun getActiveServerUrls(): List<String> {
+        return getServerList().filter { it.active }.sortedBy { it.order }.map { it.url }
     }
 
     suspend fun saveServerList(list: List<ServerEntry>) {
@@ -117,13 +121,7 @@ class TokenManager(private val context: Context) {
         val list = getServerList().toMutableList()
         val idx = list.indexOfFirst { it.id == id }
         if (idx == -1) return
-        val newActive = !list[idx].active
-        list[idx] = list[idx].copy(active = newActive)
-        if (newActive) {
-            for (i in list.indices) {
-                if (i != idx && list[i].active) list[i] = list[i].copy(active = false)
-            }
-        }
+        list[idx] = list[idx].copy(active = !list[idx].active)
         saveServerList(list)
     }
 

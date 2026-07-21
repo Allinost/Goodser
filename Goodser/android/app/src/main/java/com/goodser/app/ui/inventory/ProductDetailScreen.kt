@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
+import androidx.compose.material.icons.outlined.Image
 import com.goodser.app.data.model.GoodserTag
 import com.goodser.app.data.model.QueryProductsReq
 import com.goodser.app.data.model.UpdateProductReq
@@ -39,7 +39,9 @@ import com.goodser.app.data.repository.TagRepository
 import com.goodser.app.ui.SyncEventBus
 import com.goodser.app.ui.components.ConfirmDialog
 import com.goodser.app.ui.components.InputDialog
+import com.goodser.app.ui.components.NetworkImage
 import com.goodser.app.ui.components.PullRefreshBox
+import com.goodser.app.ui.components.resolveImageUrl
 import com.goodser.app.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -141,21 +143,19 @@ fun ProductDetailScreen(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("商品未找到", color = TextSecondary) }
             } else {
             Column(
-                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).background(Background)
-                // Note: padding is kept here intentionally - the Column is the main content area
-                // and needs padding from Scaffold. The PullRefreshBox wraps around it for gesture handling.
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).background(Background)
             
             ) {
-                val allImages = product.images?.takeIf { it.isNotEmpty() } ?: product.imageUrl?.let { listOf(it) } ?: emptyList()
+                val allImages = (product.images?.takeIf { it.isNotEmpty() } ?: product.imageUrl?.let { listOf(it) } ?: emptyList()).mapNotNull { resolveImageUrl(it) }
                 if (allImages.isNotEmpty()) {
                     val pagerState = rememberPagerState(pageCount = { allImages.size }, initialPage = 0)
-                    Box(modifier = Modifier.fillMaxWidth().height(240.dp).background(Color(0xFFF0F0F0))) {
+                    Box(modifier = Modifier.fillMaxWidth().height(260.dp).background(Color(0xFFF0F0F0))) {
                         HorizontalPager(
                             state = pagerState,
                             modifier = Modifier.fillMaxSize()
                         ) { page ->
-                            AsyncImage(
-                                model = allImages[page],
+                            NetworkImage(
+                                url = allImages[page],
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
@@ -163,7 +163,7 @@ fun ProductDetailScreen(
                         }
                         if (allImages.size > 1) {
                             Row(
-                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp),
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 repeat(allImages.size) { i ->
@@ -182,19 +182,21 @@ fun ProductDetailScreen(
                     }
                 } else {
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(240.dp).background(Color(0xFFF0F0F0)),
+                        modifier = Modifier.fillMaxWidth().height(200.dp).background(Color(0xFFF0F0F0)),
                         contentAlignment = Alignment.Center
                     ) {
+                        Icon(Icons.Outlined.Image, null, tint = Color(0xFFCCCCCC), modifier = Modifier.size(48.dp))
+                        Spacer(Modifier.height(8.dp))
                         Text("暂无图片", color = TextSecondary, fontSize = 14.sp)
                     }
                 }
 
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(12.dp)) {
                     Card(
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = Surface)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(12.dp)) {
                             Text(product.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = OnBackground)
                             Spacer(Modifier.height(6.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -213,7 +215,7 @@ fun ProductDetailScreen(
                         }
                     }
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(10.dp))
 
                     val productTagIds = product.tags ?: emptyList()
                     val productTags = allTags.filter { it.id in productTagIds }
@@ -222,7 +224,7 @@ fun ProductDetailScreen(
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = Surface)
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
+                            Column(modifier = Modifier.padding(12.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("标签", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = OnBackground, modifier = Modifier.weight(1f))
                                     Surface(
@@ -276,13 +278,13 @@ fun ProductDetailScreen(
                         }
                     }
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(10.dp))
 
                     Card(
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = Surface)
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(12.dp)) {
                             if (product.originalPrice != null && product.originalPrice > 0) {
                                 InfoRow("原价", "¥%.2f".format(product.originalPrice))
                             }
@@ -315,7 +317,7 @@ fun ProductDetailScreen(
                     }
                 }
 
-                Spacer(Modifier.height(80.dp))
+                Spacer(Modifier.height(72.dp))
             }
         }
     }

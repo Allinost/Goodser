@@ -1,15 +1,12 @@
 package com.goodser.app.data.repository
 
-import com.goodser.app.data.api.AuthApi
 import com.goodser.app.data.api.RetrofitClient
 import com.goodser.app.data.model.*
 import com.goodser.app.util.TokenManager
 
 class AuthRepository(private val tokenManager: TokenManager) {
-    private val api: AuthApi get() = RetrofitClient.authApi
-
     suspend fun login(username: String, password: String): Result<TokenPair> = runCatching {
-        val resp = api.login(LoginRequest(username, password))
+        val resp = RetrofitClient.callAuthWithFailover { it.login(LoginRequest(username, password)) }
         if (resp.code == 0 && resp.data != null) {
             tokenManager.saveTokens(resp.data.accessToken, resp.data.refreshToken)
             tokenManager.saveUsername(resp.data.username ?: username)
@@ -20,7 +17,7 @@ class AuthRepository(private val tokenManager: TokenManager) {
     }
 
     suspend fun register(username: String, password: String, nickname: String?): Result<TokenPair> = runCatching {
-        val resp = api.register(RegisterRequest(username, password, nickname))
+        val resp = RetrofitClient.callAuthWithFailover { it.register(RegisterRequest(username, password, nickname)) }
         if (resp.code == 0 && resp.data != null) {
             tokenManager.saveTokens(resp.data.accessToken, resp.data.refreshToken)
             resp.data
@@ -30,13 +27,13 @@ class AuthRepository(private val tokenManager: TokenManager) {
     }
 
     suspend fun getMe(): Result<UserInfo> = runCatching {
-        val resp = api.getMe()
+        val resp = RetrofitClient.callAuthWithFailover { it.getMe() }
         if (resp.code == 0 && resp.data != null) resp.data
         else throw Exception(resp.message ?: "获取用户信息失败")
     }
 
     suspend fun logout() {
-        runCatching { api.logout() }
+        runCatching { RetrofitClient.callAuthWithFailover { it.logout() } }
         tokenManager.clear()
     }
 

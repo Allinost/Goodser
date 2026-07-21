@@ -127,11 +127,11 @@ fun InboundBatchScreen(
             modifier = Modifier.fillMaxSize().padding(padding).background(Background)
         ) {
             Column(
-                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
+                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text("入库目录", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                         Spacer(Modifier.height(8.dp))
                         ExposedDropdownMenuBox(expanded = inventoryExpanded, onExpandedChange = { inventoryExpanded = it }) {
@@ -158,7 +158,7 @@ fun InboundBatchScreen(
 
                 if (items.isNotEmpty()) {
                     Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(12.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("已添加 ${items.size} 件商品", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary, modifier = Modifier.weight(1f))
                             }
@@ -187,7 +187,7 @@ fun InboundBatchScreen(
                     )
                 }
 
-                Spacer(Modifier.height(80.dp))
+                Spacer(Modifier.height(72.dp))
             }
         }
     }
@@ -274,12 +274,12 @@ private fun BatchAddForm(
         }
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.padding(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("添加商品", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary, modifier = Modifier.weight(1f))
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
 
         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("商品名称 *") }, singleLine = true, modifier = Modifier.fillMaxWidth())
 
@@ -306,7 +306,7 @@ private fun BatchAddForm(
 
         OutlinedTextField(value = remark, onValueChange = { remark = it }, label = { Text("备注信息") }, minLines = 2, maxLines = 4, modifier = Modifier.fillMaxWidth())
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
 
         Text("商品图片", fontWeight = FontWeight.Medium, fontSize = 13.sp, color = TextPrimary)
         Spacer(Modifier.height(8.dp))
@@ -329,7 +329,7 @@ private fun BatchAddForm(
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             ExposedDropdownMenuBox(expanded = mainZoneExpanded, onExpandedChange = { mainZoneExpanded = it }, modifier = Modifier.weight(1f)) {
@@ -352,7 +352,7 @@ private fun BatchAddForm(
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("商品标签", fontWeight = FontWeight.Medium, fontSize = 13.sp, color = TextPrimary, modifier = Modifier.weight(1f))
@@ -387,7 +387,7 @@ private fun BatchAddForm(
 
         if (formError != null) { Spacer(Modifier.height(8.dp)); Text(formError!!, color = Error, fontSize = 13.sp) }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp))
 
         OutlinedButton(
             onClick = {
@@ -406,7 +406,7 @@ private fun BatchAddForm(
                                 originalPrice = originalPrice.toDoubleOrNull(), marketPrice = marketPrice.toDoubleOrNull(),
                                 expectedPrice = expectedPrice.toDoubleOrNull(), remark = remark.ifBlank { null },
                                 storageLocation = storageLocation.ifBlank { null },
-                                imageUrl = imageUrls.firstOrNull(), tags = selectedTagIds.toList().ifEmpty { null }
+                                imageUrl = imageUrls.firstOrNull(), images = imageUrls.ifEmpty { null }, tags = selectedTagIds.toList().ifEmpty { null }
                             ))
                             name = ""; originalPrice = ""; marketPrice = ""; expectedPrice = ""
                             quantity = ""; storageLocation = ""; remark = ""

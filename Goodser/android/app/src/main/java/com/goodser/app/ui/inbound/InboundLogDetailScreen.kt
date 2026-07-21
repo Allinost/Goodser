@@ -27,7 +27,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import com.goodser.app.ui.components.NetworkImage
+import com.goodser.app.ui.components.resolveImageUrl
 import com.goodser.app.data.model.*
 import com.goodser.app.data.repository.*
 import com.goodser.app.ui.components.ConfirmDialog
@@ -133,11 +134,11 @@ fun InboundLogDetailScreen(
             val totalQty = items.sumOf { it.quantity }
 
             Column(
-                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).background(Background).padding(16.dp),
+                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).background(Background).padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Surface(shape = RoundedCornerShape(4.dp), color = TagBlueBg) {
                                 Text(typeLabel(inboundLog.type), fontSize = 12.sp, color = TagBlueText, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
@@ -161,7 +162,7 @@ fun InboundLogDetailScreen(
                 }
 
                 Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text("入库商品", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                         Spacer(Modifier.height(8.dp))
                         if (items.isEmpty()) {
@@ -170,7 +171,7 @@ fun InboundLogDetailScreen(
                             items.forEachIndexed { idx, item ->
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { onProductClick(item.productId) }) {
                                     if (!item.imageUrl.isNullOrBlank()) {
-                                        AsyncImage(model = item.imageUrl, contentDescription = null, modifier = Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)), contentScale = ContentScale.Crop)
+                                        NetworkImage(url = item.imageUrl, contentDescription = null, modifier = Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)), contentScale = ContentScale.Crop)
                                         Spacer(Modifier.width(10.dp))
                                     }
                                     Column(modifier = Modifier.weight(1f)) {
@@ -189,7 +190,7 @@ fun InboundLogDetailScreen(
                     }
                 }
 
-                Spacer(Modifier.height(80.dp))
+                Spacer(Modifier.height(72.dp))
             }
         }
     }
@@ -310,7 +311,7 @@ private fun EditLogSheet(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (!product.imageUrl.isNullOrBlank()) {
-                            AsyncImage(model = product.imageUrl, contentDescription = null, modifier = Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)), contentScale = ContentScale.Crop)
+                            NetworkImage(url = product.imageUrl, contentDescription = null, modifier = Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)), contentScale = ContentScale.Crop)
                             Spacer(Modifier.width(8.dp))
                         }
                         Column(modifier = Modifier.weight(1f)) {

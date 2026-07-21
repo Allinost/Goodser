@@ -14,7 +14,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.goodser.app.data.api.RetrofitClient
-import com.goodser.app.data.model.ServerEntry
 import com.goodser.app.data.repository.AuthRepository
 import com.goodser.app.ui.theme.*
 import com.goodser.app.util.TokenManager
@@ -78,9 +77,14 @@ fun LoginScreen(
                     scope.launch {
                         testing = true; error = null
                         try {
-                            RetrofitClient.updateBaseUrl(serverUrl)
-                            updateServerUrl(tokenManager, serverUrl)
-                            error = "连接成功"
+                            val url = serverUrl.trimEnd('/')
+                            val request = okhttp3.Request.Builder().url(url).build()
+                            val resp = okhttp3.OkHttpClient.Builder()
+                                .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                                .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                                .build().newCall(request).execute()
+                            error = if (resp.isSuccessful) "连接成功" else "服务器响应 ${resp.code}"
+                            resp.close()
                         } catch (e: Exception) {
                             error = "连接失败: ${e.message}"
                         }
@@ -126,8 +130,7 @@ fun LoginScreen(
             onClick = {
                 scope.launch {
                     loading = true; error = null
-                    RetrofitClient.updateBaseUrl(serverUrl)
-                    updateServerUrl(tokenManager, serverUrl)
+                    saveServerUrl(tokenManager, serverUrl)
                     repository.login(username, password).fold(
                         onSuccess = {
                             tokenManager.saveUsername(username)
@@ -154,15 +157,9 @@ fun LoginScreen(
     }
 }
 
-private suspend fun updateServerUrl(tokenManager: TokenManager, url: String) {
+private suspend fun saveServerUrl(tokenManager: TokenManager, url: String) {
     val list = tokenManager.getServerList()
-    val active = list.firstOrNull { it.active }
-    if (active != null) {
-        if (active.url != url) {
-            val updated = list.map { if (it.id == active.id) it.copy(url = url) else it }
-            tokenManager.saveServerList(updated)
-        }
-    } else {
+    if (list.none { it.url == url }) {
         tokenManager.addServer(url)
     }
 }

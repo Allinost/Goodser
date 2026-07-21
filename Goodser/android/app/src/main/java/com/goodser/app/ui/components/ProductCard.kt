@@ -18,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.goodser.app.data.model.Product
 import com.goodser.app.ui.theme.*
 
@@ -33,19 +32,16 @@ fun ProductCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-        AsyncImage(
-            model = product.imageUrl ?: product.images?.firstOrNull(),
+        NetworkImage(
+            url = product.imageUrl?.ifBlank { null } ?: product.images?.firstOrNull(),
             contentDescription = null,
-            modifier = Modifier
-                .size(72.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFFF0F0F0)),
+            modifier = Modifier.size(64.dp),
             contentScale = ContentScale.Crop
         )
-        Spacer(Modifier.width(14.dp))
+        Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(product.code, fontSize = 12.sp, color = TextSecondary, fontFamily = FontFamily.Monospace, modifier = Modifier.weight(1f))
@@ -54,17 +50,16 @@ fun ProductCard(
                     bg = TagBlueBg, textColor = TagBlueText
                 )
             }
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(4.dp))
             Text(
                 product.name,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 15.sp,
                 color = OnBackground,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.widthIn(max = 200.dp)
+                overflow = TextOverflow.Ellipsis
             )
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(4.dp))
             if (product.expectedPrice != null) {
                 Text(
                     "¥${"%.2f".format(product.expectedPrice)}",
@@ -82,8 +77,9 @@ fun ProductCard(
                     fontWeight = FontWeight.Medium
                 )
                 if (product.reservedQuantity > 0) {
+                    Spacer(Modifier.width(4.dp))
                     Text(
-                        " + ${product.reservedQuantity}",
+                        "+${product.reservedQuantity}",
                         fontSize = 14.sp,
                         color = Warning,
                         fontWeight = FontWeight.Medium

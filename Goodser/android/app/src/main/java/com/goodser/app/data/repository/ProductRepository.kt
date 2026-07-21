@@ -9,39 +9,37 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class ProductRepository {
-    private val api get() = RetrofitClient.goodserApi
-
     suspend fun loadProducts(inventoryId: String, page: Int = 1, pageSize: Int = 20): Result<PaginatedResp<Product>> = runCatching {
-        val resp = api.loadProducts(PaginatedReq(inventoryId, page, pageSize))
+        val resp = RetrofitClient.callWithFailover { it.loadProducts(PaginatedReq(inventoryId, page, pageSize)) }
         if (resp.code == 0 && resp.data != null) resp.data
         else throw Exception(resp.message ?: "加载商品失败")
     }
 
     suspend fun queryProducts(req: QueryProductsReq): Result<List<Product>> = runCatching {
-        val resp = api.queryProducts(req)
+        val resp = RetrofitClient.callWithFailover { it.queryProducts(req) }
         if (resp.code == 0 && resp.data != null) resp.data.items
         else throw Exception(resp.message ?: "搜索商品失败")
     }
 
     suspend fun create(req: CreateProductReq): Result<Product> = runCatching {
-        val resp = api.createProduct(req)
+        val resp = RetrofitClient.callWithFailover { it.createProduct(req) }
         if (resp.code == 0 && resp.data != null) resp.data
         else throw Exception(resp.message ?: "创建商品失败")
     }
 
     suspend fun update(req: UpdateProductReq): Result<Product> = runCatching {
-        val resp = api.updateProductLegacy(req)
+        val resp = RetrofitClient.callWithFailover { it.updateProductLegacy(req) }
         if (resp.code == 0 && resp.data != null) resp.data
         else throw Exception(resp.message ?: "更新商品失败")
     }
 
     suspend fun delete(id: String): Result<Unit> = runCatching {
-        val resp = api.deleteProduct(IdReq(id))
+        val resp = RetrofitClient.callWithFailover { it.deleteProduct(IdReq(id)) }
         if (resp.code != 0) throw Exception(resp.message ?: "删除商品失败")
     }
 
     suspend fun allocateSeq(inventoryId: String, mainZone: String, subZone: String): Result<Int> = runCatching {
-        val resp = api.allocateSeq(AllocateSeqReq(inventoryId, mainZone, subZone))
+        val resp = RetrofitClient.callWithFailover { it.allocateSeq(AllocateSeqReq(inventoryId, mainZone, subZone)) }
         if (resp.code == 0 && resp.data != null) resp.data.seqNumber
         else throw Exception(resp.message ?: "分配序号失败")
     }
@@ -53,7 +51,7 @@ class ProductRepository {
         val name = "upload_${System.currentTimeMillis()}.jpg"
         val requestBody = bytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
         val part = MultipartBody.Part.createFormData("image", name, requestBody)
-        val resp = api.uploadImage(part)
+        val resp = RetrofitClient.callWithFailover { it.uploadImage(part) }
         if (resp.code == 0 && resp.data != null) resp.data.url
         else throw Exception(resp.message ?: "上传图片失败")
     }

@@ -20,7 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
+import com.goodser.app.ui.components.NetworkImage
+import com.goodser.app.ui.components.resolveImageUrl
 import com.goodser.app.data.model.OutboundOrder
 import com.goodser.app.data.repository.InventoryRepository
 import com.goodser.app.data.repository.OrderRepository
@@ -169,8 +170,8 @@ fun OutboundDetailScreen(
                                     modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { onProductClick(item.productId) },
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    AsyncImage(
-                                        model = item.imageUrl,
+                                    NetworkImage(
+                                        url = item.imageUrl,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(44.dp)

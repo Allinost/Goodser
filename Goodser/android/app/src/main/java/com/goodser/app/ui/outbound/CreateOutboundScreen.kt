@@ -27,7 +27,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
+import com.goodser.app.ui.components.NetworkImage
+import com.goodser.app.ui.components.resolveImageUrl
 import com.goodser.app.data.model.*
 import com.goodser.app.data.repository.InventoryRepository
 import com.goodser.app.data.repository.ProductRepository
@@ -285,8 +286,8 @@ fun CreateOutboundScreen(
                                                 colors = CheckboxDefaults.colors(checkedColor = accentColor)
                                             )
                                         }
-                                        AsyncImage(
-                                            model = product.imageUrl,
+                                        NetworkImage(
+                                            url = product.imageUrl,
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .size(44.dp)
@@ -385,8 +386,8 @@ fun CreateOutboundScreen(
                                         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        AsyncImage(
-                                            model = item.imageUrl,
+                                        NetworkImage(
+                                            url = item.imageUrl,
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .size(44.dp)

@@ -104,14 +104,14 @@ fun InboundSingleScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             Column(
-                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp).background(Background)
+                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(12.dp).background(Background)
             ) {
                 Text("入库目录", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                 Text(currentInventoryId.ifBlank { "未选择" }, fontSize = 13.sp, color = TextSecondary)
                 Spacer(Modifier.height(16.dp))
 
                 Card(shape = RoundedCornerShape(12.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text("商品图片", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                         if (images.isNotEmpty()) Text("（${images.size}张，首图为主图）", fontSize = 12.sp, color = TextSecondary)
                         Spacer(Modifier.height(8.dp))
@@ -135,10 +135,10 @@ fun InboundSingleScreen(
                         }
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
 
                 Card(shape = RoundedCornerShape(12.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("商品名称 *") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                         Spacer(Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -155,10 +155,10 @@ fun InboundSingleScreen(
                         OutlinedTextField(value = remark, onValueChange = { remark = it }, label = { Text("备注信息") }, modifier = Modifier.fillMaxWidth().height(80.dp))
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
 
                 Card(shape = RoundedCornerShape(12.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text("分区与状态", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                         Spacer(Modifier.height(8.dp))
 
@@ -194,10 +194,10 @@ fun InboundSingleScreen(
                         }
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
 
                 Card(shape = RoundedCornerShape(12.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text("商品标签", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                         Spacer(Modifier.height(8.dp))
                         if (availableTags.isEmpty()) {
@@ -240,7 +240,7 @@ fun InboundSingleScreen(
                                         originalPrice = originalPrice.toDoubleOrNull(), marketPrice = marketPrice.toDoubleOrNull(),
                                         expectedPrice = expectedPrice.toDoubleOrNull(), remark = remark.ifBlank { null },
                                         storageLocation = storageLocation.ifBlank { null },
-                                        imageUrl = images.firstOrNull(), tags = selectedTagIds.ifEmpty { null }
+                                        imageUrl = images.firstOrNull(), images = images.ifEmpty { null }, tags = selectedTagIds.ifEmpty { null }
                                     )).fold(
                                         onSuccess = { loading = false; success = true },
                                         onFailure = { loading = false; error = it.message }

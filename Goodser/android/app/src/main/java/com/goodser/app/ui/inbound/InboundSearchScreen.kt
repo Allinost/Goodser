@@ -26,7 +26,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import com.goodser.app.ui.components.NetworkImage
+import com.goodser.app.ui.components.resolveImageUrl
 import com.goodser.app.data.model.*
 import com.goodser.app.data.repository.*
 import com.goodser.app.ui.theme.*
@@ -170,11 +171,11 @@ fun InboundSearchScreen(
             modifier = Modifier.fillMaxSize().padding(padding).background(Background)
         ) {
             Column(
-                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp),
+                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text("入库目录", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                         Spacer(Modifier.height(8.dp))
                         ExposedDropdownMenuBox(expanded = inventoryExpanded, onExpandedChange = { inventoryExpanded = it }) {
@@ -197,7 +198,7 @@ fun InboundSearchScreen(
                 }
 
                 Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text("搜索商品", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -275,7 +276,7 @@ fun InboundSearchScreen(
 
                 if (isMultiSelect && multiSelectedProductsList.isNotEmpty()) {
                     Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(12.dp)) {
                             Text("已选 ${multiSelectedProductsList.size} 个商品", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
                             Spacer(Modifier.height(8.dp))
                             multiSelectedProductsList.forEach { p ->
@@ -335,18 +336,18 @@ fun InboundSearchScreen(
                 if (!isMultiSelect && ssp != null) {
                     val product = ssp
                     Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = Surface)) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(12.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 if (!product.imageUrl.isNullOrBlank()) {
-                                    AsyncImage(model = product.imageUrl, contentDescription = null, modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
-                                    Spacer(Modifier.width(12.dp))
+                                    NetworkImage(url = product.imageUrl, contentDescription = null, modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
+                                    Spacer(Modifier.width(10.dp))
                                 }
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(product.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = TextPrimary)
                                     Text(product.code, fontSize = 12.sp, color = TextSecondary)
                                 }
                             }
-                            Spacer(Modifier.height(12.dp))
+                            Spacer(Modifier.height(10.dp))
                             OutlinedTextField(value = singleQty, onValueChange = { singleQty = it.filter { c -> c.isDigit() } }, label = { Text("导入数量 *") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Spacer(Modifier.height(8.dp))
                             Text("沿用分区: 沿用原分区 (${product.mainZone}-${product.subZone})", fontSize = 13.sp, color = TextSecondary)
@@ -357,7 +358,7 @@ fun InboundSearchScreen(
                                     statusCodes.forEach { sc -> DropdownMenuItem(text = { Text("${sc.code} - ${sc.label}", fontSize = 14.sp) }, onClick = { singleStatusCode = sc.code; singleStatusExpanded = false }) }
                                 }
                             }
-                            Spacer(Modifier.height(12.dp))
+                            Spacer(Modifier.height(10.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("商品标签", fontWeight = FontWeight.Medium, fontSize = 13.sp, color = TextPrimary, modifier = Modifier.weight(1f))
                                 TextButton(onClick = { showNewTagDialog = true }) {
@@ -387,7 +388,7 @@ fun InboundSearchScreen(
                     }
                 }
 
-                Spacer(Modifier.height(80.dp))
+                Spacer(Modifier.height(72.dp))
             }
         }
     }
@@ -418,7 +419,7 @@ private fun SearchResultItem(
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             if (!product.imageUrl.isNullOrBlank()) {
-                AsyncImage(model = product.imageUrl, contentDescription = null, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(6.dp)), contentScale = ContentScale.Crop)
+                NetworkImage(url = product.imageUrl, contentDescription = null, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(6.dp)), contentScale = ContentScale.Crop)
                 Spacer(Modifier.width(10.dp))
             }
             Column(modifier = Modifier.weight(1f)) {

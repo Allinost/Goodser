@@ -79,7 +79,7 @@ fun SettingsScreen(
                         scope.launch {
                             syncing = true; syncError = null
                             try {
-                                val resp = RetrofitClient.goodserApi.syncAll()
+                                val resp = RetrofitClient.callWithFailover { it.syncAll() }
                                 if (resp.code == 0 && resp.data != null) {
                                     val d = resp.data
                                     val timeStr = formatNow()

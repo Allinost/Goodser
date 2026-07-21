@@ -171,11 +171,11 @@ fun ProductEditScreen(
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Surface),
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(12.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text("商品图片", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = OnBackground)
-                        Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(10.dp))
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -225,9 +225,9 @@ fun ProductEditScreen(
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Surface),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         OutlinedTextField(
                             value = name,
                             onValueChange = { name = it },
@@ -291,16 +291,16 @@ fun ProductEditScreen(
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
 
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Surface),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Text("分区与编码", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = OnBackground)
-                        Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(10.dp))
 
                         ExposedDropdownMenuBox(
                             expanded = mainZoneExpanded,
@@ -372,7 +372,7 @@ fun ProductEditScreen(
                         }
 
                         if (codePreview.isNotBlank()) {
-                            Spacer(Modifier.height(12.dp))
+                            Spacer(Modifier.height(10.dp))
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
                                 color = TagBlueBg
@@ -389,14 +389,14 @@ fun ProductEditScreen(
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
+Spacer(Modifier.height(10.dp))
 
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Surface),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("标签", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = OnBackground, modifier = Modifier.weight(1f))
                             TextButton(onClick = { showNewTagDialog = true; newTagName = ""; newTagColor = "#1890ff" }) {
@@ -447,7 +447,7 @@ fun ProductEditScreen(
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
 
                 if (error != null) {
                     Text(error!!, color = Error, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 16.dp))
@@ -479,6 +479,7 @@ fun ProductEditScreen(
                                         mainZone = mainZone,
                                         subZone = subZone,
                                         imageUrl = imageUrls.firstOrNull(),
+                                        images = imageUrls.ifEmpty { null },
                                         tags = tags
                                     )
                                 ).fold(
@@ -504,6 +505,7 @@ fun ProductEditScreen(
                                                 remark = remark.ifBlank { null },
                                                 storageLocation = storageLocation.ifBlank { null },
                                                 imageUrl = imageUrls.firstOrNull(),
+                                                images = imageUrls.ifEmpty { null },
                                                 tags = tags
                                             )
                                         ).fold(
