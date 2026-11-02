@@ -14,10 +14,19 @@ Page({
     // 多选模式
     multiSelectMode: false,
     checkedProductIds: [],
+    // P1 组合包
+    combos: [],
+    comboOptions: [],
+    comboIndex: 0,
+    selectedComboId: '',
+    comboQuantity: 1,
+    selectedCombo: null,
     submitting: false
   },
 
-  onLoad() {
+  onLoad(options) {
+    this._presetInventoryId = (options && options.inventory_id) || ''
+    this._presetComboId = (options && options.combo_id) || ''
     this.refreshInventories()
     this._saveOriginal()
   },
@@ -25,7 +34,8 @@ Page({
   _saveOriginal() {
     var d = this.data
     this._originalData = {
-      selectedItems: JSON.parse(JSON.stringify(d.selectedItems)),
+      selectedItems: JSON.stringify(d.selectedItems),
+      selectedComboId: d.selectedComboId,
       orderInfo: d.orderInfo,
       orderRemark: d.orderRemark
     }
@@ -36,6 +46,7 @@ Page({
     var d = this.data
     var o = this._originalData
     if (JSON.stringify(d.selectedItems) !== o.selectedItems) return true
+    if (d.selectedComboId !== o.selectedComboId) return true
     if (d.orderInfo !== o.orderInfo) return true
     if (d.orderRemark !== o.orderRemark) return true
     return false
@@ -57,18 +68,28 @@ Page({
       db.loadProducts(inv._id, true).catch(function(e) {
         console.warn('[Outbound] loadProducts 失败:', e)
       })
+      this.loadCombos(true)
     }
   },
 
   refreshInventories() {
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
-    this.setData({ inventories, inventoryNames })
+    var index = this.data.inventoryIndex
+    if (this._presetInventoryId) {
+      var presetIndex = inventories.findIndex(function(i) { return i._id === this._presetInventoryId }, this)
+      if (presetIndex > -1) index = presetIndex
+    }
+    if (index >= inventories.length) index = 0
+    var that = this
+    this.setData({ inventories, inventoryNames, inventoryIndex: index }, function() {
+      that.loadCombos()
+    })
   },
 
   onInventoryChange(e) {
     var idx = e.detail.value
-    this.setData({ inventoryIndex: idx })
+    this.setData({ inventoryIndex: idx, selectedComboId: '', selectedCombo: null, comboIndex: 0 })
     // 切换目录时，从后端加载该目录的商品
     var inv = this.data.inventories[idx]
     if (inv && db.isBackendMode && db.isBackendMode()) {
@@ -76,6 +97,64 @@ Page({
         console.warn('[Outbound] loadProducts 失败:', err)
       })
     }
+    this.loadCombos()
+  },
+
+  async loadCombos(force) {
+    var inv = this.data.inventories[this.data.inventoryIndex]
+    if (!inv || !db.isBackendMode || !db.isBackendMode()) {
+      this.setData({ combos: [], comboOptions: [], selectedComboId: '', selectedCombo: null })
+      return
+    }
+    try {
+      var combos = (await db.loadCombos(inv._id, !!force)).filter(function(c) { return c.status === 'active' })
+      var comboOptions = [{ label: '不使用组合包', value: '' }].concat(combos.map(function(c) {
+        return { label: c.name + '（可售 ' + c.availability + '）', value: c._id }
+      }))
+      var selectedComboId = this.data.selectedComboId
+      if (this._presetComboId && combos.some(function(c) { return c._id === this._presetComboId })) {
+        selectedComboId = this._presetComboId
+        this._presetComboId = ''
+      }
+      var comboIndex = comboOptions.findIndex(function(o) { return o.value === selectedComboId })
+      if (comboIndex < 0) comboIndex = 0
+      if (!selectedComboId && comboOptions.length) {
+        selectedComboId = ''
+      }
+      this.setData({
+        combos: combos,
+        comboOptions: comboOptions,
+        comboIndex: comboIndex,
+        selectedComboId: selectedComboId,
+        selectedCombo: combos.find(function(c) { return c._id === selectedComboId }) || null
+      })
+    } catch (err) {
+      console.warn('[Outbound] 加载组合包失败:', err)
+      this.setData({ combos: [], comboOptions: [], selectedCombo: null })
+    }
+  },
+
+  onComboChange(e) {
+    var idx = Number(e.detail.value)
+    var option = this.data.comboOptions[idx]
+    var combo = option ? this.data.combos.find(function(c) { return c._id === option.value }) : null
+    this.setData({
+      comboIndex: idx,
+      selectedComboId: option ? option.value : '',
+      selectedCombo: combo || null,
+      comboQuantity: 1
+    })
+    this._markDirty()
+  },
+
+  onComboQuantityInput(e) {
+    this.setData({ comboQuantity: parseInt(e.detail.value) || 1 })
+    this._markDirty()
+  },
+
+  onClearCombo() {
+    this.setData({ selectedComboId: '', selectedCombo: null, comboIndex: 0, comboQuantity: 1 })
+    this._markDirty()
   },
 
   onProductSearch(e) {
@@ -115,7 +194,7 @@ Page({
           wx.showToast({ title: '该商品已添加', icon: 'none' })
           return
         }
-        const available = product.quantity - (product.reserved_quantity || 0)
+        const available = product.quantity || 0
         if (available <= 0) {
           wx.showToast({ title: '该商品可用库存不足', icon: 'none' })
           return
@@ -132,7 +211,7 @@ Page({
       wx.showToast({ title: '已添加该商品', icon: 'none' })
       return
     }
-    const available = product.quantity - (product.reserved_quantity || 0)
+    const available = product.quantity || 0
     if (available <= 0) {
       wx.showToast({ title: '该商品可用库存不足', icon: 'none' })
       return
@@ -164,7 +243,7 @@ Page({
       if (!product) return
       const exists = this.data.selectedItems.find(i => i.product_id === pid)
       if (exists) return
-      const available = product.quantity - (product.reserved_quantity || 0)
+      const available = product.quantity || 0
       if (available <= 0) return
       newItems.push({
         product_id: product._id,
@@ -227,25 +306,50 @@ Page({
 
   async onSubmit() {
     if (this.data.submitting) return
-    if (this.data.selectedItems.length === 0) {
-      wx.showToast({ title: '请添加出库商品', icon: 'none' })
-      return
-    }
-    // 检查可用库存是否充足（总量 - 已预留）
-    const insufficient = this.data.selectedItems.find(i => {
-      const product = db.products.find(p => p._id === i.product_id)
-      if (!product) return true
-      const available = product.quantity - (product.reserved_quantity || 0)
-      return i.quantity > available
-    })
-    if (insufficient) {
-      wx.showToast({ title: `「${insufficient.product_name}」可用库存不足`, icon: 'none' })
-      return
-    }
+
     const inventory = this.data.inventories[this.data.inventoryIndex]
+    if (!inventory) {
+      wx.showToast({ title: '请先选择目录', icon: 'none' })
+      return
+    }
+
+    const combo = this.data.selectedCombo
+    var comboQuantity = Number(this.data.comboQuantity) || 0
+
+    if (combo) {
+      if (comboQuantity < 1) {
+        wx.showToast({ title: '请填写组合包数量', icon: 'none' })
+        return
+      }
+      if (comboQuantity > (combo.availability || 0)) {
+        wx.showToast({ title: `「${combo.name}」可售数量不足`, icon: 'none' })
+        return
+      }
+    } else {
+      if (this.data.selectedItems.length === 0) {
+        wx.showToast({ title: '请添加出库商品', icon: 'none' })
+        return
+      }
+      // 检查可用库存是否充足（总量 - 已预留）
+      const insufficient = this.data.selectedItems.find(i => {
+        const product = db.products.find(p => p._id === i.product_id)
+        if (!product) return true
+        const available = product.quantity || 0
+        return i.quantity > available
+      })
+      if (insufficient) {
+        wx.showToast({ title: `「${insufficient.product_name}」可用库存不足`, icon: 'none' })
+        return
+      }
+    }
+
+    const modalContent = combo
+      ? `目录: ${inventory.name}\n组合包: ${combo.name} × ${comboQuantity}`
+      : `目录: ${inventory.name}\n共 ${this.data.selectedItems.length} 种商品`
+
     wx.showModal({
       title: '确认新建出库单',
-      content: `目录: ${inventory.name}\n共 ${this.data.selectedItems.length} 种商品`,
+      content: modalContent,
       success: async (modalRes) => {
         if (!modalRes.confirm) return
 
@@ -255,24 +359,33 @@ Page({
         try {
           var ts = new Date()
           var timeStr = ts.getFullYear() + String(ts.getMonth() + 1).padStart(2, '0') + String(ts.getDate()).padStart(2, '0') + String(ts.getHours()).padStart(2, '0') + String(ts.getMinutes()).padStart(2, '0') + String(ts.getSeconds()).padStart(2, '0')
-          const orderNo = (this.data.orderInfo || inventory.name) + '_' + timeStr
-          // 通过 API 创建出库单（后端处理库存扣减）
-          await db.createOutboundOrder({
+          const orderNo = (this.data.orderInfo || (combo ? combo.name : inventory.name)) + '_' + timeStr
+
+          var payload = {
             _id: 'out_' + Date.now(),
             inventory_id: inventory._id,
             order_no: orderNo,
             type: 'outbound',
-            status: 'pending',
             order_info: this.data.orderInfo,
-            remark: this.data.orderRemark,
-            items: this.data.selectedItems.map(i => ({
+            remark: this.data.orderRemark
+          }
+
+          if (combo) {
+            payload.items = []
+            payload.combo_id = combo._id
+            payload.combo_quantity = comboQuantity
+          } else {
+            payload.items = this.data.selectedItems.map(i => ({
               product_id: i.product_id,
               product_name: i.product_name,
               product_code: i.product_code,
               quantity: i.quantity,
               image_url: i.image_url
             }))
-          })
+          }
+
+          // 通过 API 创建出库单（后端处理库存扣减）
+          await db.createOutboundOrder(payload)
 
           if (this._disableAlert) {
             this._disableAlert()

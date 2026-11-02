@@ -47,7 +47,7 @@
     <view class="divider"></view>
     <view class="info-row">
       <text class="label">库存数量</text>
-      <text class="value highlight">{{product.quantity - (product.reserved_quantity || 0)}}{{product.reserved_quantity > 0 ? '（预留 ' + product.reserved_quantity + '）' : ''}}</text>
+      <text class="value highlight">可用 {{product.quantity}}{{product.reserved_quantity > 0 ? ' · 锁定 ' + product.reserved_quantity : ''}}</text>
     </view>
     <view class="info-row">
       <text class="label">仓储位置</text>
@@ -69,6 +69,22 @@
     <view class="info-row">
       <text class="label">状态</text>
       <text class="value">{{statusLabel}}（{{product.status_code}}）</text>
+    </view>
+    <view class="info-row">
+      <text class="label">系列</text>
+      <text class="value">{{seriesName || '-'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">角色</text>
+      <text class="value">{{characterNames || '-'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">套型</text>
+      <text class="value">{{setTypeName || '-'}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">商品类型</text>
+      <text class="value">{{productTypeName || '-'}}</text>
     </view>
     <view class="divider"></view>
     <view class="info-row">

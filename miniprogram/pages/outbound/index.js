@@ -15,8 +15,10 @@ Page({
     statusOptions: [
       { key: '', label: '全部状态' },
       { key: 'pending', label: '待确认' },
-      { key: 'reserved', label: '预留中' },
+      { key: 'converted', label: '已转出库' },
       { key: 'confirmed', label: '已确认' },
+      { key: 'partially_returned', label: '部分退货' },
+      { key: 'returned', label: '已退货' },
       { key: 'cancelled', label: '已取消' }
     ],
     showFilter: false,

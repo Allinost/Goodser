@@ -17,6 +17,14 @@
       <text class="label">备注</text>
       <text class="value">{{order.remark}}</text>
     </view>
+    <view class="info-row" wx:if="{{order._createdAt}}">
+      <text class="label">创建时间</text>
+      <text class="value">{{order._createdAt}}</text>
+    </view>
+    <view class="info-row" wx:if="{{order._convertedAt}}">
+      <text class="label">转出库时间</text>
+      <text class="value">{{order._convertedAt}}</text>
+    </view>
     <view class="info-row" wx:if="{{order._confirmedAt}}">
       <text class="label">确认时间</text>
       <text class="value">{{order._confirmedAt}}</text>
@@ -52,7 +60,7 @@
       {{order.type === 'outbound' ? '取消出库' : '取消预留'}}
     </view>
     <view class="btn btn-primary" bindtap="onConfirm">
-      {{order.type === 'outbound' ? '确认出库' : '准备出库'}}
+      {{order.type === 'outbound' ? '确认出库' : '转出库'}}
     </view>
   </view>
 </view>

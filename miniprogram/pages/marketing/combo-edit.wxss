@@ -1,0 +1,183 @@
+.page-combo-edit {
+  padding: 24rpx;
+  padding-bottom: 160rpx;
+}
+
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 26rpx;
+  color: #666666;
+  margin-bottom: 12rpx;
+}
+
+.required {
+  color: #ff4d4f;
+}
+
+.form-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 18rpx 20rpx;
+  background: #f5f7fa;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+}
+
+.form-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18rpx 20rpx;
+  background: #f5f7fa;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+}
+
+.picker-arrow {
+  color: #999999;
+  font-size: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 18rpx;
+}
+
+.search-row {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+}
+
+.btn-sm {
+  padding: 14rpx 24rpx;
+  font-size: 26rpx;
+  flex-shrink: 0;
+}
+
+.search-results {
+  margin-top: 16rpx;
+  border: 2rpx solid #f0f0f0;
+  border-radius: 10rpx;
+  overflow: hidden;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 20rpx;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.result-name {
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.result-code,
+.result-stock {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.result-add {
+  color: #1890ff;
+  font-size: 26rpx;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #999999;
+  font-size: 26rpx;
+  padding: 30rpx 0;
+}
+
+.component-list {
+  margin-top: 16rpx;
+}
+
+.component-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.component-item:last-child {
+  border-bottom: none;
+}
+
+.component-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.component-name {
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.component-code {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.qty-box {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.qty-label {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.qty-input {
+  width: 100rpx;
+  text-align: center;
+  padding: 10rpx 0;
+  background: #f5f7fa;
+  border-radius: 8rpx;
+  font-size: 26rpx;
+}
+
+.remove-btn {
+  color: #ff4d4f;
+  font-size: 30rpx;
+  padding: 8rpx;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20rpx 24rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #ffffff;
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
+}

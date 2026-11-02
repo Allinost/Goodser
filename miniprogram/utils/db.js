@@ -1070,6 +1070,20 @@ async function loadInventories(forceRefresh) {
 /**
  * 加载出库单列表
  */
+async function queryProducts(data) {
+  var query = data || {}
+  if (!isBackendMode()) {
+    var kw = (query.keyword || '').toLowerCase()
+    var list = products.filter(function(p) {
+      return (!query.inventory_id || p.inventory_id === query.inventory_id) &&
+        (!query.series_id || p.series_id === query.series_id) &&
+        (!kw || (p.name || '').toLowerCase().indexOf(kw) > -1 || (p.code || '').toLowerCase().indexOf(kw) > -1)
+    })
+    return { items: list, total: list.length, has_more: false }
+  }
+  return _backendCall('queryProducts', query)
+}
+
 async function loadOutboundOrders(inventoryId, options) {
   if (!isBackendMode()) return { items: outboundOrders.filter(function(o) { return o.inventory_id === inventoryId }), has_more: false }
 
@@ -1405,19 +1419,30 @@ async function createOutboundOrder(data) {
     var newOrder = {
       _id: data._id || ('out_' + Date.now()), inventory_id: data.inventory_id,
       order_no: data.order_no, type: data.type || 'outbound',
-      status: data.status || 'pending', order_info: data.order_info || '',
+      // 单据状态由服务端/本地逻辑推导，客户端传入的 status 一律忽略
+      status: 'pending', order_info: data.order_info || '',
       remark: data.remark || '', items: data.items || [],
       source_reserve_id: data.source_reserve_id || null,
       owner_openid: 'user_001',
       created_at: new Date().toLocaleString(), updated_at: new Date().toLocaleString(),
-      confirmed_at: data.confirmed_at || null, cancelled_at: data.cancelled_at || null
+      confirmed_at: null, cancelled_at: null, converted_at: null, returned_at: null
     }
+    // D1：创建即锁定库存，quantity 减少、reserved_quantity 增加
+    newOrder.items.forEach(function(item) {
+      var product = products.find(function(p) { return p._id === item.product_id })
+      if (product) {
+        product.quantity = Math.max(0, (product.quantity || 0) - item.quantity)
+        product.reserved_quantity = (product.reserved_quantity || 0) + item.quantity
+        product.updated_at = new Date().toLocaleString()
+      }
+    })
     outboundOrders.push(newOrder)
     return newOrder
   }
   var result = await _backendCall('createOutbound', data)
   _invalidateCache('outbound_' + data.inventory_id)
   await loadOutboundOrders(data.inventory_id, true)
+  await loadProducts(data.inventory_id, true)
   return result
 }
 
@@ -1428,11 +1453,11 @@ async function confirmOutbound(id) {
       order.status = 'confirmed'
       order.confirmed_at = new Date().toLocaleString()
       order.updated_at = new Date().toLocaleString()
-      // 扣减库存（不操作 reserved，因为出库单无预留）
+      // D1：确认出库只释放锁定库存，不再扣减 quantity
       order.items.forEach(function(item) {
         var product = products.find(function(p) { return p._id === item.product_id })
         if (product) {
-          product.quantity = Math.max(0, product.quantity - item.quantity)
+          product.reserved_quantity = Math.max(0, (product.reserved_quantity || 0) - item.quantity)
           product.updated_at = new Date().toLocaleString()
         }
       })
@@ -1453,14 +1478,16 @@ async function confirmOutbound(id) {
 async function cancelOutbound(id) {
   if (!isBackendMode()) {
     var order = outboundOrders.find(function(o) { return o._id === id })
-    if (order) {
-      // 仅已确认的出库单需要恢复库存
-      if (order.status === 'confirmed') {
-        order.items.forEach(function(item) {
-          var product = products.find(function(p) { return p._id === item.product_id })
-          if (product) { product.quantity += item.quantity; product.updated_at = new Date().toLocaleString() }
-        })
-      }
+    if (order && order.status === 'pending') {
+      // D1：取消出库把锁定库存释放回可用库存
+      order.items.forEach(function(item) {
+        var product = products.find(function(p) { return p._id === item.product_id })
+        if (product) {
+          product.quantity = (product.quantity || 0) + item.quantity
+          product.reserved_quantity = Math.max(0, (product.reserved_quantity || 0) - item.quantity)
+          product.updated_at = new Date().toLocaleString()
+        }
+      })
       order.status = 'cancelled'
       order.cancelled_at = new Date().toLocaleString()
       order.updated_at = new Date().toLocaleString()
@@ -1481,10 +1508,15 @@ async function cancelOutbound(id) {
 async function cancelReserve(id) {
   if (!isBackendMode()) {
     var reserve = outboundOrders.find(function(o) { return o._id === id })
-    if (reserve) {
+    if (reserve && reserve.status === 'pending') {
+      // D1：取消预留把锁定库存释放回可用库存
       reserve.items.forEach(function(item) {
         var product = products.find(function(p) { return p._id === item.product_id })
-        if (product) { product.reserved_quantity = Math.max(0, product.reserved_quantity - item.quantity); product.updated_at = new Date().toLocaleString() }
+        if (product) {
+          product.quantity = (product.quantity || 0) + item.quantity
+          product.reserved_quantity = Math.max(0, (product.reserved_quantity || 0) - item.quantity)
+          product.updated_at = new Date().toLocaleString()
+        }
       })
       reserve.status = 'cancelled'
       reserve.cancelled_at = new Date().toLocaleString()
@@ -1507,25 +1539,18 @@ async function reserveToOutbound(id, data) {
   if (!isBackendMode()) {
     var reserve = outboundOrders.find(function(o) { return o._id === id })
     if (reserve) {
-      reserve.status = 'confirmed'
-      reserve.confirmed_at = new Date().toLocaleString()
+      // D1：转单不改变库存，只复制原预留单明细生成待出库单
+      reserve.status = 'converted'
+      reserve.converted_at = new Date().toLocaleString()
       reserve.updated_at = new Date().toLocaleString()
-      reserve.items.forEach(function(item) {
-        var product = products.find(function(p) { return p._id === item.product_id })
-        if (product) {
-          product.reserved_quantity = Math.max(0, product.reserved_quantity - item.quantity)
-          product.quantity = Math.max(0, product.quantity - item.quantity)
-          product.updated_at = new Date().toLocaleString()
-        }
-      })
       var newOrder = {
-        _id: data._id || ('out_' + Date.now()), inventory_id: data.inventory_id,
+        _id: data._id || ('out_' + Date.now()), inventory_id: reserve.inventory_id,
         order_no: data.order_no, type: 'outbound', status: 'pending',
-        order_info: data.order_info || '', remark: data.remark || '',
-        items: data.items || [], source_reserve_id: id,
+        order_info: data.order_info || reserve.order_info || '', remark: data.remark || reserve.remark || '',
+        items: reserve.items || [], source_reserve_id: id,
         owner_openid: 'user_001',
         created_at: new Date().toLocaleString(), updated_at: new Date().toLocaleString(),
-        confirmed_at: null, cancelled_at: null
+        confirmed_at: null, cancelled_at: null, converted_at: null, returned_at: null
       }
       outboundOrders.push(newOrder)
       return newOrder
@@ -1871,6 +1896,213 @@ async function inboundSearchImport(data) {
   return result
 }
 
+// ========== P1 / P1.5 REST 接口 ==========
+//
+// 维度字典、系列视图、组合包、捆等新接口是标准 RESTful 路径，
+// 不走 legacy action 映射，因此单独提供轻量封装。
+
+function _buildRestURL(method, path, data) {
+  var baseUrl = (_nasConfig.baseUrl || '').replace(/\/+$/, '')
+  var url = baseUrl + path
+  if (method === 'GET' && data) {
+    var qs = Object.keys(data)
+      .filter(function(k) { return data[k] !== undefined && data[k] !== null && data[k] !== '' })
+      .map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) })
+      .join('&')
+    if (qs) url += '?' + qs
+  }
+  return url
+}
+
+function _doRestRequest(method, path, data, token) {
+  return new Promise(function(resolve, reject) {
+    wx.request({
+      url: _buildRestURL(method, path, data),
+      method: method,
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      data: method === 'GET' ? null : (data || {}),
+      timeout: 15000,
+      success: function(res) {
+        if (res.statusCode === 200) {
+          var body = res.data
+          if (body && body.code === 0) {
+            resolve(body.data)
+          } else {
+            reject(new Error((body && body.message) || 'API 返回错误'))
+          }
+        } else if (res.statusCode === 401) {
+          reject(new Error('认证失败'))
+        } else {
+          var msg = res.data && res.data.message ? res.data.message : ('API HTTP ' + res.statusCode)
+          reject(new Error(msg))
+        }
+      },
+      fail: function(err) {
+        reject(new Error('连接失败: ' + (err.errMsg || '未知错误')))
+      }
+    })
+  })
+}
+
+function _restRequest(method, path, data) {
+  if (!isBackendMode()) return Promise.reject(new Error('仅后端模式支持该操作'))
+  return _getValidToken().then(function(token) {
+    return _doRestRequest(method, path, data, token)
+  }).catch(function(err) {
+    var msg = err && err.message ? err.message : ''
+    var needLogin = msg.indexOf('认证失败') !== -1 || msg.indexOf('未登录') !== -1 || msg.indexOf('重新登录') !== -1
+    if (needLogin &&
+        _nasConfig && _nasConfig.username && _nasConfig.password) {
+      return loginGoBackend({
+        address: _nasConfig.backendAddress,
+        port: _nasConfig.backendPort,
+        username: _nasConfig.username,
+        password: _nasConfig.password
+      }).then(function(token) {
+        return _doRestRequest(method, path, data, token.access_token)
+      })
+    }
+    throw err
+  })
+}
+
+// ---- 维度字典 ----
+
+function loadDictionaries(kind, forceRefresh) {
+  var cacheKey = 'dictionaries' + (kind ? '_' + kind : '')
+  if (!forceRefresh) {
+    var l1 = _getL1(cacheKey, TTL.tags)
+    if (l1) return Promise.resolve(l1)
+    var l2 = _getL2(cacheKey, TTL.tags)
+    if (l2) return Promise.resolve(l2)
+  }
+  return _restRequest('GET', '/api/v1/zzz-goodser/settings/dictionaries', kind ? { kind: kind } : null)
+    .then(function(data) {
+      var list = Array.isArray(data) ? data : (data && data.items) || []
+      _setL1(cacheKey, list, TTL.tags)
+      _setL2(cacheKey, list)
+      return list
+    })
+}
+
+function createDictionary(data) {
+  return _restRequest('POST', '/api/v1/zzz-goodser/settings/dictionaries', data)
+    .then(function(result) { _invalidateCache('dictionaries'); _invalidateCache('dictionaries_' + data.kind); return result })
+}
+
+function updateDictionary(id, data) {
+  return _restRequest('PUT', '/api/v1/zzz-goodser/settings/dictionaries/' + id, data)
+    .then(function(result) { _invalidateCache('dictionaries'); return result })
+}
+
+function deleteDictionary(id) {
+  return _restRequest('DELETE', '/api/v1/zzz-goodser/settings/dictionaries/' + id)
+    .then(function(result) { _invalidateCache('dictionaries'); return result })
+}
+
+// ---- 系列视图 ----
+
+function loadSeriesSummary(inventoryId, forceRefresh) {
+  var cacheKey = 'series_' + inventoryId
+  if (!forceRefresh) {
+    var l1 = _getL1(cacheKey, TTL.products)
+    if (l1) return Promise.resolve(l1)
+  }
+  return _restRequest('GET', '/api/v1/zzz-goodser/inventories/' + inventoryId + '/series')
+    .then(function(data) {
+      var list = data && data.items ? data.items : (Array.isArray(data) ? data : [])
+      _setL1(cacheKey, list, TTL.products)
+      return list
+    })
+}
+
+// ---- 组合包 ----
+
+function loadCombos(inventoryId, forceRefresh) {
+  var cacheKey = 'combos_' + inventoryId
+  if (!forceRefresh) {
+    var l1 = _getL1(cacheKey, TTL.products)
+    if (l1) return Promise.resolve(l1)
+  }
+  return _restRequest('GET', '/api/v1/zzz-goodser/inventories/' + inventoryId + '/combos')
+    .then(function(data) {
+      var list = data && data.items ? data.items : (Array.isArray(data) ? data : [])
+      _setL1(cacheKey, list, TTL.products)
+      return list
+    })
+}
+
+function getCombo(comboId) {
+  return _restRequest('GET', '/api/v1/zzz-goodser/combos/' + comboId)
+}
+
+function createCombo(inventoryId, data) {
+  return _restRequest('POST', '/api/v1/zzz-goodser/inventories/' + inventoryId + '/combos', data)
+    .then(function(result) { _invalidateCache('combos_' + inventoryId); return result })
+}
+
+function updateCombo(comboId, inventoryId, data) {
+  return _restRequest('PUT', '/api/v1/zzz-goodser/combos/' + comboId, data)
+    .then(function(result) { _invalidateCache('combos_' + inventoryId); return result })
+}
+
+function deleteCombo(comboId, inventoryId) {
+  return _restRequest('DELETE', '/api/v1/zzz-goodser/combos/' + comboId)
+    .then(function(result) { _invalidateCache('combos_' + inventoryId); return result })
+}
+
+// ---- 捆 ----
+
+function loadBundles(inventoryId, status, forceRefresh) {
+  var cacheKey = 'bundles_' + inventoryId + '_' + (status || 'all')
+  if (!forceRefresh) {
+    var l1 = _getL1(cacheKey, TTL.products)
+    if (l1) return Promise.resolve(l1)
+  }
+  return _restRequest('GET', '/api/v1/zzz-goodser/inventories/' + inventoryId + '/bundles', status ? { status: status } : null)
+    .then(function(data) {
+      var list = data && data.items ? data.items : (Array.isArray(data) ? data : [])
+      _setL1(cacheKey, list, TTL.products)
+      return list
+    })
+}
+
+function getBundle(bundleId) {
+  return _restRequest('GET', '/api/v1/zzz-goodser/bundles/' + bundleId)
+}
+
+function createBundle(inventoryId, data) {
+  return _restRequest('POST', '/api/v1/zzz-goodser/inventories/' + inventoryId + '/bundles', data)
+    .then(function(result) { _invalidateCache('bundles_' + inventoryId + '_all'); return result })
+}
+
+function updateBundle(bundleId, inventoryId, data) {
+  return _restRequest('PUT', '/api/v1/zzz-goodser/bundles/' + bundleId, data)
+    .then(function(result) { _invalidateCache('bundles_' + inventoryId + '_all'); return result })
+}
+
+function deleteBundle(bundleId, inventoryId) {
+  return _restRequest('DELETE', '/api/v1/zzz-goodser/bundles/' + bundleId)
+    .then(function(result) { _invalidateCache('bundles_' + inventoryId + '_all'); return result })
+}
+
+function previewBundle(bundleId, data) {
+  return _restRequest('POST', '/api/v1/zzz-goodser/bundles/' + bundleId + '/preview', data)
+}
+
+function loadBundleMainProducts(bundleId, keyword) {
+  return _restRequest('GET', '/api/v1/zzz-goodser/bundles/' + bundleId + '/main-products', keyword ? { keyword: keyword } : null)
+    .then(function(data) { return data && data.items ? data.items : (Array.isArray(data) ? data : []) })
+}
+
+function loadBundleSubProducts(bundleId, params) {
+  return _restRequest('GET', '/api/v1/zzz-goodser/bundles/' + bundleId + '/sub-products', params)
+    .then(function(data) { return data && data.items ? data.items : (Array.isArray(data) ? data : []) })
+}
+
 // ========== 图片上传 ==========
 
 async function uploadImage(filePath) {
@@ -2022,12 +2254,35 @@ module.exports = {
   // 数据加载（支持 forceRefresh 参数）
   syncAll: syncAll,
   loadProducts: loadProducts,
+  queryProducts: queryProducts,
   loadTags: loadTags,
   loadStatusCodes: loadStatusCodes,
   loadInventories: loadInventories,
   loadOutboundOrders: loadOutboundOrders,
   loadInboundLogs: loadInboundLogs,
   loadWhitelist: loadWhitelist,
+
+  // P1 维度字典 / 系列视图 / 组合包
+  loadDictionaries: loadDictionaries,
+  createDictionary: createDictionary,
+  updateDictionary: updateDictionary,
+  deleteDictionary: deleteDictionary,
+  loadSeriesSummary: loadSeriesSummary,
+  loadCombos: loadCombos,
+  getCombo: getCombo,
+  createCombo: createCombo,
+  updateCombo: updateCombo,
+  deleteCombo: deleteCombo,
+
+  // P1.5 捆
+  loadBundles: loadBundles,
+  getBundle: getBundle,
+  createBundle: createBundle,
+  updateBundle: updateBundle,
+  deleteBundle: deleteBundle,
+  previewBundle: previewBundle,
+  loadBundleMainProducts: loadBundleMainProducts,
+  loadBundleSubProducts: loadBundleSubProducts,
 
   // Go 后端认证
   loginGoBackend: loginGoBackend,

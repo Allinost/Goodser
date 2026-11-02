@@ -41,6 +41,9 @@
 }
 
 .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 12rpx;
 }
 
@@ -228,4 +231,66 @@
 
 .checkbox-checked {
   background: #1890ff;
+}
+
+/* 选择器 */
+.form-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 80rpx;
+  padding: 0 20rpx;
+  border: 2rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #333333;
+  box-sizing: border-box;
+}
+
+.picker-arrow {
+  color: #999999;
+  font-size: 20rpx;
+  margin-left: 12rpx;
+}
+
+.link-text {
+  font-size: 24rpx;
+  color: #1890ff;
+}
+
+/* 组合包 */
+.combo-summary {
+  background: #f0f7ff;
+  border-radius: 10rpx;
+  padding: 18rpx 20rpx;
+}
+
+.combo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+  font-size: 24rpx;
+  color: #1890ff;
+}
+
+.combo-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 12rpx;
+}
+
+.combo-part {
+  background: #ffffff;
+  color: #333333;
+  border-radius: 8rpx;
+  padding: 6rpx 14rpx;
+  font-size: 22rpx;
+}
+
+.combo-tip {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #8c8c8c;
 }

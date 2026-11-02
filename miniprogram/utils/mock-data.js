@@ -139,7 +139,7 @@ const outboundOrders = [
   },
   {
     _id: 'rsv_001', inventory_id: 'inv_001',
-    order_no: 'RSV20260608001', type: 'reserve', status: 'reserved',
+    order_no: 'RSV20260608001', type: 'reserve', status: 'pending',
     order_info: '客户预订单 #PRE-20260608', remark: '客户确认后出库',
     items: [
       { product_id: 'prod_003', product_name: '机械键盘 RGB', product_code: 'A-B-0001-0012-B', quantity: 5, image_url: 'https://picsum.photos/200/200?random=3' },

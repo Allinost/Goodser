@@ -1,0 +1,152 @@
+.page-series {
+  padding: 24rpx;
+  padding-bottom: 60rpx;
+}
+
+.top-card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.inventory-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.inventory-label {
+  color: #999999;
+  font-size: 26rpx;
+}
+
+.inventory-picker {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 20rpx;
+  background: #f5f7fa;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.picker-arrow {
+  color: #999999;
+  font-size: 20rpx;
+}
+
+.summary-row {
+  color: #999999;
+  font-size: 24rpx;
+}
+
+.loading-tip {
+  text-align: center;
+  color: #999999;
+  padding: 32rpx 0;
+  font-size: 26rpx;
+}
+
+.series-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.series-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+}
+
+.series-title-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.series-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.series-meta {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.series-arrow {
+  color: #999999;
+  font-size: 22rpx;
+}
+
+.product-list {
+  padding: 0 24rpx 12rpx;
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 18rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.product-item:last-child {
+  border-bottom: none;
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.product-name {
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.product-code {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.product-stock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
+}
+
+.stock-available {
+  font-size: 24rpx;
+  color: #1890ff;
+}
+
+.stock-reserved {
+  font-size: 22rpx;
+  color: #fa8c16;
+}
+
+.product-arrow {
+  color: #cccccc;
+  font-size: 32rpx;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #999999;
+  font-size: 26rpx;
+  padding: 24rpx 0;
+}
+
+.divider {
+  height: 2rpx;
+  background: #f5f5f5;
+}

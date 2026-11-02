@@ -86,6 +86,53 @@
     </view>
   </view>
 
+  <!-- 受控维度 -->
+  <view class="card">
+    <view class="form-group">
+      <text class="form-label">系列</text>
+      <picker range="{{seriesOptions}}" range-key="name" value="{{seriesIndex}}" bindchange="onSeriesChange">
+        <view class="form-picker">
+          <text>{{seriesOptions[seriesIndex].name || '未设置'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <text class="form-label">套型</text>
+      <picker range="{{setTypeOptions}}" range-key="name" value="{{setTypeIndex}}" bindchange="onSetTypeChange">
+        <view class="form-picker">
+          <text>{{setTypeOptions[setTypeIndex].name || '未设置'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <text class="form-label">商品类型</text>
+      <picker range="{{productTypeOptions}}" range-key="name" value="{{productTypeIndex}}" bindchange="onProductTypeChange">
+        <view class="form-picker">
+          <text>{{productTypeOptions[productTypeIndex].name || '未设置'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <text class="form-label">角色（可多选）</text>
+      <view class="tag-select-area" wx:if="{{characterOptions.length}}">
+        <view
+          class="tag-select-item {{item._active ? 'tag-select-item-active' : ''}}"
+          wx:for="{{characterOptions}}"
+          wx:key="_id"
+          bindtap="onToggleCharacter"
+          data-id="{{item._id}}"
+        >
+          <text>{{item.name}}</text>
+          <text class="tag-checkmark" wx:if="{{item._active}}">✓</text>
+        </view>
+      </view>
+      <text class="image-count-tip" wx:else>暂无角色字典，请先在网页端设置。</text>
+    </view>
+  </view>
+
   <!-- 标签选择 -->
   <view class="card">
     <view class="form-group">

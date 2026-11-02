@@ -1,0 +1,52 @@
+<view class="page-series">
+  <view class="top-card">
+    <view class="inventory-row">
+      <text class="inventory-label">库存目录</text>
+      <picker range="{{inventoryNames}}" value="{{inventoryIndex}}" bindchange="onInventoryChange">
+        <view class="inventory-picker">
+          <text>{{inventoryNames[inventoryIndex] || '请选择'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="summary-row">
+      <text>共 {{seriesList.length}} 个系列</text>
+    </view>
+  </view>
+
+  <view class="loading-tip" wx:if="{{loading}}">加载中...</view>
+
+  <view class="empty-container" wx:if="{{!loading && seriesList.length === 0}}">
+    <text class="empty-icon">📚</text>
+    <text class="empty-text">暂无系列字典，请先在网页端设置。</text>
+  </view>
+
+  <view class="card series-card" wx:for="{{seriesList}}" wx:key="series_id">
+    <view class="series-header" data-index="{{index}}" bindtap="onSeriesTap">
+      <view class="series-title-box">
+        <text class="series-name">{{item.series_name}}</text>
+        <text class="series-meta">{{item.product_count}} 个商品 · 可用 {{item.available}} / 总 {{item.total_quantity}}</text>
+      </view>
+      <text class="series-arrow">{{selectedSeries && selectedSeries.series_id === item.series_id ? '▲' : '▼'}}</text>
+    </view>
+
+    <block wx:if="{{selectedSeries && selectedSeries.series_id === item.series_id}}">
+      <view class="divider"></view>
+      <view class="loading-tip" wx:if="{{productsLoading}}">加载中...</view>
+      <view class="empty-tip" wx:elif="{{products.length === 0}}">该系列下暂无商品</view>
+      <view class="product-list" wx:else>
+        <view class="product-item" wx:for="{{products}}" wx:for-item="product" wx:key="_id" data-id="{{product._id}}" bindtap="onProductTap">
+          <view class="product-info">
+            <text class="product-name">{{product.name}}</text>
+            <text class="product-code">{{product.code}}</text>
+          </view>
+          <view class="product-stock">
+            <text class="stock-available">可用 {{product.quantity}}</text>
+            <text class="stock-reserved" wx:if="{{product.reserved_quantity > 0}}">锁定 {{product.reserved_quantity}}</text>
+          </view>
+          <text class="product-arrow">›</text>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

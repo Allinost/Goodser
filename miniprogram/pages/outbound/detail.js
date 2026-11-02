@@ -23,6 +23,7 @@ Page({
           ...order,
           _createdAt: util.formatTime(order.created_at),
           _updatedAt: util.formatTime(order.updated_at),
+          _convertedAt: util.formatTime(order.converted_at),
           _confirmedAt: util.formatTime(order.confirmed_at),
           _cancelledAt: util.formatTime(order.cancelled_at)
         },
@@ -82,10 +83,12 @@ Page({
   onConfirm() {
     const order = this.data.order
     const isOutbound = order.type === 'outbound'
-    const action = isOutbound ? '确认出库' : '准备出库'
+    const action = isOutbound ? '确认出库' : '转出库'
     wx.showModal({
       title: `确认${action}`,
-      content: isOutbound ? '确认出库后将扣减库存并归档此出库单' : '准备出库后将生成对应的出库单并扣减库存',
+      content: isOutbound
+        ? '确认出库后将释放锁定库存并归档此出库单，确定继续吗？'
+        : '转出库后会生成待出库单，库存仍保持锁定；确认出库时才真正扣减总量。',
       success: async (res) => {
         if (res.confirm) {
           wx.showLoading({ title: '处理中...', mask: true })
@@ -96,8 +99,7 @@ Page({
               await db.reserveToOutbound(order._id, {
                 inventory_id: order.inventory_id,
                 order_info: order.order_info || '',
-                remark: order.remark || '',
-                items: order.items || []
+                remark: order.remark || ''
               })
             }
             wx.hideLoading()
@@ -111,69 +113,5 @@ Page({
         }
       }
     })
-  },
-
-  // 出库创建时扣减库存
-  _deductQuantity(order) {
-    order.items.forEach(item => {
-      const product = db.products.find(p => p._id === item.product_id)
-      if (product) {
-        product.quantity = Math.max(0, product.quantity - item.quantity)
-        product.updated_at = new Date().toLocaleString()
-      }
-    })
-  },
-
-  // 出库取消时恢复库存
-  _restoreQuantity(order) {
-    order.items.forEach(item => {
-      const product = db.products.find(p => p._id === item.product_id)
-      if (product) {
-        product.quantity += item.quantity
-        product.updated_at = new Date().toLocaleString()
-      }
-    })
-  },
-
-  // 预留时锁定库存（增加 reserved_quantity，减少可用 quantity）
-  _lockReserved(order) {
-    order.items.forEach(item => {
-      const product = db.products.find(p => p._id === item.product_id)
-      if (product) {
-        product.reserved_quantity = (product.reserved_quantity || 0) + item.quantity
-        product.updated_at = new Date().toLocaleString()
-      }
-    })
-  },
-
-  // 取消预留时恢复
-  _restoreReserved(order) {
-    order.items.forEach(item => {
-      const product = db.products.find(p => p._id === item.product_id)
-      if (product) {
-        product.reserved_quantity = Math.max(0, (product.reserved_quantity || 0) - item.quantity)
-        product.updated_at = new Date().toLocaleString()
-      }
-    })
-  },
-
-  // 预留单转出库：先释放预留，再扣减实际库存
-  _convertReserveToOutbound(order) {
-    const mockOrder = db.outboundOrders.find(o => o._id === order._id)
-    if (mockOrder) {
-      // 释放预留
-      order.items.forEach(item => {
-        const product = db.products.find(p => p._id === item.product_id)
-        if (product) {
-          product.reserved_quantity = Math.max(0, (product.reserved_quantity || 0) - item.quantity)
-          product.quantity = Math.max(0, product.quantity - item.quantity)
-          product.updated_at = new Date().toLocaleString()
-        }
-      })
-      mockOrder.type = 'outbound'
-      mockOrder.status = 'confirmed'
-      mockOrder.confirmed_at = new Date().toLocaleString()
-      mockOrder.updated_at = new Date().toLocaleString()
-    }
   }
 })

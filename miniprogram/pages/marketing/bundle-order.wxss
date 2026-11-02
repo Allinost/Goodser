@@ -1,0 +1,164 @@
+.page-bundle-order {
+  padding: 24rpx;
+  padding-bottom: 160rpx;
+}
+
+.bundle-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.bundle-code {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.rule-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 16rpx;
+  color: #8c8c8c;
+  font-size: 22rpx;
+}
+
+.form-group {
+  margin-bottom: 22rpx;
+}
+
+.form-label {
+  display: block;
+  color: #666666;
+  font-size: 26rpx;
+  margin-bottom: 10rpx;
+}
+
+.form-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #f5f7fa;
+  border-radius: 10rpx;
+  padding: 18rpx 20rpx;
+  font-size: 28rpx;
+}
+
+.form-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f5f7fa;
+  border-radius: 10rpx;
+  padding: 18rpx 20rpx;
+  font-size: 28rpx;
+}
+
+.picker-arrow {
+  color: #999999;
+  font-size: 20rpx;
+}
+
+.form-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.sub-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 14rpx 0;
+  border-bottom: 2rpx solid #f5f5f5;
+}
+
+.sub-item:last-child {
+  border-bottom: none;
+}
+
+.sub-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.sub-name {
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.sub-code {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.qty-input {
+  width: 110rpx;
+  text-align: center;
+  background: #f5f7fa;
+  border-radius: 8rpx;
+  padding: 10rpx 0;
+  font-size: 26rpx;
+}
+
+.empty-tip {
+  color: #999999;
+  font-size: 26rpx;
+  text-align: center;
+  padding: 24rpx 0;
+}
+
+.loading-tip {
+  color: #999999;
+  font-size: 26rpx;
+  text-align: center;
+  padding: 20rpx 0;
+}
+
+.error-tip {
+  color: #ff4d4f;
+  font-size: 26rpx;
+  line-height: 1.6;
+  padding: 12rpx 0;
+}
+
+.preview-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.preview-item {
+  background: #f0f7ff;
+  color: #1890ff;
+  border-radius: 8rpx;
+  padding: 6rpx 14rpx;
+  font-size: 22rpx;
+}
+
+.highlight {
+  color: #ff4d4f;
+  font-weight: 600;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20rpx 24rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: #ffffff;
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
+}

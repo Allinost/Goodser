@@ -23,15 +23,21 @@ const STATUS_TAG_CLASS = {
 const ORDER_STATUS_MAP = {
   'pending': '待确认',
   'reserved': '预留中',
+  'converted': '已转出库',
   'confirmed': '已确认',
-  'cancelled': '已取消'
+  'cancelled': '已取消',
+  'partially_returned': '部分退货',
+  'returned': '已退货'
 }
 
 const ORDER_STATUS_TAG_CLASS = {
   'pending': 'tag-orange',
   'reserved': 'tag-blue',
+  'converted': 'tag-blue',
   'confirmed': 'tag-green',
-  'cancelled': 'tag-gray'
+  'cancelled': 'tag-gray',
+  'partially_returned': 'tag-orange',
+  'returned': 'tag-gray'
 }
 
 function getStatusLabel(code) {
@@ -51,10 +57,13 @@ function getOrderStatusTagClass(status) {
 }
 
 function formatQuantity(product) {
-  if (product.reserved_quantity > 0) {
-    return `${product.quantity} + ${product.reserved_quantity}`
+  // D1：quantity 是可用库存，reserved_quantity 是锁定库存
+  const available = product.quantity || 0
+  const reserved = product.reserved_quantity || 0
+  if (reserved > 0) {
+    return `${available} 可用 / ${reserved} 锁定`
   }
-  return String(product.quantity)
+  return String(available)
 }
 
 function generateOrderNo(prefix) {

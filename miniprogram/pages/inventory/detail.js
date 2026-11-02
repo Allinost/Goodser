@@ -13,6 +13,10 @@ Page({
     statusLabel: '',
     statusTagClass: '',
     productTags: [],
+    seriesName: '',
+    characterNames: '',
+    setTypeName: '',
+    productTypeName: '',
     showTagPicker: false,
     availableTags: [],
     showNewTagDialog: false,
@@ -105,6 +109,32 @@ Page({
       statusTagClass: util.getStatusTagClass(product.status_code)
     })
     this.loadProductTags()
+    this.loadProductDimensions(product)
+  },
+
+  loadProductDimensions(product) {
+    var that = this
+    if (!product.series_id && !product.set_type_id && !product.product_type_id &&
+        (!product.character_ids || !product.character_ids.length)) {
+      this.setData({ seriesName: '', characterNames: '', setTypeName: '', productTypeName: '' })
+      return
+    }
+    db.loadDictionaries().then(function(list) {
+      var nameOf = function(kind, id) {
+        if (!id) return ''
+        var item = list.find(function(d) { return d.kind === kind && d._id === id })
+        return item ? item.name : ''
+      }
+      var chars = (product.character_ids || []).map(function(id) {
+        return nameOf('character', id)
+      }).filter(Boolean).join('、')
+      that.setData({
+        seriesName: nameOf('series', product.series_id),
+        setTypeName: nameOf('set_type', product.set_type_id),
+        productTypeName: nameOf('product_type', product.product_type_id),
+        characterNames: chars
+      })
+    }).catch(function() {})
   },
 
   onImagePreview(e) {

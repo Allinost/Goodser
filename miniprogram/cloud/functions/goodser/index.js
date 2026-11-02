@@ -372,41 +372,36 @@ async function deleteInboundLog(event) {
 // ========== 出库单 ==========
 
 async function createOutbound(event, openid) {
-  const { inventory_id, order_no, type, status, order_info, remark, items, source_reserve_id } = event
+  const { inventory_id, order_no, type, order_info, remark, items, source_reserve_id } = event
 
-  // 库存校验 + 扣减（出库单）/ 预留（预留单）
+  // D1：quantity 为可用库存，创建单据即锁定数量
   for (const item of items) {
     const product = await db.collection('products').doc(item.product_id).get()
     if (!product.data) {
       return { code: 40400, message: '商品不存在: ' + item.product_id }
     }
-    const available = product.data.quantity - (product.data.reserved_quantity || 0)
-    if (type === 'outbound' && item.quantity > available) {
+    const available = product.data.quantity || 0
+    if (item.quantity > available) {
       return { code: 40001, message: '「' + item.product_name + '」可用库存不足: ' + available }
-    }
-    if (type === 'reserve' && item.quantity > available) {
-      return { code: 40001, message: '「' + item.product_name + '」可预留不足: ' + available }
     }
   }
 
-  // 扣减库存
+  // quantity 减少，reserved_quantity 增加
   for (const item of items) {
-    if (type === 'outbound') {
-      await db.collection('products').doc(item.product_id).update({
-        data: { quantity: _.inc(-item.quantity), updated_at: db.serverDate() }
-      })
-    } else if (type === 'reserve') {
-      await db.collection('products').doc(item.product_id).update({
-        data: { reserved_quantity: _.inc(item.quantity), updated_at: db.serverDate() }
-      })
-    }
+    await db.collection('products').doc(item.product_id).update({
+      data: {
+        quantity: _.inc(-item.quantity),
+        reserved_quantity: _.inc(item.quantity),
+        updated_at: db.serverDate()
+      }
+    })
   }
 
   const data = {
     inventory_id,
     order_no,
     type: type || 'outbound',
-    status: status || 'pending',
+    status: 'pending',
     order_info: order_info || '',
     remark: remark || '',
     items,
@@ -424,6 +419,19 @@ async function createOutbound(event, openid) {
 
 async function confirmOutbound(event) {
   const { id } = event
+  const order = await db.collection('outbound_orders').doc(id).get()
+  if (!order.data) return { code: 40400, message: '订单不存在' }
+  if (order.data.type !== 'outbound' || order.data.status !== 'pending') {
+    return { code: 40001, message: '当前单据状态不允许确认出库' }
+  }
+
+  // D1：确认出库只释放锁定库存
+  for (const item of order.data.items || []) {
+    await db.collection('products').doc(item.product_id).update({
+      data: { reserved_quantity: _.inc(-item.quantity), updated_at: db.serverDate() }
+    })
+  }
+
   await db.collection('outbound_orders').doc(id).update({
     data: { status: 'confirmed', confirmed_at: db.serverDate(), updated_at: db.serverDate() }
   })
@@ -434,14 +442,19 @@ async function cancelOutbound(event) {
   const { id } = event
   const order = await db.collection('outbound_orders').doc(id).get()
   if (!order.data) return { code: 40400, message: '订单不存在' }
+  if (order.data.type !== 'outbound' || order.data.status !== 'pending') {
+    return { code: 40001, message: '当前单据状态不允许取消' }
+  }
 
-  // 恢复库存
-  if (order.data.items) {
-    for (const item of order.data.items) {
-      await db.collection('products').doc(item.product_id).update({
-        data: { quantity: _.inc(item.quantity), updated_at: db.serverDate() }
-      })
-    }
+  // D1：取消出库把锁定库存释放回可用库存
+  for (const item of order.data.items || []) {
+    await db.collection('products').doc(item.product_id).update({
+      data: {
+        quantity: _.inc(item.quantity),
+        reserved_quantity: _.inc(-item.quantity),
+        updated_at: db.serverDate()
+      }
+    })
   }
 
   await db.collection('outbound_orders').doc(id).update({
@@ -454,14 +467,19 @@ async function cancelReserve(event) {
   const { id } = event
   const reserve = await db.collection('outbound_orders').doc(id).get()
   if (!reserve.data) return { code: 40400, message: '预留单不存在' }
+  if (reserve.data.type !== 'reserve' || reserve.data.status !== 'pending') {
+    return { code: 40001, message: '当前单据状态不允许取消预留' }
+  }
 
-  // 释放预留数量
-  if (reserve.data.items) {
-    for (const item of reserve.data.items) {
-      await db.collection('products').doc(item.product_id).update({
-        data: { reserved_quantity: _.inc(-item.quantity), updated_at: db.serverDate() }
-      })
-    }
+  // D1：取消预留把锁定库存释放回可用库存
+  for (const item of reserve.data.items || []) {
+    await db.collection('products').doc(item.product_id).update({
+      data: {
+        quantity: _.inc(item.quantity),
+        reserved_quantity: _.inc(-item.quantity),
+        updated_at: db.serverDate()
+      }
+    })
   }
 
   await db.collection('outbound_orders').doc(id).update({
@@ -472,26 +490,41 @@ async function cancelReserve(event) {
 
 async function reserveToOutbound(event, openid) {
   const { id, ...orderData } = event
-  // 1. 标记原预留单为已确认
-  await db.collection('outbound_orders').doc(id).update({
-    data: { status: 'confirmed', confirmed_at: db.serverDate(), updated_at: db.serverDate() }
-  })
-  // 2. 释放原预留的 reserved_quantity
   const reserve = await db.collection('outbound_orders').doc(id).get()
-  if (reserve.data && reserve.data.items) {
-    for (const item of reserve.data.items) {
-      await db.collection('products').doc(item.product_id).update({
-        data: { reserved_quantity: _.inc(-item.quantity) }
-      })
-    }
+  if (!reserve.data) return { code: 40400, message: '预留单不存在' }
+  if (reserve.data.type !== 'reserve') return { code: 40001, message: '该单据不是预留单' }
+  if (reserve.data.status === 'converted') {
+    return { code: 0, data: { converted: true } }
   }
-  // 3. 创建出库单（扣减实际库存）
-  return createOutbound({
-    ...orderData,
+  if (reserve.data.status !== 'pending') {
+    return { code: 40001, message: '当前预留单状态不允许转出库' }
+  }
+
+  // 1. 预留单转为 converted，库存保持锁定
+  await db.collection('outbound_orders').doc(id).update({
+    data: { status: 'converted', converted_at: db.serverDate(), updated_at: db.serverDate() }
+  })
+
+  // 2. 创建待出库单，沿用原预留单明细，不重复锁定库存
+  const data = {
+    inventory_id: reserve.data.inventory_id,
+    order_no: orderData.order_no,
     type: 'outbound',
     status: 'pending',
-    source_reserve_id: id
-  }, openid)
+    order_info: orderData.order_info || reserve.data.order_info || '',
+    remark: orderData.remark || reserve.data.remark || '',
+    items: reserve.data.items || [],
+    source_reserve_id: id,
+    owner_openid: openid,
+    created_at: db.serverDate(),
+    updated_at: db.serverDate(),
+    confirmed_at: null,
+    cancelled_at: null,
+    converted_at: null,
+    returned_at: null
+  }
+  const res = await db.collection('outbound_orders').add({ data })
+  return { code: 0, data: { _id: res._id, ...data } }
 }
 
 // ========== 标签 ==========

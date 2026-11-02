@@ -1,0 +1,63 @@
+<view class="page-combo-edit">
+  <view class="card">
+    <view class="form-group">
+      <text class="form-label">组合包名称 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入名称" value="{{name}}" bindinput="onNameInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">编码</text>
+      <input class="form-input" placeholder="留空自动生成" value="{{code}}" bindinput="onCodeInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">组合价（0 表示按组件合计）</text>
+      <input class="form-input" type="digit" placeholder="0.00" value="{{price}}" bindinput="onPriceInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">状态</text>
+      <picker range="{{statusOptions}}" range-key="label" value="{{statusIndex}}" bindchange="onStatusChange">
+        <view class="form-picker">
+          <text>{{statusOptions[statusIndex].label}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">组件商品</view>
+    <view class="search-row">
+      <input class="form-input search-input" placeholder="搜索名称或编码" value="{{keyword}}" bindinput="onKeywordInput" bindconfirm="searchProducts" />
+      <view class="btn btn-ghost btn-sm" bindtap="searchProducts">搜索</view>
+    </view>
+
+    <view class="search-results" wx:if="{{searchResults.length > 0}}">
+      <view class="search-result-item" wx:for="{{searchResults}}" wx:key="_id" data-product="{{item}}" bindtap="onAddProduct">
+        <view class="result-info">
+          <text class="result-name">{{item.name}}</text>
+          <text class="result-code">{{item.code}}</text>
+          <text class="result-stock">可用 {{item.quantity}}</text>
+        </view>
+        <text class="result-add">+ 添加</text>
+      </view>
+    </view>
+
+    <view class="empty-tip" wx:if="{{items.length === 0}}">还没有组件商品</view>
+    <view class="component-list" wx:else>
+      <view class="component-item" wx:for="{{items}}" wx:key="product_id">
+        <view class="component-info">
+          <text class="component-name">{{item.product_name}}</text>
+          <text class="component-code">{{item.product_code}} · 可用 {{item.stock}}</text>
+        </view>
+        <view class="qty-box">
+          <text class="qty-label">数量</text>
+          <input class="qty-input" type="number" value="{{item.quantity}}" data-index="{{index}}" bindinput="onQtyInput" />
+        </view>
+        <text class="remove-btn" data-index="{{index}}" bindtap="onRemoveItem">✕</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-bar">
+    <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="{{submitting ? '' : 'onSave'}}">{{submitting ? '保存中...' : '保存'}}</view>
+  </view>
+</view>

@@ -40,6 +40,24 @@
         <text class="settings-arrow">›</text>
       </view>
     </view>
+    <view class="settings-item" bindtap="onSeriesView">
+      <view class="settings-left">
+        <text class="settings-icon">📚</text>
+        <text class="settings-label">系列视图</text>
+      </view>
+      <view class="settings-right">
+        <text class="settings-arrow">›</text>
+      </view>
+    </view>
+    <view class="settings-item" bindtap="onMarketing">
+      <view class="settings-left">
+        <text class="settings-icon">🎁</text>
+        <text class="settings-label">组合包与捆</text>
+      </view>
+      <view class="settings-right">
+        <text class="settings-arrow">›</text>
+      </view>
+    </view>
     <view class="settings-item" bindtap="onNasConfig">
       <view class="settings-left">
         <text class="settings-icon">⚙️</text>

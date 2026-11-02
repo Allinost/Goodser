@@ -24,8 +24,44 @@
     </view>
   </view>
 
-  <!-- 搜索添加商品 -->
+  <!-- 组合包下单 -->
   <view class="card">
+    <view class="section-header">
+      <text class="section-title">组合包</text>
+      <text class="link-text" wx:if="{{selectedComboId}}" bindtap="onClearCombo">改为按商品出库</text>
+    </view>
+    <view class="form-group">
+      <text class="form-label">选择组合包（可选）</text>
+      <picker range="{{comboOptions}}" range-key="label" value="{{comboIndex}}" bindchange="onComboChange" disabled="{{combos.length === 0}}">
+        <view class="form-picker">
+          <text>{{selectedCombo ? selectedCombo.name : (combos.length ? '不使用组合包' : '当前目录暂无组合包')}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <block wx:if="{{selectedCombo}}">
+      <view class="form-group">
+        <text class="form-label">组合包数量</text>
+        <input class="form-input" type="number" value="{{comboQuantity}}" bindinput="onComboQuantityInput" />
+      </view>
+      <view class="combo-summary">
+        <view class="combo-meta">
+          <text>可售 {{selectedCombo.availability}}</text>
+          <text wx:if="{{selectedCombo.price > 0}}">组合价 ¥{{selectedCombo.price}}</text>
+        </view>
+        <view class="combo-parts">
+          <text class="combo-part" wx:for="{{selectedCombo.items}}" wx:for-item="part" wx:key="product_id">
+            {{part.product_name}} × {{part.quantity}}
+          </text>
+        </view>
+        <text class="combo-tip">提交后将按组件自动展开并锁定库存。</text>
+      </view>
+    </block>
+  </view>
+
+  <!-- 搜索添加商品 -->
+  <view class="card" wx:if="{{!selectedCombo}}">
     <view class="section-header">
       <text class="section-title">出库商品</text>
     </view>
@@ -53,7 +89,7 @@
         <view class="result-info">
           <text class="result-name">{{item.name}}</text>
           <text class="result-code">{{item.code}}</text>
-          <text class="result-stock">库存: {{item.quantity - (item.reserved_quantity || 0)}}{{item.reserved_quantity > 0 ? ' + ' + item.reserved_quantity : ''}}</text>
+          <text class="result-stock">可用: {{item.quantity}}{{item.reserved_quantity > 0 ? ' · 锁定 ' + item.reserved_quantity : ''}}</text>
         </view>
         <text class="result-add" wx:if="{{!multiSelectMode}}">+ 添加</text>
       </view>

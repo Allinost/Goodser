@@ -29,6 +29,15 @@ Page({
     previewCode: '',
     allTags: [],
     selectedTagIds: [],
+    // P1 维度
+    seriesOptions: [{ name: '未设置', _id: '' }],
+    seriesIndex: 0,
+    setTypeOptions: [{ name: '未设置', _id: '' }],
+    setTypeIndex: 0,
+    productTypeOptions: [{ name: '未设置', _id: '' }],
+    productTypeIndex: 0,
+    characterOptions: [],
+    selectedCharacterIds: [],
     showNewTagDialog: false,
     newTagName: '',
     newTagColor: COLOR_OPTIONS[0],
@@ -120,7 +129,86 @@ Page({
     }
 
     this.updatePreview()
+    this._loadDimensionOptions(product)
     wx.setNavigationBarTitle({ title: '编辑商品' })
+  },
+
+  _loadDimensionOptions(product) {
+    var that = this
+    db.loadDictionaries().then(function(list) {
+      var byKind = function(kind) {
+        return list.filter(function(d) { return d.kind === kind && d.enabled !== false })
+      }
+      var withEmpty = function(kind) {
+        return [{ name: '未设置', _id: '' }].concat(byKind(kind).map(function(d) {
+          return { name: d.name, _id: d._id, code: d.code }
+        }))
+      }
+      var seriesOptions = withEmpty('series')
+      var setTypeOptions = withEmpty('set_type')
+      var productTypeOptions = withEmpty('product_type')
+      var characterOptions = byKind('character').map(function(d) {
+        return {
+          _id: d._id,
+          name: d.name,
+          code: d.code,
+          _active: (product.character_ids || []).indexOf(d._id) > -1
+        }
+      })
+      var seriesIndex = seriesOptions.findIndex(function(o) { return o._id === (product.series_id || '') })
+      var setTypeIndex = setTypeOptions.findIndex(function(o) { return o._id === (product.set_type_id || '') })
+      var productTypeIndex = productTypeOptions.findIndex(function(o) { return o._id === (product.product_type_id || '') })
+
+      that.setData({
+        seriesOptions: seriesOptions,
+        seriesIndex: seriesIndex > -1 ? seriesIndex : 0,
+        setTypeOptions: setTypeOptions,
+        setTypeIndex: setTypeIndex > -1 ? setTypeIndex : 0,
+        productTypeOptions: productTypeOptions,
+        productTypeIndex: productTypeIndex > -1 ? productTypeIndex : 0,
+        characterOptions: characterOptions,
+        selectedCharacterIds: (product.character_ids || []).slice()
+      })
+      if (that._originalData) {
+        that._originalData.seriesIndex = seriesIndex > -1 ? seriesIndex : 0
+        that._originalData.setTypeIndex = setTypeIndex > -1 ? setTypeIndex : 0
+        that._originalData.productTypeIndex = productTypeIndex > -1 ? productTypeIndex : 0
+        that._originalData.selectedCharacterIds = (product.character_ids || []).slice()
+      }
+    }).catch(function(err) {
+      console.warn('[编辑] 加载维度字典失败:', err)
+    })
+  },
+
+  onSeriesChange(e) {
+    this.setData({ seriesIndex: e.detail.value })
+    this._markDirty()
+  },
+
+  onSetTypeChange(e) {
+    this.setData({ setTypeIndex: e.detail.value })
+    this._markDirty()
+  },
+
+  onProductTypeChange(e) {
+    this.setData({ productTypeIndex: e.detail.value })
+    this._markDirty()
+  },
+
+  onToggleCharacter(e) {
+    var id = e.currentTarget.dataset.id
+    var selected = [...this.data.selectedCharacterIds]
+    var idx = selected.indexOf(id)
+    if (idx > -1) {
+      selected.splice(idx, 1)
+    } else {
+      selected.push(id)
+    }
+    var options = this.data.characterOptions.map(function(c) {
+      return Object.assign({}, c, { _active: selected.indexOf(c._id) > -1 })
+    })
+    this.setData({ selectedCharacterIds: selected, characterOptions: options })
+    this._markDirty()
   },
 
   async onChooseImage() {
@@ -213,6 +301,10 @@ Page({
     if (this.data.imageUrl !== this._originalData.imageUrl) return this._enableAlert()
     if (JSON.stringify(this.data.images) !== JSON.stringify(this._originalData.images)) return this._enableAlert()
     if (JSON.stringify(this.data.selectedTagIds) !== JSON.stringify(this._originalData.selectedTagIds)) return this._enableAlert()
+    if (this.data.seriesIndex !== this._originalData.seriesIndex) return this._enableAlert()
+    if (this.data.setTypeIndex !== this._originalData.setTypeIndex) return this._enableAlert()
+    if (this.data.productTypeIndex !== this._originalData.productTypeIndex) return this._enableAlert()
+    if (JSON.stringify(this.data.selectedCharacterIds) !== JSON.stringify(this._originalData.selectedCharacterIds)) return this._enableAlert()
   },
 
   _enableAlert() {
@@ -345,6 +437,9 @@ Page({
       const subZone = this.data.filteredSubZones[this.data.subZoneIndex]
       const statusCode = this.data.statusCodes[this.data.statusCodeIndex].code
       const qty = parseInt(this.data.quantity)
+      const series = this.data.seriesOptions[this.data.seriesIndex]
+      const setType = this.data.setTypeOptions[this.data.setTypeIndex]
+      const productType = this.data.productTypeOptions[this.data.productTypeIndex]
 
       // 更新编码（序号保持不变，其他部分根据修改更新）
       const code = util.generateProductCode(mainZone, subZone, product.seq_number, qty, statusCode)
@@ -363,6 +458,12 @@ Page({
         status_code: statusCode,
         code: code,
         tags: [...this.data.selectedTagIds],
+        // 传空字符串表示清空：后端把空字符串归一为 NULL，
+        // 而 null 会被当成“不修改”导致清空无效。
+        series_id: series && series._id ? series._id : '',
+        set_type_id: setType && setType._id ? setType._id : '',
+        product_type_id: productType && productType._id ? productType._id : '',
+        character_ids: [...this.data.selectedCharacterIds],
         image_url: this.data.imageUrl || product.image_url || '',
         images: this.data.images || []
       })

@@ -1,0 +1,102 @@
+<view class="page-marketing">
+  <view class="top-card">
+    <view class="inventory-row">
+      <text class="inventory-label">库存目录</text>
+      <picker range="{{inventoryNames}}" value="{{inventoryIndex}}" bindchange="onInventoryChange">
+        <view class="inventory-picker">
+          <text>{{inventoryNames[inventoryIndex] || '请选择'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="tab-row">
+      <view class="tab-item {{tab === 'combos' ? 'tab-item-active' : ''}}" data-tab="combos" bindtap="switchTab">组合包</view>
+      <view class="tab-item {{tab === 'bundles' ? 'tab-item-active' : ''}}" data-tab="bundles" bindtap="switchTab">捆</view>
+    </view>
+  </view>
+
+  <view class="toolbar">
+    <text class="toolbar-count" wx:if="{{tab === 'combos'}}">共 {{combos.length}} 个组合包</text>
+    <text class="toolbar-count" wx:else>共 {{bundles.length}} 个捆</text>
+    <view class="btn btn-primary btn-sm" wx:if="{{tab === 'combos'}}" bindtap="openCreateCombo">新建组合包</view>
+    <view class="btn btn-primary btn-sm" wx:else bindtap="openCreateBundle">新建捆</view>
+  </view>
+
+  <view class="loading-tip" wx:if="{{loading}}">加载中...</view>
+
+  <block wx:if="{{tab === 'combos'}}">
+    <view class="empty-container" wx:if="{{!loading && combos.length === 0}}">
+      <text class="empty-icon">📦</text>
+      <text class="empty-text">暂无组合包</text>
+    </view>
+    <view class="card item-card" wx:for="{{combos}}" wx:key="_id">
+      <view class="item-header">
+        <view>
+          <text class="item-name">{{item.name}}</text>
+          <text class="tag {{item.status === 'active' ? 'tag-green' : 'tag-gray'}} item-status">{{item.status === 'active' ? '启用' : '停用'}}</text>
+        </view>
+        <text class="item-code">{{item.code}}</text>
+      </view>
+      <view class="item-meta">
+        <text>可售 {{item.availability}}</text>
+        <text wx:if="{{item.price > 0}}">组合价 ¥{{item.price}}</text>
+        <text>组件 {{item.items.length}} 种</text>
+      </view>
+      <view class="chip-list">
+        <text class="chip" wx:for="{{item.items}}" wx:for-item="part" wx:key="product_id">
+          {{part.product_name}} × {{part.quantity}}
+        </text>
+      </view>
+      <view class="item-actions">
+        <view class="btn btn-ghost btn-xs" bindtap="orderCombo" data-id="{{item._id}}">下单</view>
+        <view class="btn btn-ghost btn-xs" bindtap="openEditCombo" data-id="{{item._id}}">编辑</view>
+        <view class="btn btn-ghost btn-xs btn-danger-text" bindtap="deleteCombo" data-id="{{item._id}}" data-name="{{item.name}}">删除</view>
+      </view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="empty-container" wx:if="{{!loading && bundles.length === 0}}">
+      <text class="empty-icon">🎁</text>
+      <text class="empty-text">暂无捆模板</text>
+    </view>
+    <view class="card item-card" wx:for="{{bundles}}" wx:key="_id">
+      <view class="item-header">
+        <view>
+          <text class="item-name">{{item.name}}</text>
+          <text class="tag {{item.status === 'active' ? 'tag-green' : 'tag-gray'}} item-status">{{item.status === 'active' ? '启用' : '停用'}}</text>
+        </view>
+        <text class="item-code">{{item.code}}</text>
+      </view>
+      <view class="item-meta">
+        <text>{{priceModeLabels[item.price_mode] || item.price_mode}}</text>
+        <text wx:if="{{item.price_mode === 'fixed'}}">单捆 ¥{{item.fixed_price}}</text>
+        <text>主商品 {{item.main_products.length}}</text>
+        <text>副区 {{item.sub_products.length}}</text>
+      </view>
+      <view class="rule-row">
+        <text>主商品 ≥ {{item.min_main_quantity}} 件</text>
+        <text wx:if="{{item.min_main_amount > 0}}">主商品金额 ≥ ¥{{item.min_main_amount}}</text>
+        <text>副区 ≥ {{item.min_sub_quantity}} 件</text>
+        <text wx:if="{{item.max_sub_quantity > 0}}">副区 ≤ {{item.max_sub_quantity}} 件</text>
+        <text wx:if="{{item.min_sub_amount > 0}}">副区金额 ≥ ¥{{item.min_sub_amount}}</text>
+      </view>
+      <view class="chip-list">
+        <text class="chip" wx:for="{{item.main_products}}" wx:for-item="main" wx:key="product_id">
+          主 · {{main.product_name}}（可用 {{main.available}}）
+        </text>
+        <text class="chip chip-ghost" wx:if="{{item.main_products.length === 0}}">仅按筛选条件匹配主商品</text>
+      </view>
+      <view class="chip-list">
+        <text class="chip chip-sub" wx:for="{{item.sub_products}}" wx:for-item="sub" wx:key="product_id">
+          副 · {{sub.product_name}} × {{sub.default_quantity}}（可用 {{sub.available}}）
+        </text>
+      </view>
+      <view class="item-actions">
+        <view class="btn btn-ghost btn-xs" bindtap="orderBundle" data-id="{{item._id}}">下单</view>
+        <view class="btn btn-ghost btn-xs" bindtap="openEditBundle" data-id="{{item._id}}">编辑</view>
+        <view class="btn btn-ghost btn-xs btn-danger-text" bindtap="deleteBundle" data-id="{{item._id}}" data-name="{{item.name}}">删除</view>
+      </view>
+    </view>
+  </block>
+</view>

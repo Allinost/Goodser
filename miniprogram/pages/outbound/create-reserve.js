@@ -218,7 +218,7 @@ Page({
     const insufficient = this.data.selectedItems.find(i => {
       const product = db.products.find(p => p._id === i.product_id)
       if (!product) return true
-      const available = product.quantity - (product.reserved_quantity || 0)
+      const available = product.quantity || 0
       return i.quantity > available
     })
     if (insufficient) {
@@ -245,7 +245,6 @@ Page({
             inventory_id: inventory._id,
             order_no: orderNo,
             type: 'reserve',
-            status: 'reserved',
             order_info: this.data.orderInfo,
             remark: this.data.orderRemark,
             items: this.data.selectedItems.map(i => ({

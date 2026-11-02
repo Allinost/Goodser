@@ -1,0 +1,174 @@
+.page-marketing {
+  padding: 24rpx;
+  padding-bottom: 60rpx;
+}
+
+.top-card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.inventory-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.inventory-label {
+  color: #999999;
+  font-size: 26rpx;
+}
+
+.inventory-picker {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 12rpx 20rpx;
+  background: #f5f7fa;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.picker-arrow {
+  color: #999999;
+  font-size: 20rpx;
+}
+
+.tab-row {
+  display: flex;
+  background: #f5f7fa;
+  border-radius: 12rpx;
+  padding: 6rpx;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: 8rpx;
+  color: #666666;
+  font-size: 28rpx;
+}
+
+.tab-item-active {
+  background: #ffffff;
+  color: #1890ff;
+  font-weight: 600;
+  box-shadow: 0 2rpx 8rpx rgba(24, 144, 255, 0.12);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.toolbar-count {
+  color: #999999;
+  font-size: 24rpx;
+}
+
+.btn-sm {
+  padding: 12rpx 24rpx;
+  font-size: 26rpx;
+}
+
+.btn-xs {
+  padding: 8rpx 20rpx;
+  font-size: 24rpx;
+}
+
+.btn-danger-text {
+  color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+.loading-tip {
+  text-align: center;
+  color: #999999;
+  padding: 40rpx 0;
+}
+
+.item-card {
+  padding: 24rpx;
+}
+
+.item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.item-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.item-status {
+  margin-left: 12rpx;
+}
+
+.item-code {
+  color: #999999;
+  font-size: 22rpx;
+  flex-shrink: 0;
+}
+
+.item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-top: 14rpx;
+  color: #666666;
+  font-size: 24rpx;
+}
+
+.rule-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 12rpx;
+  color: #8c8c8c;
+  font-size: 22rpx;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 12rpx;
+}
+
+.chip {
+  background: #f0f7ff;
+  color: #1890ff;
+  border-radius: 8rpx;
+  padding: 6rpx 14rpx;
+  font-size: 22rpx;
+}
+
+.chip-sub {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.chip-ghost {
+  background: #f5f5f5;
+  color: #999999;
+}
+
+.item-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12rpx;
+  margin-top: 18rpx;
+  padding-top: 18rpx;
+  border-top: 2rpx solid #f5f5f5;
+}

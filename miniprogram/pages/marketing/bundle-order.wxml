@@ -1,0 +1,86 @@
+<view class="page-bundle-order" wx:if="{{bundle}}">
+  <view class="card">
+    <view class="bundle-title">{{bundle.name}}</view>
+    <view class="bundle-code">{{bundle.code}}</view>
+    <view class="rule-list">
+      <text>主商品 ≥ {{bundle.min_main_quantity}} 件 / 捆</text>
+      <text wx:if="{{bundle.min_main_amount > 0}}">主商品金额 ≥ ¥{{bundle.min_main_amount}}</text>
+      <text>副区 ≥ {{bundle.min_sub_quantity}} 件 / 捆</text>
+      <text wx:if="{{bundle.max_sub_quantity > 0}}">副区 ≤ {{bundle.max_sub_quantity}} 件 / 捆</text>
+      <text wx:if="{{bundle.min_sub_amount > 0}}">副区金额 ≥ ¥{{bundle.min_sub_amount}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="form-group">
+      <text class="form-label">主商品</text>
+      <picker range="{{mainOptions}}" range-key="label" value="{{mainIndex}}" bindchange="onMainChange">
+        <view class="form-picker">
+          <text>{{mainOptions[mainIndex].label || '请选择主商品'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-row">
+      <view class="form-group flex-1">
+        <text class="form-label">主商品数量 / 单捆</text>
+        <input class="form-input" type="number" value="{{mainQuantity}}" bindinput="onMainQtyInput" />
+      </view>
+      <view class="form-group flex-1">
+        <text class="form-label">捆数</text>
+        <input class="form-input" type="number" value="{{quantity}}" bindinput="onBundleQtyInput" />
+      </view>
+    </view>
+    <view class="form-group">
+      <text class="form-label">订单信息</text>
+      <input class="form-input" placeholder="选填" value="{{orderInfo}}" bindinput="onOrderInfoInput" />
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">副区商品（单捆数量）</view>
+    <view class="sub-item" wx:for="{{subItems}}" wx:key="product_id">
+      <view class="sub-info">
+        <text class="sub-name">{{item.product_name}}</text>
+        <text class="sub-code">{{item.product_code}} · 可用 {{item.available}}</text>
+      </view>
+      <input class="qty-input" type="number" value="{{item.quantity}}" data-index="{{index}}" bindinput="onSubQtyInput" />
+    </view>
+    <view class="empty-tip" wx:if="{{subItems.length === 0}}">该捆没有可选副区商品</view>
+  </view>
+
+  <view class="card preview-card">
+    <view class="section-title">价格与校验</view>
+    <view class="loading-tip" wx:if="{{previewLoading}}">正在计算...</view>
+    <view class="error-tip" wx:elif="{{previewError}}">{{previewError}}</view>
+    <block wx:elif="{{preview}}">
+      <view class="info-row">
+        <text class="label">单捆价格</text>
+        <text class="value">¥{{preview.unit_price}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">总价</text>
+        <text class="value highlight">¥{{preview.total_price}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">主商品金额</text>
+        <text class="value">¥{{preview.main_amount}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">副区金额</text>
+        <text class="value">¥{{preview.sub_amount}}</text>
+      </view>
+      <view class="divider"></view>
+      <view class="preview-items">
+        <text class="preview-item" wx:for="{{preview.items}}" wx:key="product_id">
+          {{item.product_name}} × {{item.quantity}}
+        </text>
+      </view>
+    </block>
+    <view class="empty-tip" wx:else>填写配置后自动校验</view>
+  </view>
+
+  <view class="bottom-bar">
+    <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="{{submitting ? '' : 'onSubmit'}}">{{submitting ? '创建中...' : '确认创建出库单'}}</view>
+  </view>
+</view>
