@@ -72,7 +72,13 @@ Page({
     }
   },
 
-  refreshInventories() {
+  async refreshInventories() {
+    // 冷启动/深链进入时本地可能还没有目录缓存，先补拉一次
+    if (!db.inventories.length && db.isBackendMode && db.isBackendMode()) {
+      try {
+        await db.loadInventories(true)
+      } catch (e) {}
+    }
     const inventories = db.inventories
     const inventoryNames = inventories.map(i => i.name)
     var index = this.data.inventoryIndex
@@ -112,8 +118,9 @@ Page({
         return { label: c.name + '（可售 ' + c.availability + '）', value: c._id }
       }))
       var selectedComboId = this.data.selectedComboId
-      if (this._presetComboId && combos.some(function(c) { return c._id === this._presetComboId })) {
-        selectedComboId = this._presetComboId
+      var presetComboId = this._presetComboId
+      if (presetComboId && combos.some(function(c) { return c._id === presetComboId })) {
+        selectedComboId = presetComboId
         this._presetComboId = ''
       }
       var comboIndex = comboOptions.findIndex(function(o) { return o.value === selectedComboId })
@@ -129,7 +136,7 @@ Page({
         selectedCombo: combos.find(function(c) { return c._id === selectedComboId }) || null
       })
     } catch (err) {
-      console.warn('[Outbound] 加载组合包失败:', err)
+      console.warn('[Outbound] 加载组合包失败:', (err && err.message) || err)
       this.setData({ combos: [], comboOptions: [], selectedCombo: null })
     }
   },
