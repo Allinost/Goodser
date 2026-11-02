@@ -35,6 +35,12 @@ Page({
     ],
     returns: [],
     filteredReturns: [],
+    visibleReturns: [],
+    searchKeyword: '',
+    visibleCount: 20,
+    totalCount: 0,
+    hasMore: false,
+    loadError: '',
     loading: false
   },
 
@@ -78,7 +84,7 @@ Page({
   async loadReturns(forceRefresh) {
     var invId = this.data.currentInventoryId
     if (!invId) return
-    this.setData({ loading: true })
+    this.setData({ loading: true, loadError: '' })
     try {
       var list = await db.loadReturns(invId, '', !!forceRefresh)
       var mapped = (list || []).map(function(ret) {
@@ -93,32 +99,92 @@ Page({
           _statusClass: STATUS_CLASSES[ret.status] || 'tag-gray',
           _createdAt: util.formatTime(ret.created_at),
           _totalQty: totalQty,
-          _restockQty: restockQty
+          _restockQty: restockQty,
+          _itemCount: items.length,
+          _expanded: false
         })
       })
       this.setData({ returns: mapped })
-      this.applyFilter()
+      this.applyFilter(true)
     } catch (err) {
       console.error('[退货] 加载失败:', err)
       wx.showToast({ title: err.message || '加载退货单失败', icon: 'none' })
-      this.setData({ returns: [], filteredReturns: [] })
+      this.setData({
+        loadError: err.message || '加载退货单失败',
+        returns: [],
+        filteredReturns: [],
+        visibleReturns: [],
+        totalCount: 0,
+        hasMore: false
+      })
     } finally {
       this.setData({ loading: false })
     }
   },
 
-  applyFilter() {
+  applyFilter(reset) {
     var tab = this.data.activeTab
+    var keyword = (this.data.searchKeyword || '').trim().toLowerCase()
     var list = this.data.returns
     if (tab !== 'all') {
       list = list.filter(function(ret) { return ret.status === tab })
     }
-    this.setData({ filteredReturns: list })
+    if (keyword) {
+      list = list.filter(function(ret) {
+        if ((ret.order_no || '').toLowerCase().indexOf(keyword) >= 0) return true
+        if ((ret.remark || '').toLowerCase().indexOf(keyword) >= 0) return true
+        if ((ret._reasonLabel || '').toLowerCase().indexOf(keyword) >= 0) return true
+        return (ret.items || []).some(function(item) {
+          return (item.product_name || '').toLowerCase().indexOf(keyword) >= 0 ||
+            (item.product_code || '').toLowerCase().indexOf(keyword) >= 0
+        })
+      })
+    }
+    var visibleCount = reset ? 20 : (this.data.visibleCount + 20)
+    if (visibleCount > list.length) visibleCount = list.length
+    this.setData({
+      filteredReturns: list,
+      visibleReturns: list.slice(0, visibleCount),
+      visibleCount: visibleCount,
+      totalCount: list.length,
+      hasMore: visibleCount < list.length
+    })
+  },
+
+  onSearch(e) {
+    this.setData({ searchKeyword: e.detail.value || '' })
+    this.applyFilter(true)
+  },
+
+  onClearSearch() {
+    this.setData({ searchKeyword: '' })
+    this.applyFilter(true)
+  },
+
+  onLoadMore() {
+    if (!this.data.hasMore) return
+    this.applyFilter(false)
+  },
+
+  onRetryLoad() {
+    this.loadReturns(true)
+  },
+
+  onToggleExpand(e) {
+    var id = e.currentTarget.dataset.id
+    var toggle = function(ret) {
+      if (ret._id !== id) return ret
+      return Object.assign({}, ret, { _expanded: !ret._expanded })
+    }
+    this.setData({
+      returns: this.data.returns.map(toggle),
+      visibleReturns: this.data.visibleReturns.map(toggle)
+    })
   },
 
   onTabChange(e) {
     this.setData({ activeTab: e.currentTarget.dataset.tab })
-    this.applyFilter()
+    this.applyFilter(true)
   },
 
   onInventoryChange(e) {

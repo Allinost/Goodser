@@ -1,11 +1,11 @@
 .page-status-codes {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   padding-bottom: 120rpx;
 }
 
 .code-list {
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   margin: 20rpx 24rpx;
   border-radius: 16rpx;
   overflow: hidden;
@@ -17,7 +17,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 28rpx 24rpx;
-  border-bottom: 2rpx solid #f5f5f5;
+  border-bottom: 2rpx solid var(--gs-color-bg, #f5f5f5);
 }
 
 .code-item:last-child {
@@ -36,16 +36,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   border-radius: 8rpx;
   font-size: 32rpx;
   font-weight: 700;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .code-label {
   font-size: 30rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .code-right {
@@ -56,12 +56,12 @@
 
 .code-edit {
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
 }
 
 .code-delete {
   font-size: 26rpx;
-  color: #ff4d4f;
+  color: var(--gs-color-danger, #ff4d4f);
 }
 
 .add-bar {
@@ -71,7 +71,7 @@
   right: 0;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
 }
 
@@ -91,7 +91,7 @@
 
 .dialog {
   width: 600rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   border-radius: 16rpx;
   padding: 40rpx 32rpx;
 }
@@ -101,7 +101,7 @@
   font-weight: 600;
   text-align: center;
   margin-bottom: 32rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .form-group {
@@ -111,7 +111,7 @@
 .form-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 12rpx;
   display: block;
 }
@@ -121,22 +121,22 @@
   justify-content: space-between;
   align-items: center;
   height: 80rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .picker-arrow {
   font-size: 20rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .dialog-input {
   width: 100%;
   height: 80rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
@@ -145,7 +145,7 @@
 
 .form-hint {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: var(--gs-color-danger, #ff4d4f);
   margin-top: 8rpx;
   display: block;
 }

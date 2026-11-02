@@ -52,14 +52,20 @@
         "selectedIconPath": "images/tab-outbound-active.png"
       },
       {
-        "pagePath": "pages/inbound/index",
-        "text": "入库",
-        "iconPath": "images/tab-inbound.png",
-        "selectedIconPath": "images/tab-inbound-active.png"
+        "pagePath": "pages/returns/index",
+        "text": "退货",
+        "iconPath": "images/tab-returns.png",
+        "selectedIconPath": "images/tab-returns-active.png"
+      },
+      {
+        "pagePath": "pages/stats/index",
+        "text": "统计",
+        "iconPath": "images/tab-stats.png",
+        "selectedIconPath": "images/tab-stats-active.png"
       },
       {
         "pagePath": "pages/settings/index",
-        "text": "设置",
+        "text": "我的",
         "iconPath": "images/tab-settings.png",
         "selectedIconPath": "images/tab-settings-active.png"
       }

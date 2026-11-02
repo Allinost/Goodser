@@ -1,13 +1,13 @@
 .page-inbound {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
 }
 
 .load-more {
   text-align: center;
   padding: 24rpx;
   font-size: 26rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 /* 库存目录选择 */
@@ -22,7 +22,7 @@
 .inventory-card .form-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 12rpx;
   display: block;
 }
@@ -32,16 +32,16 @@
   justify-content: space-between;
   align-items: center;
   height: 80rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .inventory-card .picker-arrow {
   font-size: 20rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .method-card {
@@ -51,7 +51,7 @@
 .method-title {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 20rpx;
 }
 
@@ -59,7 +59,7 @@
   display: flex;
   flex-direction: column;
   gap: 2rpx;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   border-radius: 12rpx;
   overflow: hidden;
 }
@@ -68,11 +68,11 @@
   display: flex;
   align-items: center;
   padding: 28rpx 24rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
 }
 
 .method-item:active {
-  background: #f9f9f9;
+  background: var(--gs-color-bg-4, #f9f9f9);
 }
 
 .method-icon {
@@ -87,19 +87,19 @@
 .method-name {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   display: block;
   margin-bottom: 4rpx;
 }
 
 .method-desc {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .method-arrow {
   font-size: 36rpx;
-  color: #cccccc;
+  color: var(--gs-color-disabled, #cccccc);
   margin-left: 12rpx;
 }
 
@@ -111,7 +111,7 @@
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .log-list {
@@ -124,7 +124,7 @@
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 2rpx solid #f5f5f5;
+  border-bottom: 2rpx solid var(--gs-color-bg, #f5f5f5);
 }
 
 .log-item:last-child {
@@ -143,14 +143,14 @@
 .log-type {
   font-size: 26rpx;
   font-weight: 500;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   display: block;
   margin-bottom: 4rpx;
 }
 
 .log-products {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -165,17 +165,17 @@
 .log-qty {
   font-size: 30rpx;
   font-weight: 600;
-  color: #52c41a;
+  color: var(--gs-color-success, #52c41a);
   display: block;
 }
 
 .log-time {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .log-arrow {
   font-size: 32rpx;
-  color: #cccccc;
+  color: var(--gs-color-disabled, #cccccc);
   margin-left: 8rpx;
 }

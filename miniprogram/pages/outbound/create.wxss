@@ -1,6 +1,6 @@
 .page-create-outbound {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   padding-bottom: 140rpx;
 }
 
@@ -15,7 +15,7 @@
 .form-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 12rpx;
   display: block;
 }
@@ -23,7 +23,7 @@
 .form-input {
   width: 100%;
   height: 80rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
@@ -33,7 +33,7 @@
 .form-textarea {
   width: 100%;
   height: 160rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 16rpx 20rpx;
   font-size: 28rpx;
@@ -50,14 +50,14 @@
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 /* 搜索结果 */
 .search-results {
   max-height: 480rpx;
   overflow-y: auto;
-  border: 2rpx solid #f0f0f0;
+  border: 2rpx solid var(--gs-color-divider, #f0f0f0);
   border-radius: 8rpx;
 }
 
@@ -65,18 +65,18 @@
   display: flex;
   align-items: center;
   padding: 16rpx 20rpx;
-  border-bottom: 2rpx solid #f5f5f5;
+  border-bottom: 2rpx solid var(--gs-color-bg, #f5f5f5);
 }
 
 .search-result-item:active {
-  background: #f9f9f9;
+  background: var(--gs-color-bg-4, #f9f9f9);
 }
 
 .result-image {
   width: 72rpx;
   height: 72rpx;
   border-radius: 8rpx;
-  background: #f0f0f0;
+  background: var(--gs-color-divider, #f0f0f0);
   flex-shrink: 0;
 }
 
@@ -88,29 +88,29 @@
 .result-name {
   font-size: 28rpx;
   font-weight: 500;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   display: block;
 }
 
 .result-code {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   display: block;
 }
 
 .result-stock {
   font-size: 22rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   display: block;
 }
 
 .result-add {
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   font-weight: 500;
   flex-shrink: 0;
   padding: 8rpx 16rpx;
-  background: #e6f7ff;
+  background: var(--gs-color-primary-bg, #e6f7ff);
   border-radius: 6rpx;
 }
 
@@ -119,14 +119,14 @@
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 2rpx solid #f5f5f5;
+  border-bottom: 2rpx solid var(--gs-color-bg, #f5f5f5);
 }
 
 .selected-image {
   width: 72rpx;
   height: 72rpx;
   border-radius: 8rpx;
-  background: #f0f0f0;
+  background: var(--gs-color-divider, #f0f0f0);
   flex-shrink: 0;
 }
 
@@ -138,14 +138,14 @@
 .selected-name {
   font-size: 28rpx;
   font-weight: 500;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   display: block;
   margin-bottom: 4rpx;
 }
 
 .selected-stock {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .qty-control {
@@ -161,24 +161,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   border-radius: 8rpx;
   font-size: 32rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   font-weight: 600;
 }
 
 .qty-value {
   font-size: 30rpx;
   font-weight: 600;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   min-width: 48rpx;
   text-align: center;
 }
 
 .remove-btn {
   font-size: 28rpx;
-  color: #ff4d4f;
+  color: var(--gs-color-danger, #ff4d4f);
   padding: 8rpx;
 }
 
@@ -188,33 +188,33 @@
   justify-content: space-between;
   align-items: center;
   padding: 12rpx 20rpx;
-  border-bottom: 2rpx solid #f0f0f0;
-  background: #fafafa;
+  border-bottom: 2rpx solid var(--gs-color-divider, #f0f0f0);
+  background: var(--gs-color-bg-3, #fafafa);
 }
 
 .multi-select-toggle {
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   font-weight: 500;
 }
 
 .multi-select-confirm-btn {
   font-size: 26rpx;
-  color: #ffffff;
-  background: #1890ff;
+  color: var(--gs-color-surface, #ffffff);
+  background: var(--gs-color-primary, #1890ff);
   padding: 8rpx 24rpx;
   border-radius: 8rpx;
   font-weight: 500;
 }
 
 .search-result-item-checked {
-  background: #f0f7ff;
+  background: var(--gs-color-primary-bg-2, #f0f7ff);
 }
 
 .multi-checkbox {
   width: 40rpx;
   height: 40rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   display: flex;
   align-items: center;
@@ -230,7 +230,7 @@
 }
 
 .checkbox-checked {
-  background: #1890ff;
+  background: var(--gs-color-primary, #1890ff);
 }
 
 /* 选择器 */
@@ -240,27 +240,27 @@
   justify-content: space-between;
   min-height: 80rpx;
   padding: 0 20rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   box-sizing: border-box;
 }
 
 .picker-arrow {
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   font-size: 20rpx;
   margin-left: 12rpx;
 }
 
 .link-text {
   font-size: 24rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
 }
 
 /* 组合包 */
 .combo-summary {
-  background: #f0f7ff;
+  background: var(--gs-color-primary-bg-2, #f0f7ff);
   border-radius: 10rpx;
   padding: 18rpx 20rpx;
 }
@@ -270,7 +270,7 @@
   flex-wrap: wrap;
   gap: 24rpx;
   font-size: 24rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
 }
 
 .combo-parts {
@@ -281,8 +281,8 @@
 }
 
 .combo-part {
-  background: #ffffff;
-  color: #333333;
+  background: var(--gs-color-surface, #ffffff);
+  color: var(--gs-color-text, #333333);
   border-radius: 8rpx;
   padding: 6rpx 14rpx;
   font-size: 22rpx;
@@ -292,5 +292,5 @@
   display: block;
   margin-top: 12rpx;
   font-size: 22rpx;
-  color: #8c8c8c;
+  color: var(--gs-color-text-4, #8c8c8c);
 }

@@ -1,6 +1,6 @@
 .page-log-detail {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   padding-bottom: 140rpx;
 }
 
@@ -18,7 +18,7 @@
 .log-title {
   font-size: 34rpx;
   font-weight: 700;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .log-inventory {
@@ -30,12 +30,12 @@
 
 .log-inv-label {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .log-inv-name {
   font-size: 24rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   font-weight: 500;
 }
 
@@ -45,13 +45,13 @@
 
 .log-time {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 20rpx;
 }
 
@@ -59,7 +59,7 @@
   display: flex;
   align-items: center;
   padding: 16rpx 0;
-  border-bottom: 2rpx solid #f5f5f5;
+  border-bottom: 2rpx solid var(--gs-color-bg, #f5f5f5);
 }
 
 .inbound-item:last-child {
@@ -70,7 +70,7 @@
   width: 88rpx;
   height: 88rpx;
   border-radius: 8rpx;
-  background: #f0f0f0;
+  background: var(--gs-color-divider, #f0f0f0);
   flex-shrink: 0;
 }
 
@@ -82,21 +82,21 @@
 .item-name {
   font-size: 28rpx;
   font-weight: 500;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   display: block;
   margin-bottom: 4rpx;
 }
 
 .item-code {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   font-family: 'Courier New', monospace;
 }
 
 .item-qty {
   font-size: 30rpx;
   font-weight: 600;
-  color: #52c41a;
+  color: var(--gs-color-success, #52c41a);
   margin-left: 16rpx;
   flex-shrink: 0;
 }
@@ -104,14 +104,14 @@
 .log-summary {
   text-align: center;
   font-size: 26rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   padding: 8rpx 0;
 }
 
 .bottom-bar .btn-ghost {
-  border: 2rpx solid #1890ff;
-  color: #1890ff;
-  background: #ffffff;
+  border: 2rpx solid var(--gs-color-primary, #1890ff);
+  color: var(--gs-color-primary, #1890ff);
+  background: var(--gs-color-surface, #ffffff);
 }
 
 /* 信息行 */
@@ -123,12 +123,12 @@
 }
 
 .info-row .label {
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   font-size: 26rpx;
 }
 
 .info-row .value {
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   font-size: 26rpx;
   font-weight: 500;
 }
@@ -150,7 +150,7 @@
 /* 编辑面板 */
 .edit-panel {
   width: 100%;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   border-radius: 24rpx 24rpx 0 0;
   max-height: 80vh;
   display: flex;
@@ -162,18 +162,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 28rpx 32rpx;
-  border-bottom: 2rpx solid #f0f0f0;
+  border-bottom: 2rpx solid var(--gs-color-divider, #f0f0f0);
 }
 
 .edit-panel-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .edit-panel-close {
   font-size: 32rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   padding: 8rpx;
 }
 
@@ -185,7 +185,7 @@
 
 .edit-item {
   padding: 20rpx 0;
-  border-bottom: 2rpx solid #f5f5f5;
+  border-bottom: 2rpx solid var(--gs-color-bg, #f5f5f5);
 }
 
 .edit-item:last-of-type {
@@ -199,14 +199,14 @@
 .edit-item-name {
   font-size: 28rpx;
   font-weight: 500;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   display: block;
   margin-bottom: 4rpx;
 }
 
 .edit-item-code {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   font-family: 'Courier New', monospace;
 }
 
@@ -220,19 +220,19 @@
   width: 56rpx;
   height: 56rpx;
   border-radius: 8rpx;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   text-align: center;
   line-height: 56rpx;
   font-size: 32rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   flex-shrink: 0;
 }
 
 .edit-qty-input {
   width: 100rpx;
   height: 56rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   text-align: center;
   font-size: 28rpx;
@@ -240,7 +240,7 @@
 
 .edit-item-remove {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: var(--gs-color-danger, #ff4d4f);
   padding: 8rpx 12rpx;
   margin-left: auto;
 }
@@ -248,13 +248,13 @@
 .edit-remark-group {
   margin-top: 24rpx;
   padding-top: 20rpx;
-  border-top: 2rpx solid #f0f0f0;
+  border-top: 2rpx solid var(--gs-color-divider, #f0f0f0);
 }
 
 .form-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 12rpx;
   display: block;
 }
@@ -262,7 +262,7 @@
 .form-textarea {
   width: 100%;
   height: 140rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 16rpx 20rpx;
   font-size: 28rpx;
@@ -274,7 +274,7 @@
   gap: 16rpx;
   padding: 24rpx 32rpx;
   padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
-  border-top: 2rpx solid #f0f0f0;
+  border-top: 2rpx solid var(--gs-color-divider, #f0f0f0);
 }
 
 .edit-panel-footer .btn {
@@ -294,7 +294,7 @@
 .edit-add-title {
   font-size: 26rpx;
   font-weight: 600;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
 }
 
 .edit-search-row {
@@ -306,7 +306,7 @@
 .edit-search-input {
   flex: 1;
   height: 64rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 16rpx;
   font-size: 26rpx;
@@ -315,8 +315,8 @@
 
 .edit-search-btn {
   padding: 12rpx 24rpx;
-  background: #1890ff;
-  color: #ffffff;
+  background: var(--gs-color-primary, #1890ff);
+  color: var(--gs-color-surface, #ffffff);
   border-radius: 8rpx;
   font-size: 26rpx;
   flex-shrink: 0;
@@ -326,7 +326,7 @@
   margin-top: 12rpx;
   max-height: 240rpx;
   overflow-y: auto;
-  border: 2rpx solid #f0f0f0;
+  border: 2rpx solid var(--gs-color-divider, #f0f0f0);
   border-radius: 8rpx;
 }
 
@@ -334,7 +334,7 @@
   display: flex;
   align-items: center;
   padding: 16rpx;
-  border-bottom: 2rpx solid #f5f5f5;
+  border-bottom: 2rpx solid var(--gs-color-bg, #f5f5f5);
 }
 
 .edit-search-item:last-child {
@@ -343,21 +343,21 @@
 
 .edit-search-name {
   font-size: 26rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   font-weight: 500;
   flex: 1;
 }
 
 .edit-search-code {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   font-family: 'Courier New', monospace;
   margin-right: 16rpx;
 }
 
 .edit-search-add {
   font-size: 24rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   font-weight: 500;
 }
 
@@ -365,12 +365,12 @@
   text-align: center;
   padding: 16rpx;
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .edit-divider {
   height: 2rpx;
-  background: #f0f0f0;
+  background: var(--gs-color-divider, #f0f0f0);
   margin: 16rpx 0;
 }
 
@@ -380,33 +380,33 @@
   justify-content: space-between;
   align-items: center;
   padding: 8rpx 16rpx;
-  background: #fafafa;
-  border-bottom: 2rpx solid #f0f0f0;
+  background: var(--gs-color-bg-3, #fafafa);
+  border-bottom: 2rpx solid var(--gs-color-divider, #f0f0f0);
 }
 
 .edit-multi-toggle {
   font-size: 24rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   font-weight: 500;
 }
 
 .edit-multi-confirm {
   font-size: 24rpx;
-  color: #ffffff;
-  background: #1890ff;
+  color: var(--gs-color-surface, #ffffff);
+  background: var(--gs-color-primary, #1890ff);
   padding: 6rpx 20rpx;
   border-radius: 6rpx;
   font-weight: 500;
 }
 
 .edit-search-item-checked {
-  background: #f0f7ff;
+  background: var(--gs-color-primary-bg-2, #f0f7ff);
 }
 
 .edit-multi-checkbox {
   width: 36rpx;
   height: 36rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 6rpx;
   display: flex;
   align-items: center;
@@ -422,5 +422,5 @@
 }
 
 .edit-checkbox-checked {
-  background: #1890ff;
+  background: var(--gs-color-primary, #1890ff);
 }

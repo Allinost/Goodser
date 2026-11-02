@@ -1,0 +1,7 @@
+<view class="skeleton">
+  <view class="skeleton-card" wx:for="{{rows}}" wx:key="*this">
+    <view class="skeleton-line skeleton-line--lg"></view>
+    <view class="skeleton-line skeleton-line--sm"></view>
+    <view class="skeleton-line skeleton-line--md"></view>
+  </view>
+</view>

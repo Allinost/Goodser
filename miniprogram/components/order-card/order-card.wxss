@@ -16,7 +16,7 @@
 .order-no {
   font-size: 30rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .order-no-row {
@@ -33,18 +33,18 @@
 }
 
 .order-type-tag-blue {
-  background: #e6f7ff;
-  color: #1890ff;
+  background: var(--gs-color-primary-bg, #e6f7ff);
+  color: var(--gs-color-primary, #1890ff);
 }
 
 .order-type-tag-orange {
-  background: #fff7e6;
-  color: #fa8c16;
+  background: var(--gs-color-warning-bg, #fff7e6);
+  color: var(--gs-color-warning, #fa8c16);
 }
 
 .order-time {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   margin-top: 6rpx;
 }
 
@@ -61,12 +61,12 @@
 
 .item-name {
   font-size: 26rpx;
-  color: #666666;
+  color: var(--gs-color-text-2, #666666);
 }
 
 .item-qty {
   font-size: 26rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   font-weight: 500;
 }
 
@@ -78,10 +78,10 @@
 
 .order-total {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .order-arrow {
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
 }

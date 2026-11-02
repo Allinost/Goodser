@@ -1,0 +1,6 @@
+<view class="error-state">
+  <text class="error-icon">⚠️</text>
+  <text class="error-title">{{title}}</text>
+  <text class="error-description">{{description}}</text>
+  <view class="error-btn" bindtap="onRetry">重试</view>
+</view>

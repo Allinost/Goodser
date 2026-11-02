@@ -60,6 +60,10 @@ Page({
     this.refreshAll()
   },
 
+  onGoInbound() { wx.navigateTo({ url: '/pages/inbound/index' }) },
+  onGoMarketing() { wx.navigateTo({ url: '/pages/marketing/index' }) },
+  onGoSeries() { wx.navigateTo({ url: '/pages/series/index' }) },
+
   onPullDownRefresh() {
     this.refreshAll(function() {
       wx.stopPullDownRefresh()

@@ -1,13 +1,13 @@
 .page-detail {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   padding-bottom: 140rpx;
 }
 
 .detail-image-wrapper {
   width: 100%;
   height: 480rpx;
-  background: #f0f0f0;
+  background: var(--gs-color-divider, #f0f0f0);
 }
 
 .detail-image {
@@ -27,7 +27,7 @@
 .detail-name {
   font-size: 36rpx;
   font-weight: 700;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 12rpx;
 }
 
@@ -39,7 +39,7 @@
 
 .detail-code {
   font-size: 26rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   font-family: 'Courier New', monospace;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .highlight {
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   font-weight: 600;
 }
 
@@ -94,19 +94,19 @@
   align-items: center;
   gap: 4rpx;
   padding: 8rpx 18rpx;
-  border: 2rpx dashed #d9d9d9;
+  border: 2rpx dashed var(--gs-color-border-2, #d9d9d9);
   border-radius: 24rpx;
 }
 
 .detail-tag-add-icon {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   font-weight: 600;
 }
 
 .detail-tag-add-text {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 /* 标签选择弹窗 */
@@ -120,17 +120,17 @@
   display: flex;
   align-items: center;
   padding: 16rpx 12rpx;
-  border: 2rpx dashed #d9d9d9;
+  border: 2rpx dashed var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   margin-bottom: 8rpx;
-  background: #fafafa;
+  background: var(--gs-color-bg-3, #fafafa);
 }
 
 .tag-dialog-item-selected {
-  border: 2rpx solid #1677ff;
+  border: 2rpx solid var(--gs-color-primary-dark, #1677ff);
   font-weight: 600;
-  color: #1677ff;
-  background: #e6f4ff;
+  color: var(--gs-color-primary-dark, #1677ff);
+  background: var(--gs-color-primary-bg-3, #e6f4ff);
 }
 
 .tag-dialog-name {
@@ -140,17 +140,17 @@
 
 .tag-dialog-check {
   font-size: 28rpx;
-  color: #1677ff;
+  color: var(--gs-color-primary-dark, #1677ff);
   font-weight: 700;
 }
 
 .tag-dialog-new {
   text-align: center;
   padding: 16rpx 0;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   font-size: 28rpx;
   font-weight: 500;
-  border-top: 2rpx solid #f0f0f0;
+  border-top: 2rpx solid var(--gs-color-divider, #f0f0f0);
   margin-bottom: 8rpx;
 }
 
@@ -163,8 +163,8 @@
 }
 
 .bottom-bar .btn-ghost {
-  border: 2rpx solid #1890ff;
-  background: #ffffff;
+  border: 2rpx solid var(--gs-color-primary, #1890ff);
+  background: var(--gs-color-surface, #ffffff);
 }
 
 /* 颜色选择 */
@@ -181,7 +181,7 @@
 }
 
 .color-dot-active {
-  box-shadow: 0 0 0 4rpx #ffffff, 0 0 0 8rpx currentColor;
+  box-shadow: 0 0 0 4rpx var(--gs-color-surface, #ffffff), 0 0 0 8rpx currentColor;
 }
 
 /* 遮罩层 */
@@ -201,7 +201,7 @@
 /* 弹窗样式 */
 .dialog {
   width: 600rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   border-radius: 16rpx;
   padding: 40rpx;
   box-sizing: border-box;
@@ -210,7 +210,7 @@
 .dialog-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   text-align: center;
   margin-bottom: 32rpx;
 }
@@ -218,7 +218,7 @@
 .dialog-input {
   width: 100%;
   height: 80rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
@@ -233,7 +233,7 @@
 .form-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 12rpx;
   display: block;
 }

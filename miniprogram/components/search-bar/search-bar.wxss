@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   padding: 16rpx 24rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   gap: 16rpx;
 }
 
@@ -10,7 +10,7 @@
   flex: 1;
   display: flex;
   align-items: center;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   border-radius: 36rpx;
   padding: 0 24rpx;
   height: 72rpx;
@@ -28,7 +28,7 @@
   height: 72rpx;
   margin-left: 12rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .search-clear {
@@ -44,8 +44,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1890ff;
-  color: #ffffff;
+  background: var(--gs-color-primary, #1890ff);
+  color: var(--gs-color-surface, #ffffff);
   border-radius: 36rpx;
   font-size: 28rpx;
   font-weight: 500;

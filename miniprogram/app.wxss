@@ -1,9 +1,11 @@
+@import "theme.wxss";
+
 /* Goodser 全局样式 */
 page {
-  background-color: #f5f5f5;
+  background-color: var(--gs-color-bg, #f5f5f5);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 28rpx;
-  color: #333333;
+  font-size: var(--gs-font-base);
+  color: var(--gs-color-text, #333333);
   box-sizing: border-box;
 }
 
@@ -14,7 +16,7 @@ page {
 
 /* 卡片样式 */
 .card {
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   border-radius: 16rpx;
   padding: 24rpx;
   margin-bottom: 20rpx;
@@ -27,13 +29,13 @@ page {
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 24rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
 }
 
 /* 搜索栏容器 */
 .search-wrapper {
   padding: 16rpx 24rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
 }
 
 /* 按钮基础 */
@@ -49,19 +51,19 @@ page {
 }
 
 .btn-primary {
-  background: #1890ff;
-  color: #ffffff;
+  background: var(--gs-color-primary, #1890ff);
+  color: var(--gs-color-surface, #ffffff);
 }
 
 .btn-danger {
-  background: #ff4d4f;
-  color: #ffffff;
+  background: var(--gs-color-danger, #ff4d4f);
+  color: var(--gs-color-surface, #ffffff);
 }
 
 .btn-ghost {
   background: transparent;
-  color: #1890ff;
-  border: 2rpx solid #1890ff;
+  color: var(--gs-color-primary, #1890ff);
+  border: 2rpx solid var(--gs-color-primary, #1890ff);
 }
 
 .btn-block {
@@ -84,34 +86,34 @@ page {
 }
 
 .tag-blue {
-  background: #e6f7ff;
-  color: #1890ff;
+  background: var(--gs-color-primary-bg, #e6f7ff);
+  color: var(--gs-color-primary, #1890ff);
 }
 
 .tag-orange {
-  background: #fff7e6;
-  color: #fa8c16;
+  background: var(--gs-color-warning-bg, #fff7e6);
+  color: var(--gs-color-warning, #fa8c16);
 }
 
 .tag-green {
-  background: #f6ffed;
-  color: #52c41a;
+  background: var(--gs-color-success-bg, #f6ffed);
+  color: var(--gs-color-success, #52c41a);
 }
 
 .tag-red {
-  background: #fff2f0;
-  color: #ff4d4f;
+  background: var(--gs-color-danger-bg-2, #fff2f0);
+  color: var(--gs-color-danger, #ff4d4f);
 }
 
 .tag-gray {
-  background: #f5f5f5;
-  color: #999999;
+  background: var(--gs-color-bg, #f5f5f5);
+  color: var(--gs-color-text-5, #999999);
 }
 
 /* 分割线 */
 .divider {
   height: 2rpx;
-  background: #f0f0f0;
+  background: var(--gs-color-divider, #f0f0f0);
   margin: 20rpx 0;
 }
 
@@ -131,7 +133,7 @@ page {
 
 .empty-container .empty-text {
   font-size: 28rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 /* 底部固定操作栏 */
@@ -143,7 +145,7 @@ page {
   display: flex;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
   z-index: 100;
 }
@@ -162,12 +164,12 @@ page {
 }
 
 .info-row .label {
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   font-size: 26rpx;
 }
 
 .info-row .value {
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   font-size: 26rpx;
   font-weight: 500;
 }
@@ -177,10 +179,10 @@ page {
   display: flex;
   align-items: center;
   padding: 24rpx;
-  background: #ffffff;
-  border-bottom: 2rpx solid #f5f5f5;
+  background: var(--gs-color-surface, #ffffff);
+  border-bottom: 2rpx solid var(--gs-color-bg, #f5f5f5);
 }
 
 .list-item:active {
-  background: #f9f9f9;
+  background: var(--gs-color-bg-4, #f9f9f9);
 }

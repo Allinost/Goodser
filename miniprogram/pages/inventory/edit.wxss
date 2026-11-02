@@ -1,6 +1,6 @@
 .page-edit {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   padding-bottom: 140rpx;
 }
 
@@ -11,7 +11,7 @@
 
 .image-count-tip {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   margin-bottom: 12rpx;
   display: block;
 }
@@ -43,8 +43,8 @@
   right: -10rpx;
   width: 36rpx;
   height: 36rpx;
-  background: #ff4d4f;
-  color: #ffffff;
+  background: var(--gs-color-danger, #ff4d4f);
+  color: var(--gs-color-surface, #ffffff);
   border-radius: 50%;
   font-size: 20rpx;
   text-align: center;
@@ -55,13 +55,13 @@
 .image-grid-add {
   width: 160rpx;
   height: 160rpx;
-  border: 2rpx dashed #d9d9d9;
+  border: 2rpx dashed var(--gs-color-border-2, #d9d9d9);
   border-radius: 12rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #fafafa;
+  background: var(--gs-color-bg-3, #fafafa);
   box-sizing: border-box;
 }
 
@@ -72,7 +72,7 @@
 
 .upload-text {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 /* 表单 */
@@ -83,19 +83,19 @@
 .form-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 12rpx;
   display: block;
 }
 
 .required {
-  color: #ff4d4f;
+  color: var(--gs-color-danger, #ff4d4f);
 }
 
 .form-input {
   width: 100%;
   height: 80rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
@@ -105,7 +105,7 @@
 .form-textarea {
   width: 100%;
   height: 160rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 16rpx 20rpx;
   font-size: 28rpx;
@@ -126,16 +126,16 @@
   justify-content: space-between;
   align-items: center;
   height: 80rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .picker-arrow {
   font-size: 20rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 /* 标签选择 */
@@ -151,18 +151,18 @@
   align-items: center;
   gap: 6rpx;
   padding: 8rpx 16rpx;
-  background: #fafafa;
-  border: 2rpx dashed #d9d9d9;
+  background: var(--gs-color-bg-3, #fafafa);
+  border: 2rpx dashed var(--gs-color-border-2, #d9d9d9);
   border-radius: 6rpx;
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .tag-select-item-active {
-  border: 2rpx solid #1677ff;
+  border: 2rpx solid var(--gs-color-primary-dark, #1677ff);
   font-weight: 600;
-  color: #1677ff;
-  background: #e6f4ff;
+  color: var(--gs-color-primary-dark, #1677ff);
+  background: var(--gs-color-primary-bg-3, #e6f4ff);
 }
 
 .tag-checkmark {
@@ -180,10 +180,10 @@
 
 .tag-inline-add {
   padding: 8rpx 16rpx;
-  border: 2rpx dashed #d9d9d9;
+  border: 2rpx dashed var(--gs-color-border-2, #d9d9d9);
   border-radius: 6rpx;
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 /* 新建标签弹窗 */
@@ -202,7 +202,7 @@
 
 .inline-dialog {
   width: 600rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   border-radius: 16rpx;
   padding: 40rpx 32rpx;
 }
@@ -212,7 +212,7 @@
   font-weight: 600;
   text-align: center;
   margin-bottom: 32rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .inline-dialog-actions {
@@ -230,7 +230,7 @@
 .code-preview {
   margin-top: 16rpx;
   padding: 20rpx;
-  background: #f0f7ff;
+  background: var(--gs-color-primary-bg-2, #f0f7ff);
   border-radius: 8rpx;
   display: flex;
   justify-content: space-between;
@@ -239,14 +239,14 @@
 
 .code-label {
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   font-weight: 500;
 }
 
 .code-value {
   font-size: 30rpx;
   font-weight: 700;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
   font-family: 'Courier New', monospace;
   letter-spacing: 2rpx;
 }
@@ -268,5 +268,5 @@
 }
 
 .color-dot-active {
-  box-shadow: 0 0 0 4rpx #ffffff, 0 0 0 8rpx currentColor;
+  box-shadow: 0 0 0 4rpx var(--gs-color-surface, #ffffff), 0 0 0 8rpx currentColor;
 }

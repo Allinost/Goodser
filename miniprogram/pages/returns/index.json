@@ -1,4 +1,10 @@
 {
   "navigationBarTitleText": "退货单",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "search-bar": "/components/search-bar/search-bar",
+    "empty-state": "/components/empty-state/empty-state",
+    "skeleton": "/components/skeleton/skeleton",
+    "error-state": "/components/error-state/error-state"
+  }
 }

@@ -11,6 +11,13 @@
     </view>
   </view>
 
+  <search-bar
+    placeholder="搜索退货单号、商品、备注..."
+    value="{{searchKeyword}}"
+    bind:search="onSearch"
+    bind:clear="onClearSearch"
+  />
+
   <view class="tab-bar">
     <view
       class="tab-item {{activeTab === item.key ? 'tab-active' : ''}}"
@@ -22,13 +29,20 @@
   </view>
 
   <view class="stats-bar">
-    <text class="stats-text">共 {{filteredReturns.length}} 张退货单</text>
+    <text class="stats-text">共 {{totalCount}} 张退货单</text>
   </view>
 
-  <view class="loading" wx:if="{{loading}}"><text>加载中...</text></view>
+  <skeleton wx:if="{{loading}}" rows="3" />
 
-  <view class="return-list" wx:elif="{{filteredReturns.length > 0}}">
-    <view class="card return-card" wx:for="{{filteredReturns}}" wx:key="_id">
+  <error-state
+    wx:elif="{{loadError}}"
+    title="退货单加载失败"
+    description="{{loadError}}"
+    bind:retry="onRetryLoad"
+  />
+
+  <view class="return-list" wx:elif="{{visibleReturns.length > 0}}">
+    <view class="card return-card" wx:for="{{visibleReturns}}" wx:key="_id">
       <view class="return-head">
         <view>
           <text class="return-order-no">{{item.order_no}}</text>
@@ -44,7 +58,12 @@
         <text wx:else>不回库</text>
       </view>
 
-      <view class="return-items">
+      <view class="return-summary" bindtap="onToggleExpand" data-id="{{item._id}}">
+        <text>{{item._itemCount}} 种商品 · 共 {{item._totalQty}} 件</text>
+        <text class="summary-toggle">{{item._expanded ? '收起明细 ▲' : '展开明细 ▼'}}</text>
+      </view>
+
+      <view class="return-items" wx:if="{{item._expanded}}">
         <view class="return-item" wx:for="{{item.items}}" wx:for-item="line" wx:key="product_id">
           <text class="return-item-name">{{line.product_name || line.product_code}}</text>
           <text class="return-item-qty">× {{line.quantity}}</text>
@@ -62,11 +81,14 @@
         </block>
       </view>
     </view>
+
+    <view class="load-more" wx:if="{{hasMore}}" bindtap="onLoadMore">加载更多</view>
   </view>
 
-  <view class="empty-container" wx:else>
-    <text class="empty-icon">↩️</text>
-    <text class="empty-text">暂无退货单</text>
-    <text class="empty-hint">可在已确认的出库单详情中申请退货</text>
-  </view>
+  <empty-state
+    wx:else
+    icon="↩️"
+    title="暂无退货单"
+    description="可在已确认的出库单详情中申请退货"
+  />
 </view>

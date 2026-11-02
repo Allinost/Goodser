@@ -1,0 +1,50 @@
+/* Goodser 设计 token：颜色、圆角、间距、字号 */
+page {
+  --gs-color-primary: #1890ff;
+  --gs-color-primary-dark: #1677ff;
+  --gs-color-primary-light: #69b1ff;
+  --gs-color-primary-bg: #e6f7ff;
+  --gs-color-primary-bg-2: #f0f7ff;
+  --gs-color-primary-bg-3: #e6f4ff;
+  --gs-color-primary-bg-4: #f0f5ff;
+
+  --gs-color-success: #52c41a;
+  --gs-color-success-bg: #f6ffed;
+  --gs-color-warning: #fa8c16;
+  --gs-color-warning-bg: #fff7e6;
+  --gs-color-warning-border: #ffe7ba;
+  --gs-color-danger: #ff4d4f;
+  --gs-color-danger-bg: #fff1f0;
+  --gs-color-danger-bg-2: #fff2f0;
+
+  --gs-color-text: #333333;
+  --gs-color-text-2: #666666;
+  --gs-color-text-3: #888888;
+  --gs-color-text-4: #8c8c8c;
+  --gs-color-text-5: #999999;
+  --gs-color-text-6: #aaaaaa;
+  --gs-color-text-7: #bbbbbb;
+
+  --gs-color-border: #e8e8e8;
+  --gs-color-border-2: #d9d9d9;
+  --gs-color-divider: #f0f0f0;
+  --gs-color-disabled: #cccccc;
+  --gs-color-bg: #f5f5f5;
+  --gs-color-bg-2: #f5f7fa;
+  --gs-color-bg-3: #fafafa;
+  --gs-color-bg-4: #f9f9f9;
+  --gs-color-surface: #ffffff;
+
+  --gs-radius-sm: 8rpx;
+  --gs-radius-md: 12rpx;
+  --gs-radius-lg: 16rpx;
+  --gs-space-xs: 8rpx;
+  --gs-space-sm: 16rpx;
+  --gs-space-md: 24rpx;
+  --gs-space-lg: 32rpx;
+  --gs-font-xs: 22rpx;
+  --gs-font-sm: 24rpx;
+  --gs-font-base: 28rpx;
+  --gs-font-lg: 32rpx;
+  --gs-font-xl: 36rpx;
+}

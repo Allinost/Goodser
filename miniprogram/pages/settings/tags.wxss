@@ -1,11 +1,11 @@
 .page-tags {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   padding-bottom: 120rpx;
 }
 
 .tag-list {
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   margin: 20rpx 24rpx;
   border-radius: 16rpx;
   overflow: hidden;
@@ -17,7 +17,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 28rpx 24rpx;
-  border-bottom: 2rpx solid #f5f5f5;
+  border-bottom: 2rpx solid var(--gs-color-bg, #f5f5f5);
 }
 
 .tag-item:last-child {
@@ -39,7 +39,7 @@
 
 .tag-name {
   font-size: 30rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   font-weight: 500;
 }
 
@@ -51,24 +51,24 @@
 
 .tag-count {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .tag-edit {
   font-size: 26rpx;
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
 }
 
 .tag-delete {
   font-size: 26rpx;
-  color: #ff4d4f;
+  color: var(--gs-color-danger, #ff4d4f);
 }
 
 .empty-hint {
   text-align: center;
   padding: 60rpx 0;
   font-size: 28rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .add-bar {
@@ -78,7 +78,7 @@
   right: 0;
   padding: 20rpx 24rpx;
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
 }
 
@@ -101,13 +101,13 @@
 }
 
 .color-option-active {
-  border-color: #333333;
+  border-color: var(--gs-color-text, #333333);
   transform: scale(1.1);
 }
 
 .color-check {
   font-size: 28rpx;
-  color: #ffffff;
+  color: var(--gs-color-surface, #ffffff);
   font-weight: 700;
   text-shadow: 0 1rpx 2rpx rgba(0,0,0,0.3);
 }
@@ -128,7 +128,7 @@
 
 .dialog {
   width: 600rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   border-radius: 16rpx;
   padding: 40rpx 32rpx;
 }
@@ -138,7 +138,7 @@
   font-weight: 600;
   text-align: center;
   margin-bottom: 32rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .form-group {
@@ -148,7 +148,7 @@
 .form-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 12rpx;
   display: block;
 }
@@ -156,7 +156,7 @@
 .dialog-input {
   width: 100%;
   height: 80rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;

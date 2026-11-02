@@ -1,6 +1,6 @@
 .page-outbound {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
 }
 
 /* 顶部栏 */
@@ -9,7 +9,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 24rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
 }
 
 .inventory-picker {
@@ -21,16 +21,16 @@
   align-items: center;
   gap: 8rpx;
   padding: 12rpx 20rpx;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   border-radius: 8rpx;
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .selector-arrow {
   font-size: 20rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .top-actions {
@@ -43,15 +43,15 @@
   border-radius: 8rpx;
   font-size: 26rpx;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--gs-color-surface, #ffffff);
 }
 
 .action-btn-primary {
-  background: #1890ff;
+  background: var(--gs-color-primary, #1890ff);
 }
 
 .action-btn-orange {
-  background: #fa8c16;
+  background: var(--gs-color-warning, #fa8c16);
 }
 
 /* 旧版大按钮样式保留兼容 */
@@ -59,7 +59,7 @@
   display: flex;
   gap: 20rpx;
   padding: 24rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
 }
 
 .action-btn {
@@ -72,7 +72,7 @@
   border-radius: 12rpx;
   font-size: 28rpx;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--gs-color-surface, #ffffff);
 }
 
 .action-icon {
@@ -83,8 +83,8 @@
 .tab-bar {
   display: flex;
   align-items: center;
-  background: #ffffff;
-  border-bottom: 2rpx solid #f0f0f0;
+  background: var(--gs-color-surface, #ffffff);
+  border-bottom: 2rpx solid var(--gs-color-divider, #f0f0f0);
 }
 
 .tab-left {
@@ -97,7 +97,7 @@
   text-align: center;
   padding: 24rpx 0;
   font-size: 28rpx;
-  color: #666666;
+  color: var(--gs-color-text-2, #666666);
   position: relative;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .tab-active-blue {
-  color: #1890ff;
+  color: var(--gs-color-primary, #1890ff);
 }
 
 .tab-active-blue::after {
@@ -117,12 +117,12 @@
   transform: translateX(-50%);
   width: 48rpx;
   height: 6rpx;
-  background: #1890ff;
+  background: var(--gs-color-primary, #1890ff);
   border-radius: 3rpx;
 }
 
 .tab-active-orange {
-  color: #fa8c16;
+  color: var(--gs-color-warning, #fa8c16);
 }
 
 .tab-active-orange::after {
@@ -133,16 +133,16 @@
   transform: translateX(-50%);
   width: 48rpx;
   height: 6rpx;
-  background: #fa8c16;
+  background: var(--gs-color-warning, #fa8c16);
   border-radius: 3rpx;
 }
 
 .filter-btn {
   padding: 12rpx 24rpx;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   border-radius: 24rpx;
   font-size: 24rpx;
-  color: #666666;
+  color: var(--gs-color-text-2, #666666);
   flex-shrink: 0;
   margin-right: 24rpx;
 }
@@ -153,13 +153,13 @@
   justify-content: space-between;
   align-items: center;
   padding: 12rpx 24rpx;
-  background: #ffffff;
-  border-bottom: 2rpx solid #f0f0f0;
+  background: var(--gs-color-surface, #ffffff);
+  border-bottom: 2rpx solid var(--gs-color-divider, #f0f0f0);
 }
 
 .stats-text {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .order-list {
@@ -171,7 +171,7 @@
   text-align: center;
   padding: 24rpx;
   font-size: 26rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 /* 弹窗遮罩 */
@@ -190,7 +190,7 @@
 
 .picker-panel {
   width: 100%;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   border-radius: 24rpx 24rpx 0 0;
   max-height: 70vh;
   overflow-y: auto;
@@ -201,18 +201,18 @@
   justify-content: space-between;
   align-items: center;
   padding: 32rpx 24rpx;
-  border-bottom: 2rpx solid #f0f0f0;
+  border-bottom: 2rpx solid var(--gs-color-divider, #f0f0f0);
 }
 
 .picker-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .picker-close {
   font-size: 36rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   padding: 8rpx;
 }
 
@@ -228,7 +228,7 @@
 .filter-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 16rpx;
   display: block;
 }
@@ -241,15 +241,15 @@
 
 .filter-tag {
   padding: 10rpx 24rpx;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   border-radius: 8rpx;
   font-size: 26rpx;
-  color: #666666;
+  color: var(--gs-color-text-2, #666666);
 }
 
 .filter-tag-active {
-  background: #e6f7ff;
-  color: #1890ff;
+  background: var(--gs-color-primary-bg, #e6f7ff);
+  color: var(--gs-color-primary, #1890ff);
   font-weight: 500;
 }
 
@@ -258,7 +258,7 @@
   gap: 16rpx;
   padding: 24rpx;
   padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
-  border-top: 2rpx solid #f0f0f0;
+  border-top: 2rpx solid var(--gs-color-divider, #f0f0f0);
 }
 
 .filter-footer .btn {

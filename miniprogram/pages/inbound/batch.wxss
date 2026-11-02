@@ -1,6 +1,6 @@
 .page-batch-inbound {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--gs-color-bg, #f5f5f5);
   padding-bottom: 140rpx;
 }
 
@@ -12,7 +12,7 @@
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .batch-list {
@@ -23,7 +23,7 @@
 
 .batch-item {
   padding: 16rpx;
-  background: #f9f9f9;
+  background: var(--gs-color-bg-4, #f9f9f9);
   border-radius: 8rpx;
 }
 
@@ -37,7 +37,7 @@
 .batch-item-index {
   font-size: 28rpx;
   font-weight: 600;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   margin-right: 8rpx;
   min-width: 32rpx;
 }
@@ -46,12 +46,12 @@
   flex: 1;
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .batch-item-remove {
   font-size: 24rpx;
-  color: #ff4d4f;
+  color: var(--gs-color-danger, #ff4d4f);
 }
 
 .batch-item-info {
@@ -60,7 +60,7 @@
 
 .batch-info-text {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .batch-item-thumb {
@@ -74,7 +74,7 @@
 /* 图片上传 */
 .image-count-tip {
   font-size: 22rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
   margin-bottom: 12rpx;
   display: block;
 }
@@ -106,8 +106,8 @@
   right: -10rpx;
   width: 36rpx;
   height: 36rpx;
-  background: #ff4d4f;
-  color: #ffffff;
+  background: var(--gs-color-danger, #ff4d4f);
+  color: var(--gs-color-surface, #ffffff);
   border-radius: 50%;
   font-size: 20rpx;
   text-align: center;
@@ -118,13 +118,13 @@
 .image-grid-add {
   width: 160rpx;
   height: 160rpx;
-  border: 2rpx dashed #d9d9d9;
+  border: 2rpx dashed var(--gs-color-border-2, #d9d9d9);
   border-radius: 12rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #fafafa;
+  background: var(--gs-color-bg-3, #fafafa);
   box-sizing: border-box;
 }
 
@@ -135,7 +135,7 @@
 
 .upload-text {
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 /* 表单 */
@@ -146,19 +146,19 @@
 .form-label {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
   margin-bottom: 10rpx;
   display: block;
 }
 
 .required {
-  color: #ff4d4f;
+  color: var(--gs-color-danger, #ff4d4f);
 }
 
 .form-input {
   width: 100%;
   height: 76rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
@@ -179,11 +179,11 @@
   justify-content: space-between;
   align-items: center;
   height: 76rpx;
-  border: 2rpx solid #d9d9d9;
+  border: 2rpx solid var(--gs-color-border-2, #d9d9d9);
   border-radius: 8rpx;
   padding: 0 16rpx;
   font-size: 28rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .picker-short {
@@ -192,7 +192,7 @@
 
 .picker-arrow {
   font-size: 20rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 /* 标签 */
@@ -206,8 +206,8 @@
 .batch-tag {
   font-size: 20rpx;
   padding: 2rpx 12rpx;
-  background: #e6f7ff;
-  color: #1890ff;
+  background: var(--gs-color-primary-bg, #e6f7ff);
+  color: var(--gs-color-primary, #1890ff);
   border-radius: 4rpx;
 }
 
@@ -223,18 +223,18 @@
   align-items: center;
   gap: 6rpx;
   padding: 8rpx 16rpx;
-  background: #fafafa;
-  border: 2rpx dashed #d9d9d9;
+  background: var(--gs-color-bg-3, #fafafa);
+  border: 2rpx dashed var(--gs-color-border-2, #d9d9d9);
   border-radius: 6rpx;
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .tag-select-item-active {
-  border: 2rpx solid #1677ff;
+  border: 2rpx solid var(--gs-color-primary-dark, #1677ff);
   font-weight: 600;
-  color: #1677ff;
-  background: #e6f4ff;
+  color: var(--gs-color-primary-dark, #1677ff);
+  background: var(--gs-color-primary-bg-3, #e6f4ff);
 }
 
 .tag-checkmark {
@@ -252,10 +252,10 @@
 
 .tag-inline-add {
   padding: 8rpx 16rpx;
-  border: 2rpx dashed #d9d9d9;
+  border: 2rpx dashed var(--gs-color-border-2, #d9d9d9);
   border-radius: 6rpx;
   font-size: 24rpx;
-  color: #999999;
+  color: var(--gs-color-text-5, #999999);
 }
 
 .picker-mask {
@@ -273,7 +273,7 @@
 
 .inline-dialog {
   width: 600rpx;
-  background: #ffffff;
+  background: var(--gs-color-surface, #ffffff);
   border-radius: 16rpx;
   padding: 40rpx 32rpx;
 }
@@ -283,7 +283,7 @@
   font-weight: 600;
   text-align: center;
   margin-bottom: 32rpx;
-  color: #333333;
+  color: var(--gs-color-text, #333333);
 }
 
 .inline-dialog-actions {
@@ -314,5 +314,5 @@
 }
 
 .color-dot-active {
-  box-shadow: 0 0 0 4rpx #ffffff, 0 0 0 8rpx currentColor;
+  box-shadow: 0 0 0 4rpx var(--gs-color-surface, #ffffff), 0 0 0 8rpx currentColor;
 }

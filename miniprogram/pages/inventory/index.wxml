@@ -13,6 +13,22 @@
     </view>
   </view>
 
+  <!-- 快捷入口 -->
+  <view class="quick-actions">
+    <view class="quick-action" bindtap="onGoInbound">
+      <text class="quick-action-icon">📥</text>
+      <text>入库</text>
+    </view>
+    <view class="quick-action" bindtap="onGoMarketing">
+      <text class="quick-action-icon">🎁</text>
+      <text>组合包与捆</text>
+    </view>
+    <view class="quick-action" bindtap="onGoSeries">
+      <text class="quick-action-icon">📚</text>
+      <text>系列视图</text>
+    </view>
+  </view>
+
   <!-- 搜索栏 -->
   <search-bar
     placeholder="搜索商品名称、编号、备注、状态..."
@@ -63,7 +79,7 @@
     wx:else
     icon="📦"
     title="暂无库存商品"
-    description="点击入库页面添加商品"
+    description="点击上方快捷入口或入库页面添加商品"
   />
 
   <!-- 库存目录选择弹窗 -->
