@@ -54,6 +54,34 @@
     </view>
   </view>
 
+  <!-- 退货记录 -->
+  <view class="card">
+    <view class="section-head-row">
+      <text class="section-title">退货记录</text>
+      <text class="section-count">{{returns.length}} 张</text>
+    </view>
+    <view class="loading-hint" wx:if="{{loadingReturns}}">加载中...</view>
+    <view class="empty-hint" wx:elif="{{!returns.length}}">暂无退货记录</view>
+    <view class="return-row" wx:for="{{returns}}" wx:key="_id">
+      <view class="return-row-head">
+        <view>
+          <text class="tag {{item._statusClass}}">{{item._statusLabel}}</text>
+          <text class="return-reason">{{item._reasonLabel}}</text>
+        </view>
+        <text class="return-date">{{item._createdAt}}</text>
+      </view>
+      <view class="return-line" wx:for="{{item.items}}" wx:for-item="line" wx:key="product_id">
+        <text class="return-line-name">{{line.product_name || line.product_code}}</text>
+        <text class="return-line-qty">× {{line.quantity}}</text>
+        <text class="tag {{line.restock ? 'tag-green' : 'tag-gray'}}">{{line.restock ? '回库' : '不回库'}}</text>
+      </view>
+      <view class="return-actions" wx:if="{{item.status === 'pending'}}">
+        <view class="mini-btn mini-btn-ghost" bindtap="onCancelReturn" data-ret="{{item}}">取消</view>
+        <view class="mini-btn mini-btn-primary" bindtap="onConfirmReturn" data-ret="{{item}}">确认退货</view>
+      </view>
+    </view>
+  </view>
+
   <!-- 底部操作按钮 -->
   <view class="bottom-bar" wx:if="{{order.status === 'pending' || order.status === 'reserved'}}">
     <view class="btn btn-ghost" bindtap="onCancel">
@@ -62,5 +90,8 @@
     <view class="btn btn-primary" bindtap="onConfirm">
       {{order.type === 'outbound' ? '确认出库' : '转出库'}}
     </view>
+  </view>
+  <view class="bottom-bar" wx:elif="{{canReturn}}">
+    <view class="btn btn-primary" bindtap="onCreateReturn">申请退货</view>
   </view>
 </view>

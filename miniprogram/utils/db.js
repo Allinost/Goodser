@@ -2103,6 +2103,59 @@ function loadBundleSubProducts(bundleId, params) {
     .then(function(data) { return data && data.items ? data.items : (Array.isArray(data) ? data : []) })
 }
 
+// ---- P1.5 退货单 ----
+
+function loadReturns(inventoryId, outboundOrderId, forceRefresh) {
+  var cacheKey = 'returns_' + inventoryId + '_' + (outboundOrderId || 'all')
+  if (!forceRefresh) {
+    var l1 = _getL1(cacheKey, TTL.outboundOrders)
+    if (l1) return Promise.resolve(l1)
+  }
+  var params = outboundOrderId ? { outbound_order_id: outboundOrderId } : null
+  return _restRequest('GET', '/api/v1/zzz-goodser/inventories/' + inventoryId + '/returns', params)
+    .then(function(data) {
+      var list = Array.isArray(data) ? data : (data && data.items ? data.items : [])
+      _setL1(cacheKey, list, TTL.outboundOrders)
+      return list
+    })
+}
+
+function getReturn(returnId) {
+  return _restRequest('GET', '/api/v1/zzz-goodser/returns/' + returnId)
+}
+
+function createReturn(inventoryId, outboundOrderId, data) {
+  return _restRequest(
+    'POST',
+    '/api/v1/zzz-goodser/inventories/' + inventoryId + '/outbound-orders/' + outboundOrderId + '/returns',
+    data
+  ).then(function(result) {
+    _invalidateCache('returns_' + inventoryId + '_all')
+    _invalidateCache('returns_' + inventoryId + '_' + outboundOrderId)
+    return result
+  })
+}
+
+function confirmReturn(inventoryId, returnId) {
+  return _restRequest('POST', '/api/v1/zzz-goodser/inventories/' + inventoryId + '/returns/' + returnId + '/confirm')
+    .then(function(result) {
+      _invalidateAllCache()
+      return result
+    })
+}
+
+function cancelReturn(inventoryId, returnId) {
+  return _restRequest('POST', '/api/v1/zzz-goodser/inventories/' + inventoryId + '/returns/' + returnId + '/cancel')
+    .then(function(result) {
+      _invalidateAllCache()
+      return result
+    })
+}
+
+function loadInventoryStats(inventoryId, days) {
+  return _restRequest('GET', '/api/v1/zzz-goodser/inventories/' + inventoryId + '/stats', { days: days || 30 })
+}
+
 // ========== 图片上传 ==========
 
 async function uploadImage(filePath) {
@@ -2283,6 +2336,14 @@ module.exports = {
   previewBundle: previewBundle,
   loadBundleMainProducts: loadBundleMainProducts,
   loadBundleSubProducts: loadBundleSubProducts,
+
+  // P1.5 退货 / 统计
+  loadReturns: loadReturns,
+  getReturn: getReturn,
+  createReturn: createReturn,
+  confirmReturn: confirmReturn,
+  cancelReturn: cancelReturn,
+  loadInventoryStats: loadInventoryStats,
 
   // Go 后端认证
   loginGoBackend: loginGoBackend,

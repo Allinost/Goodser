@@ -1,0 +1,73 @@
+<view class="page-return-create">
+  <view class="loading" wx:if="{{loading}}"><text>加载中...</text></view>
+
+  <block wx:else>
+    <view class="card order-card" wx:if="{{order}}">
+      <view class="section-title">出库单</view>
+      <view class="order-no">{{order.order_no}}</view>
+      <view class="order-meta">{{orderSummary}}</view>
+      <view class="order-meta" wx:if="{{order.order_info}}">订单信息：{{order.order_info}}</view>
+    </view>
+
+    <view class="card">
+      <view class="section-head">
+        <text class="section-title">选择退货商品</text>
+        <view class="select-actions">
+          <text bindtap="onSelectAll">全选</text>
+          <text bindtap="onClearAll">清空</text>
+        </view>
+      </view>
+
+      <view class="empty-container" wx:if="{{!items.length}}">
+        <text class="empty-icon">✅</text>
+        <text class="empty-text">该出库单没有可退商品</text>
+      </view>
+
+      <view class="return-item" wx:for="{{items}}" wx:key="product_id">
+        <view class="item-check {{item.selected ? 'item-check-active' : ''}}" bindtap="onToggleItem" data-index="{{index}}">
+          <text wx:if="{{item.selected}}">✓</text>
+        </view>
+        <image class="item-image" src="{{item.image_url || '/images/placeholder.png'}}" mode="aspectFill" />
+        <view class="item-info" bindtap="onToggleItem" data-index="{{index}}">
+          <text class="item-name">{{item.product_name}}</text>
+          <text class="item-code">{{item.product_code}}</text>
+          <text class="item-remain">已退 {{item.returned}} / 可退 {{item.remaining}}</text>
+        </view>
+        <view class="qty-control">
+          <view class="qty-btn" bindtap="onMinus" data-index="{{index}}">−</view>
+          <text class="qty-value">{{item.quantity}}</text>
+          <view class="qty-btn" bindtap="onPlus" data-index="{{index}}">+</view>
+        </view>
+        <view class="restock-control">
+          <text class="restock-label">回库</text>
+          <switch
+            checked="{{item.restock}}"
+            disabled="{{reasons[reasonIndex].key === 'refund_only'}}"
+            bindchange="onRestockChange"
+            data-index="{{index}}"
+            color="#1890ff"
+          />
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">退货原因</view>
+      <picker range="{{reasons}}" range-key="label" value="{{reasonIndex}}" bindchange="onReasonChange">
+        <view class="picker-value">
+          <text>{{reasons[reasonIndex].label}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+      <view class="reason-hint">{{reasonHint}}</view>
+
+      <view class="section-title" style="margin-top:24rpx">备注</view>
+      <textarea class="remark-input" value="{{remark}}" placeholder="可选，例如退款金额、物流单号" bindinput="onRemarkInput" maxlength="200" />
+    </view>
+
+    <view class="bottom-bar">
+      <view class="btn btn-ghost" bindtap="onSubmit">保存待确认</view>
+      <view class="btn btn-primary" bindtap="onSubmitAndConfirm">创建并确认</view>
+    </view>
+  </block>
+</view>

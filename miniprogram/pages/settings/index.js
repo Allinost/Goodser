@@ -111,6 +111,8 @@ Page({
   onTags() { wx.navigateTo({ url: '/pages/settings/tags' }) },
   onMarketing() { wx.navigateTo({ url: '/pages/marketing/index' }) },
   onSeriesView() { wx.navigateTo({ url: '/pages/series/index' }) },
+  onReturns() { wx.navigateTo({ url: '/pages/returns/index' }) },
+  onStats() { wx.navigateTo({ url: '/pages/stats/index' }) },
   onNasConfig() { wx.navigateTo({ url: '/pages/settings/nas-config' }) },
 
   // ========== Go 后端模式开关 ==========

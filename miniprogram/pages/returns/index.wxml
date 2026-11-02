@@ -1,0 +1,72 @@
+<view class="page-returns">
+  <view class="top-bar">
+    <picker class="inventory-picker" range="{{inventoryNames}}" value="{{inventoryIndex}}" bindchange="onInventoryChange">
+      <view class="inventory-selector">
+        <text>{{inventoryNames[inventoryIndex] || '选择库存目录'}}</text>
+        <text class="selector-arrow">▼</text>
+      </view>
+    </picker>
+    <view class="top-actions">
+      <view class="action-btn-sm action-btn-primary" bindtap="bootstrap">刷新</view>
+    </view>
+  </view>
+
+  <view class="tab-bar">
+    <view
+      class="tab-item {{activeTab === item.key ? 'tab-active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="key"
+      bindtap="onTabChange"
+      data-tab="{{item.key}}"
+    >{{item.label}}</view>
+  </view>
+
+  <view class="stats-bar">
+    <text class="stats-text">共 {{filteredReturns.length}} 张退货单</text>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}"><text>加载中...</text></view>
+
+  <view class="return-list" wx:elif="{{filteredReturns.length > 0}}">
+    <view class="card return-card" wx:for="{{filteredReturns}}" wx:key="_id">
+      <view class="return-head">
+        <view>
+          <text class="return-order-no">{{item.order_no}}</text>
+          <text class="tag {{item._statusClass}}" style="margin-left:12rpx">{{item._statusLabel}}</text>
+        </view>
+        <text class="return-date">{{item._createdAt}}</text>
+      </view>
+
+      <view class="return-meta">
+        <text class="return-reason">{{item._reasonLabel}}</text>
+        <text>共 {{item._totalQty}} 件</text>
+        <text wx:if="{{item._restockQty > 0}}">回库 {{item._restockQty}} 件</text>
+        <text wx:else>不回库</text>
+      </view>
+
+      <view class="return-items">
+        <view class="return-item" wx:for="{{item.items}}" wx:for-item="line" wx:key="product_id">
+          <text class="return-item-name">{{line.product_name || line.product_code}}</text>
+          <text class="return-item-qty">× {{line.quantity}}</text>
+          <text class="tag {{line.restock ? 'tag-green' : 'tag-gray'}}">{{line.restock ? '回库' : '不回库'}}</text>
+        </view>
+      </view>
+
+      <view class="return-remark" wx:if="{{item.remark}}">备注：{{item.remark}}</view>
+
+      <view class="return-actions">
+        <view class="action-btn-sm action-btn-ghost" bindtap="onOutboundTap" data-ret="{{item}}">查看出库单</view>
+        <block wx:if="{{item.status === 'pending'}}">
+          <view class="action-btn-sm action-btn-danger" bindtap="onCancel" data-ret="{{item}}">取消</view>
+          <view class="action-btn-sm action-btn-primary" bindtap="onConfirm" data-ret="{{item}}">确认退货</view>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-container" wx:else>
+    <text class="empty-icon">↩️</text>
+    <text class="empty-text">暂无退货单</text>
+    <text class="empty-hint">可在已确认的出库单详情中申请退货</text>
+  </view>
+</view>

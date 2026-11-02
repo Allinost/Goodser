@@ -1,0 +1,107 @@
+<view class="page-stats">
+  <view class="top-bar">
+    <picker class="inventory-picker" range="{{inventoryNames}}" value="{{inventoryIndex}}" bindchange="onInventoryChange">
+      <view class="inventory-selector">
+        <text>{{inventoryNames[inventoryIndex] || '选择库存目录'}}</text>
+        <text class="selector-arrow">▼</text>
+      </view>
+    </picker>
+    <picker range="{{dayLabels}}" value="{{dayIndex}}" bindchange="onDayChange">
+      <view class="day-selector">{{dayLabels[dayIndex]}} ▼</view>
+    </picker>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}"><text>统计中...</text></view>
+
+  <block wx:elif="{{stats}}">
+    <view class="stat-grid">
+      <view class="card stat-card">
+        <text class="stat-label">商品数</text>
+        <text class="stat-value">{{stats.stock.total_products}}</text>
+        <text class="stat-hint">缺货 {{stats.stock.out_of_stock}} 件</text>
+      </view>
+      <view class="card stat-card">
+        <text class="stat-label">可售库存</text>
+        <text class="stat-value">{{stats.stock.available}}</text>
+        <text class="stat-hint">已锁定 {{stats.stock.reserved}}</text>
+      </view>
+      <view class="card stat-card">
+        <text class="stat-label">库存总量</text>
+        <text class="stat-value">{{stats.stock.total}}</text>
+        <text class="stat-hint">可售 + 锁定</text>
+      </view>
+      <view class="card stat-card">
+        <text class="stat-label">库存总值</text>
+        <text class="stat-value">¥{{stats.stock.stock_value}}</text>
+        <text class="stat-hint">预期价 / 市场价</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">订单与退货（近 {{stats.days}} 天）</view>
+      <view class="kv"><text>待确认出库</text><text class="kv-value">{{stats.orders.pending_outbound}}</text></view>
+      <view class="kv"><text>已确认出库</text><text class="kv-value">{{stats.orders.confirmed_outbound}}</text></view>
+      <view class="kv"><text>已取消出库</text><text class="kv-value">{{stats.orders.cancelled_outbound}}</text></view>
+      <view class="kv"><text>待处理预留</text><text class="kv-value">{{stats.orders.pending_reserves}}</text></view>
+      <view class="kv"><text>待确认退货</text><text class="kv-value">{{stats.orders.pending_returns}}</text></view>
+      <view class="kv"><text>已确认退货</text><text class="kv-value">{{stats.orders.confirmed_returns}}</text></view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">出库 / 退货趋势</view>
+      <view class="legend">
+        <text><text class="dot dot-out"></text>出库</text>
+        <text><text class="dot dot-ret"></text>退货回库</text>
+      </view>
+      <scroll-view class="trend-scroll" scroll-x>
+        <view class="trend">
+          <view class="trend-col" wx:for="{{trend}}" wx:key="date">
+            <view class="trend-bars">
+              <view class="bar bar-out" style="height:{{item.outHeight}}rpx" title="{{item.date}} 出库 {{item.outbound_quantity}}"></view>
+              <view class="bar bar-ret" style="height:{{item.retHeight}}rpx" title="{{item.date}} 退货 {{item.return_quantity}}"></view>
+            </view>
+            <text class="trend-label">{{item.label}}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">热销商品</view>
+      <view class="empty-container" wx:if="{{!topProducts.length}}">
+        <text class="empty-text">区间内暂无出库记录</text>
+      </view>
+      <view class="rank" wx:for="{{topProducts}}" wx:key="product_id">
+        <text class="rank-index">{{item.rank}}</text>
+        <view class="rank-info">
+          <text class="rank-name">{{item.product_name || item.product_code}}</text>
+          <text class="rank-code">{{item.product_code}}</text>
+        </view>
+        <text class="rank-qty">× {{item.outbound_quantity}}</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">系列分布</view>
+      <view class="empty-container" wx:if="{{!series.length}}">
+        <text class="empty-text">暂无系列数据</text>
+      </view>
+      <view class="series-row" wx:for="{{series}}" wx:key="series_name">
+        <view class="series-head">
+          <text>{{item.series_name}}</text>
+          <text>{{item.product_count}} 件 / 可售 {{item.available}}</text>
+        </view>
+        <view class="series-bar"><view class="series-fill" style="width:{{item.width}}"></view></view>
+        <view class="series-meta">
+          <text>总量 {{item.total}}（锁定 {{item.reserved}}）</text>
+          <text>¥{{item.stock_value}}</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view class="empty-container" wx:else>
+    <text class="empty-icon">📊</text>
+    <text class="empty-text">暂无统计数据</text>
+  </view>
+</view>

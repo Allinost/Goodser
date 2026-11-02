@@ -58,6 +58,24 @@
         <text class="settings-arrow">›</text>
       </view>
     </view>
+    <view class="settings-item" bindtap="onReturns">
+      <view class="settings-left">
+        <text class="settings-icon">↩️</text>
+        <text class="settings-label">退货单</text>
+      </view>
+      <view class="settings-right">
+        <text class="settings-arrow">›</text>
+      </view>
+    </view>
+    <view class="settings-item" bindtap="onStats">
+      <view class="settings-left">
+        <text class="settings-icon">📊</text>
+        <text class="settings-label">库存统计</text>
+      </view>
+      <view class="settings-right">
+        <text class="settings-arrow">›</text>
+      </view>
+    </view>
     <view class="settings-item" bindtap="onNasConfig">
       <view class="settings-left">
         <text class="settings-icon">⚙️</text>

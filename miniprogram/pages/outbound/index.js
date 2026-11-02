@@ -207,6 +207,6 @@ Page({
 
   onOrderTap(e) {
     const order = e.detail.order
-    wx.navigateTo({ url: `/pages/outbound/detail?id=${order._id}` })
+    wx.navigateTo({ url: `/pages/outbound/detail?id=${order._id}&inv_id=${order.inventory_id}` })
   }
 })

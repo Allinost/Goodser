@@ -1,0 +1,171 @@
+.page-returns {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 40rpx;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  background: #ffffff;
+}
+
+.inventory-selector {
+  display: flex;
+  align-items: center;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.selector-arrow {
+  margin-left: 8rpx;
+  font-size: 20rpx;
+  color: #999999;
+}
+
+.top-actions {
+  display: flex;
+  gap: 12rpx;
+}
+
+.action-btn-sm {
+  padding: 10rpx 22rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.action-btn-primary {
+  background: #1890ff;
+  color: #ffffff;
+}
+
+.action-btn-danger {
+  background: #fff1f0;
+  color: #ff4d4f;
+}
+
+.action-btn-ghost {
+  background: #f5f5f5;
+  color: #666666;
+}
+
+.tab-bar {
+  display: flex;
+  padding: 4rpx 24rpx 0;
+  background: #ffffff;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.tab-item {
+  padding: 18rpx 26rpx;
+  font-size: 26rpx;
+  color: #666666;
+}
+
+.tab-active {
+  color: #1890ff;
+  font-weight: 600;
+  border-bottom: 4rpx solid #1890ff;
+}
+
+.stats-bar {
+  padding: 16rpx 24rpx;
+}
+
+.stats-text {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.loading {
+  padding: 60rpx;
+  text-align: center;
+  color: #999999;
+  font-size: 26rpx;
+}
+
+.return-card {
+  margin: 0 24rpx 20rpx;
+  padding: 24rpx;
+}
+
+.return-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.return-order-no {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.return-date {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.return-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.return-reason {
+  color: #1890ff;
+}
+
+.return-items {
+  margin-top: 14rpx;
+  padding-top: 12rpx;
+  border-top: 2rpx solid #f5f5f5;
+}
+
+.return-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 8rpx 0;
+  font-size: 26rpx;
+  color: #333333;
+}
+
+.return-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.return-item-qty {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.return-remark {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #888888;
+}
+
+.return-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12rpx;
+  margin-top: 18rpx;
+  padding-top: 16rpx;
+  border-top: 2rpx solid #f5f5f5;
+}
+
+.empty-hint {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #bbbbbb;
+}
