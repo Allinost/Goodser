@@ -31,9 +31,15 @@
         <input class="form-input" type="digit" placeholder="0.00" value="{{marketPrice}}" bindinput="onMarketPriceInput" />
       </view>
     </view>
-    <view class="form-group">
-      <text class="form-label">预期出售价</text>
-      <input class="form-input" type="digit" placeholder="0.00" value="{{expectedPrice}}" bindinput="onExpectedPriceInput" />
+    <view class="price-row">
+      <view class="form-group flex-1">
+        <text class="form-label">预期出售价</text>
+        <input class="form-input" type="digit" placeholder="0.00" value="{{expectedPrice}}" bindinput="onExpectedPriceInput" />
+      </view>
+      <view class="form-group flex-1">
+        <text class="form-label">成本价</text>
+        <input class="form-input" type="digit" placeholder="留空按原价" value="{{costPrice}}" bindinput="onCostPriceInput" />
+      </view>
     </view>
     <view class="form-group">
       <text class="form-label">库存数量 <text class="required">*</text></text>

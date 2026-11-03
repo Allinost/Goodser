@@ -102,8 +102,12 @@ Page({
     } else if (product.image_url) {
       displayImages = [product.image_url]
     }
+    const salePrice = Number(product.expected_price) || Number(product.market_price) || 0
+    const costPrice = Number(product.cost_price) || Number(product.original_price) || 0
+    const marginRate = salePrice && costPrice ? (((salePrice - costPrice) / salePrice) * 100).toFixed(1) + '%' : '-'
     this.setData({
       product: { ...product, _createdAt: util.formatTime(product.created_at), _updatedAt: util.formatTime(product.updated_at) },
+      marginRate: marginRate,
       displayImages: displayImages,
       statusLabel: util.getStatusLabel(product.status_code),
       statusTagClass: util.getStatusTagClass(product.status_code)

@@ -15,6 +15,7 @@ Page({
     originalPrice: '',
     marketPrice: '',
     expectedPrice: '',
+    costPrice: '',
     quantity: '',
     storageLocation: '',
     remark: '',
@@ -97,6 +98,7 @@ Page({
       originalPrice: String(product.original_price || ''),
       marketPrice: String(product.market_price || ''),
       expectedPrice: String(product.expected_price || ''),
+    costPrice: String(product.cost_price || ''),
       quantity: String(product.quantity),
       storageLocation: product.storage_location || '',
       remark: product.remark || '',
@@ -117,6 +119,7 @@ Page({
       originalPrice: String(product.original_price || ''),
       marketPrice: String(product.market_price || ''),
       expectedPrice: String(product.expected_price || ''),
+    costPrice: String(product.cost_price || ''),
       quantity: String(product.quantity),
       storageLocation: product.storage_location || '',
       remark: product.remark || '',
@@ -267,6 +270,7 @@ Page({
   onOriginalPriceInput(e) { this.setData({ originalPrice: e.detail.value }); this._markDirty() },
   onMarketPriceInput(e) { this.setData({ marketPrice: e.detail.value }); this._markDirty() },
   onExpectedPriceInput(e) { this.setData({ expectedPrice: e.detail.value }); this._markDirty() },
+  onCostPriceInput(e) { this.setData({ costPrice: e.detail.value }); this._markDirty() },
   onQuantityInput(e) { this.setData({ quantity: e.detail.value }); this.updatePreview(); this._markDirty() },
   onStorageLocationInput(e) { this.setData({ storageLocation: e.detail.value }); this._markDirty() },
   onRemarkInput(e) { this.setData({ remark: e.detail.value }); this._markDirty() },
@@ -292,6 +296,7 @@ Page({
     if (this.data.originalPrice !== this._originalData.originalPrice) return this._enableAlert()
     if (this.data.marketPrice !== this._originalData.marketPrice) return this._enableAlert()
     if (this.data.expectedPrice !== this._originalData.expectedPrice) return this._enableAlert()
+    if (this.data.costPrice !== this._originalData.costPrice) return this._enableAlert()
     if (this.data.quantity !== this._originalData.quantity) return this._enableAlert()
     if (this.data.storageLocation !== this._originalData.storageLocation) return this._enableAlert()
     if (this.data.remark !== this._originalData.remark) return this._enableAlert()
@@ -450,6 +455,7 @@ Page({
         original_price: parseFloat(this.data.originalPrice) || 0,
         market_price: parseFloat(this.data.marketPrice) || 0,
         expected_price: parseFloat(this.data.expectedPrice) || 0,
+    cost_price: parseFloat(this.data.costPrice) || 0,
         quantity: qty,
         storage_location: this.data.storageLocation,
         remark: this.data.remark,

@@ -44,6 +44,14 @@
       <text class="label">预期出售价</text>
       <text class="value price highlight">¥{{product.expected_price}}</text>
     </view>
+    <view class="info-row">
+      <text class="label">成本价</text>
+      <text class="value price">¥{{product.cost_price || product.original_price}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">毛利率</text>
+      <text class="value">{{marginRate}}</text>
+    </view>
     <view class="divider"></view>
     <view class="info-row">
       <text class="label">库存数量</text>
