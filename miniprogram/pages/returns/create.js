@@ -20,6 +20,8 @@ Page({
     reasons: REASONS,
     reasonHint: REASONS[0].hint,
     remark: '',
+    selectedCount: 0,
+    selectedQty: 0,
     submitting: false
   },
 
@@ -88,6 +90,18 @@ Page({
     }
   },
 
+  _applyItems(items) {
+    var count = 0
+    var qty = 0
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].selected && items[i].quantity > 0) {
+        count++
+        qty += items[i].quantity
+      }
+    }
+    this.setData({ items: items, selectedCount: count, selectedQty: qty })
+  },
+
   onToggleItem(e) {
     var index = Number(e.currentTarget.dataset.index)
     var items = this.data.items.slice()
@@ -95,7 +109,7 @@ Page({
     item.selected = !item.selected
     item.quantity = item.selected ? Math.min(item.remaining, item.quantity || 1) : 0
     items[index] = item
-    this.setData({ items: items })
+    this._applyItems(items)
   },
 
   onMinus(e) {
@@ -105,7 +119,7 @@ Page({
     item.quantity = Math.max(0, (item.quantity || 0) - 1)
     if (item.quantity === 0) item.selected = false
     items[index] = item
-    this.setData({ items: items })
+    this._applyItems(items)
   },
 
   onPlus(e) {
@@ -115,7 +129,7 @@ Page({
     item.selected = true
     item.quantity = Math.min(item.remaining, (item.quantity || 0) + 1)
     items[index] = item
-    this.setData({ items: items })
+    this._applyItems(items)
   },
 
   onRestockChange(e) {
@@ -124,7 +138,7 @@ Page({
     var item = Object.assign({}, items[index])
     item.restock = !!e.detail.value
     items[index] = item
-    this.setData({ items: items })
+    this._applyItems(items)
   },
 
   onReasonChange(e) {
@@ -146,14 +160,14 @@ Page({
       if (!item.remaining) return item
       return Object.assign({}, item, { selected: true, quantity: item.quantity || item.remaining })
     })
-    this.setData({ items: items })
+    this._applyItems(items)
   },
 
   onClearAll() {
     var items = this.data.items.map(function(item) {
       return Object.assign({}, item, { selected: false, quantity: 0 })
     })
-    this.setData({ items: items })
+    this._applyItems(items)
   },
 
   async onSubmit() {

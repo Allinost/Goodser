@@ -201,3 +201,34 @@
 .bottom-bar .btn {
   flex: 1;
 }
+
+.bottom-bar--split {
+  align-items: center;
+  gap: 12rpx;
+}
+
+.bottom-bar--split .bottom-summary {
+  flex: 1;
+  min-width: 0;
+}
+
+.bottom-bar--split .bottom-count {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--gs-color-text, #333333);
+}
+
+.bottom-bar--split .bottom-hint {
+  display: block;
+  margin-top: 2rpx;
+  font-size: 18rpx;
+  color: var(--gs-color-text-5, #999999);
+}
+
+.bottom-bar--split .btn {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 16rpx 22rpx;
+  font-size: 26rpx;
+}
