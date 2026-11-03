@@ -8,6 +8,103 @@
   margin: 20rpx 24rpx;
 }
 
+/* 步骤指引 */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 24rpx 32rpx;
+  background: var(--gs-color-surface, #ffffff);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
+.step-index {
+  width: 36rpx;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 20rpx;
+  color: var(--gs-color-text-5, #999999);
+  background: var(--gs-color-divider, #f0f0f0);
+}
+
+.step-label {
+  font-size: 22rpx;
+  color: var(--gs-color-text-5, #999999);
+}
+
+.step--done .step-index {
+  background: var(--gs-color-primary, #1890ff);
+  color: var(--gs-color-surface, #ffffff);
+}
+
+.step--done .step-label {
+  color: var(--gs-color-primary, #1890ff);
+  font-weight: 500;
+}
+
+.step--current .step-index {
+  background: var(--gs-color-primary-bg, #e6f7ff);
+  color: var(--gs-color-primary, #1890ff);
+  border: 2rpx solid var(--gs-color-primary, #1890ff);
+}
+
+.step--current .step-label {
+  color: var(--gs-color-text, #333333);
+  font-weight: 500;
+}
+
+.step-line {
+  flex: 1;
+  height: 2rpx;
+  min-width: 16rpx;
+  background: var(--gs-color-divider, #f0f0f0);
+}
+
+.step-line--done {
+  background: var(--gs-color-primary, #1890ff);
+}
+
+/* 吸底提交区 */
+.bottom-bar--split {
+  align-items: center;
+  gap: 20rpx;
+}
+
+.bottom-summary {
+  flex: 1;
+  min-width: 0;
+}
+
+.bottom-count {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--gs-color-text, #333333);
+}
+
+.bottom-hint {
+  display: block;
+  margin-top: 2rpx;
+  font-size: 20rpx;
+  color: var(--gs-color-text-5, #999999);
+}
+
+.bottom-bar--split .btn-submit {
+  flex: 0 0 auto;
+  padding: 0 40rpx;
+  height: 76rpx;
+  margin: 0;
+}
+
 .form-group {
   margin-bottom: 24rpx;
 }

@@ -1,4 +1,22 @@
 <view class="page-create-outbound">
+  <!-- 步骤指引 -->
+  <view class="steps">
+    <view class="step step--done">
+      <text class="step-index">1</text>
+      <text class="step-label">目录信息</text>
+    </view>
+    <view class="step-line {{selectedItems.length || selectedCombo ? 'step-line--done' : ''}}"></view>
+    <view class="step {{selectedItems.length || selectedCombo ? 'step--done' : 'step--current'}}">
+      <text class="step-index">2</text>
+      <text class="step-label">选择商品</text>
+    </view>
+    <view class="step-line"></view>
+    <view class="step step--todo">
+      <text class="step-index">3</text>
+      <text class="step-label">确认提交</text>
+    </view>
+  </view>
+
   <!-- 选择库存目录 -->
   <view class="card">
     <view class="form-group">
@@ -115,7 +133,13 @@
   </view>
 
   <!-- 底部按钮 -->
-  <view class="bottom-bar">
-    <view class="btn btn-primary btn-block {{submitting ? 'btn-disabled' : ''}}" bindtap="{{submitting ? '' : 'onSubmit'}}">{{submitting ? '创建中...' : '确认新建出库单'}}</view>
+  <view class="bottom-bar bottom-bar--split">
+    <view class="bottom-summary">
+      <text class="bottom-count">
+        {{selectedCombo ? '组合包 × ' + comboQuantity : selectedItems.length + ' 种 · ' + totalQuantity + ' 件'}}
+      </text>
+      <text class="bottom-hint">确认后立即扣减可用库存</text>
+    </view>
+    <view class="btn btn-primary btn-submit {{submitting ? 'btn-disabled' : ''}}" bindtap="{{submitting ? '' : 'onSubmit'}}">{{submitting ? '创建中...' : '新建出库单'}}</view>
   </view>
 </view>

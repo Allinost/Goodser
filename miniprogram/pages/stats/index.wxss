@@ -99,10 +99,17 @@
 
 .legend {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 24rpx;
   margin-bottom: 12rpx;
   font-size: 22rpx;
   color: var(--gs-color-text-3, #888888);
+}
+
+.trend-hint {
+  margin-left: auto;
+  color: var(--gs-color-primary, #1890ff);
 }
 
 .dot {
@@ -138,6 +145,12 @@
   flex-direction: column;
   align-items: center;
   min-width: 34rpx;
+  padding: 6rpx 4rpx;
+  border-radius: 8rpx;
+}
+
+.trend-col--selected {
+  background: var(--gs-color-primary-bg-2, #f0f7ff);
 }
 
 .trend-bars {
@@ -166,6 +179,54 @@
   font-size: 18rpx;
   color: var(--gs-color-text-6, #aaaaaa);
   white-space: nowrap;
+}
+
+.trend-col--selected .trend-label {
+  color: var(--gs-color-primary, #1890ff);
+  font-weight: 600;
+}
+
+.trend-detail {
+  margin-top: 18rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 12rpx;
+  background: var(--gs-color-primary-bg-2, #f0f7ff);
+}
+
+.trend-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.trend-detail-date {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--gs-color-text, #333333);
+}
+
+.trend-detail-total {
+  font-size: 22rpx;
+  color: var(--gs-color-text-2, #666666);
+}
+
+.trend-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6rpx 0;
+  font-size: 24rpx;
+  color: var(--gs-color-text-2, #666666);
+}
+
+.trend-detail-out {
+  color: var(--gs-color-primary, #1890ff);
+  font-weight: 600;
+}
+
+.trend-detail-ret {
+  color: var(--gs-color-success, #52c41a);
+  font-weight: 600;
 }
 
 .rank {

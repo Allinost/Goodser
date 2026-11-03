@@ -21,6 +21,7 @@ Page({
     selectedComboId: '',
     comboQuantity: 1,
     selectedCombo: null,
+    totalQuantity: 0,
     submitting: false
   },
 
@@ -31,8 +32,7 @@ Page({
     this._saveOriginal()
   },
 
-  _saveOriginal() {
-    var d = this.data
+  _saveOriginal() {    var d = this.data
     this._originalData = {
       selectedItems: JSON.stringify(d.selectedItems),
       selectedComboId: d.selectedComboId,
@@ -50,6 +50,24 @@ Page({
     if (d.orderInfo !== o.orderInfo) return true
     if (d.orderRemark !== o.orderRemark) return true
     return false
+  },
+
+  _sumQuantity(items) {
+    var total = 0
+    for (var i = 0; i < items.length; i++) {
+      total += Number(items[i].quantity) || 0
+    }
+    return total
+  },
+
+  _applySelectedItems(items, extra) {
+    var patch = { selectedItems: items, totalQuantity: this._sumQuantity(items) }
+    if (extra) {
+      for (var key in extra) {
+        if (Object.prototype.hasOwnProperty.call(extra, key)) patch[key] = extra[key]
+      }
+    }
+    this.setData(patch)
   },
 
   _markDirty() {
@@ -235,6 +253,7 @@ Page({
       selectedItems: [...this.data.selectedItems, newItem],
       showSearchResults: false
     })
+    this.setData({ totalQuantity: this._sumQuantity(this.data.selectedItems) })
     this._markDirty()
   },
 
@@ -267,6 +286,7 @@ Page({
       multiSelectMode: false,
       checkedProductIds: []
     })
+    this.setData({ totalQuantity: this._sumQuantity(this.data.selectedItems) })
     if (newItems.length > 0) {
       this._markDirty()
       wx.showToast({ title: `已添加 ${newItems.length} 种商品`, icon: 'success' })
@@ -278,7 +298,7 @@ Page({
     const items = [...this.data.selectedItems]
     if (items[index].quantity < items[index].stock) {
       items[index].quantity++
-      this.setData({ selectedItems: items })
+      this._applySelectedItems(items)
       this._markDirty()
     }
   },
@@ -288,7 +308,7 @@ Page({
     const items = [...this.data.selectedItems]
     if (items[index].quantity > 1) {
       items[index].quantity--
-      this.setData({ selectedItems: items })
+      this._applySelectedItems(items)
       this._markDirty()
     }
   },
@@ -297,7 +317,7 @@ Page({
     const index = e.currentTarget.dataset.index
     const items = [...this.data.selectedItems]
     items.splice(index, 1)
-    this.setData({ selectedItems: items })
+    this._applySelectedItems(items)
     this._markDirty()
   },
 

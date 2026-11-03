@@ -11,7 +11,13 @@
     </picker>
   </view>
 
-  <view class="loading" wx:if="{{loading}}"><text>统计中...</text></view>
+  <skeleton wx:if="{{loading}}" rows="4" />
+  <error-state
+    wx:elif="{{loadError}}"
+    title="统计加载失败"
+    description="{{loadError}}"
+    bind:retry="onRetryLoad"
+  />
 
   <block wx:elif="{{stats}}">
     <view class="stat-grid">
@@ -52,18 +58,40 @@
       <view class="legend">
         <text><text class="dot dot-out"></text>出库</text>
         <text><text class="dot dot-ret"></text>退货回库</text>
+        <text class="trend-hint">点击柱子查看单日</text>
       </view>
       <scroll-view class="trend-scroll" scroll-x>
         <view class="trend">
-          <view class="trend-col" wx:for="{{trend}}" wx:key="date">
+          <view
+            class="trend-col {{item._selected ? 'trend-col--selected' : ''}}"
+            wx:for="{{trend}}"
+            wx:key="date"
+            bindtap="onTrendTap"
+            data-index="{{index}}"
+          >
             <view class="trend-bars">
-              <view class="bar bar-out" style="height:{{item.outHeight}}rpx" title="{{item.date}} 出库 {{item.outbound_quantity}}"></view>
-              <view class="bar bar-ret" style="height:{{item.retHeight}}rpx" title="{{item.date}} 退货 {{item.return_quantity}}"></view>
+              <view class="bar bar-out" style="height:{{item.outHeight}}rpx"></view>
+              <view class="bar bar-ret" style="height:{{item.retHeight}}rpx"></view>
             </view>
             <text class="trend-label">{{item.label}}</text>
           </view>
         </view>
       </scroll-view>
+
+      <view class="trend-detail" wx:if="{{selectedTrend}}">
+        <view class="trend-detail-head">
+          <text class="trend-detail-date">{{selectedTrend.date}}</text>
+          <text class="trend-detail-total">净变化 {{selectedTrend.outbound_quantity - selectedTrend.return_quantity}}</text>
+        </view>
+        <view class="trend-detail-row">
+          <text>出库数量</text>
+          <text class="trend-detail-out">{{selectedTrend.outbound_quantity}}</text>
+        </view>
+        <view class="trend-detail-row">
+          <text>退货回库</text>
+          <text class="trend-detail-ret">{{selectedTrend.return_quantity}}</text>
+        </view>
+      </view>
     </view>
 
     <view class="card">

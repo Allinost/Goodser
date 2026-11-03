@@ -10,10 +10,12 @@ Page({
     currentInventoryId: '',
     dayOptions: DAY_OPTIONS,
     dayLabels: ['近 7 天', '近 30 天', '近 90 天', '近 365 天'],
-    dayIndex: 1,
+    dayIndex: 0,
     loading: false,
+    loadError: '',
     stats: null,
     trend: [],
+    selectedTrend: null,
     series: [],
     topProducts: []
   },
@@ -59,7 +61,7 @@ Page({
     var invId = this.data.currentInventoryId
     if (!invId) return
     var days = this.data.dayOptions[this.data.dayIndex]
-    this.setData({ loading: true })
+    this.setData({ loading: true, loadError: '' })
     try {
       var stats = await db.loadInventoryStats(invId, days)
       var trend = stats.trend || []
@@ -74,9 +76,21 @@ Page({
           outbound_quantity: p.outbound_quantity || 0,
           return_quantity: p.return_quantity || 0,
           outHeight: p.outbound_quantity ? Math.max(4, Math.round((p.outbound_quantity / maxTrend) * 120)) : 2,
-          retHeight: p.return_quantity ? Math.max(4, Math.round((p.return_quantity / maxTrend) * 120)) : 2
+          retHeight: p.return_quantity ? Math.max(4, Math.round((p.return_quantity / maxTrend) * 120)) : 2,
+          _selected: false
         }
       })
+
+      var selectedIndex = -1
+      for (var i = trend.length - 1; i >= 0; i--) {
+        if (trend[i].outbound_quantity || trend[i].return_quantity) {
+          selectedIndex = i
+          break
+        }
+      }
+      if (selectedIndex < 0 && trend.length) selectedIndex = trend.length - 1
+      if (selectedIndex >= 0) trend[selectedIndex]._selected = true
+      var selectedTrend = selectedIndex >= 0 ? trend[selectedIndex] : null
 
       var series = stats.series || []
       var maxSeries = 1
@@ -98,15 +112,32 @@ Page({
         loading: false,
         stats: Object.assign({}, stats, { stock: stock }),
         trend: trend,
+        selectedTrend: selectedTrend,
         series: series,
         topProducts: top
       })
       wx.setNavigationBarTitle({ title: (stats.inventory_name || '库存') + ' 统计' })
     } catch (err) {
       console.error('[统计] 加载失败:', err)
-      this.setData({ loading: false })
+      this.setData({ loading: false, loadError: err.message || '加载统计失败' })
       wx.showToast({ title: err.message || '加载统计失败', icon: 'none' })
     }
+  },
+
+  onTrendTap(e) {
+    var index = Number(e.currentTarget.dataset.index)
+    var selected = this.data.trend[index]
+    if (!selected) return
+    this.setData({
+      trend: this.data.trend.map(function(item, i) {
+        return Object.assign({}, item, { _selected: i === index })
+      }),
+      selectedTrend: selected
+    })
+  },
+
+  onRetryLoad() {
+    this.loadStats()
   },
 
   onInventoryChange(e) {
