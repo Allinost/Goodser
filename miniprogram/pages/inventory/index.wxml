@@ -62,8 +62,17 @@
     </view>
   </view>
 
+  <!-- 加载 / 错误 / 空状态 -->
+  <skeleton wx:if="{{loading}}" rows="4" />
+  <error-state
+    wx:elif="{{loadError}}"
+    title="商品加载失败"
+    description="{{loadError}}"
+    bind:retry="onRetryLoad"
+  />
+
   <!-- 商品列表 -->
-  <view class="product-list" wx:if="{{filteredProducts.length > 0}}">
+  <view class="product-list" wx:elif="{{filteredProducts.length > 0}}">
     <product-card
       wx:for="{{filteredProducts}}"
       wx:key="_id"

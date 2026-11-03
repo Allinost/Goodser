@@ -7,7 +7,7 @@
   <!-- 成员列表 -->
   <view class="member-list" wx:if="{{whitelist.length > 0}}">
     <view class="member-item" wx:for="{{whitelist}}" wx:key="_id">
-      <image class="member-avatar" src="{{item.avatar_url}}" mode="aspectFill" />
+      <image class="member-avatar" src="{{item.avatar_url || '/images/placeholder.png'}}" mode="aspectFill" />
       <view class="member-info">
         <text class="member-name">{{item.nickname}}</text>
         <text class="member-role tag {{item.role === 'admin' ? 'tag-blue' : 'tag-green'}}">{{item.role === 'admin' ? '管理员' : '成员'}}</text>

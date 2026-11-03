@@ -39,7 +39,9 @@ Page({
     page: 1,
     pageSize: 20,
     hasMore: false,
-    loadingMore: false
+    loadingMore: false,
+    loading: false,
+    loadError: ''
   },
 
   onLoad() {
@@ -113,23 +115,45 @@ Page({
   async loadPage(pageNum, forceRefresh) {
     const invId = this.data.currentInventoryId
     if (!invId) return
-    if (db.isBackendMode && db.isBackendMode()) {
-      var opts = forceRefresh ? true : { page: pageNum, page_size: this.data.pageSize }
-      var result = await db.loadProducts(invId, opts)
-      var items = result.items || []
-      if (pageNum === 1) {
-        this.setData({ allProducts: items, hasMore: result.has_more, page: 1 })
+    if (pageNum === 1) this.setData({ loading: true, loadError: '' })
+    try {
+      if (db.isBackendMode && db.isBackendMode()) {
+        var opts = forceRefresh ? true : { page: pageNum, page_size: this.data.pageSize }
+        var result = await db.loadProducts(invId, opts)
+        var items = result.items || []
+        if (pageNum === 1) {
+          this.setData({ allProducts: items, hasMore: result.has_more, page: 1 })
+        } else {
+          this.setData({
+            allProducts: [...this.data.allProducts, ...items],
+            hasMore: result.has_more,
+            page: pageNum
+          })
+        }
       } else {
-        this.setData({
-          allProducts: [...this.data.allProducts, ...items],
-          hasMore: result.has_more,
-          page: pageNum
-        })
+        this.loadProducts()
       }
-    } else {
-      this.loadProducts()
+      this.applyFilters()
+    } catch (err) {
+      console.error('[库存] 加载商品失败:', err)
+      if (pageNum === 1) {
+        this.setData({
+          allProducts: [],
+          filteredProducts: [],
+          loading: false,
+          loadError: (err && err.message) || '加载商品失败，请稍后重试'
+        })
+      } else {
+        wx.showToast({ title: (err && err.message) || '加载更多失败', icon: 'none' })
+      }
+      return
+    } finally {
+      if (pageNum === 1) this.setData({ loading: false })
     }
-    this.applyFilters()
+  },
+
+  onRetryLoad() {
+    this.refreshData()
   },
 
   async onReachBottom() {

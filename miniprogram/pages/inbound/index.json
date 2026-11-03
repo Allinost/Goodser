@@ -2,6 +2,8 @@
   "navigationBarTitleText": "入库",
   "enablePullDownRefresh": true,
   "usingComponents": {
-    "empty-state": "/components/empty-state/empty-state"
+    "empty-state": "/components/empty-state/empty-state",
+    "skeleton": "/components/skeleton/skeleton",
+    "error-state": "/components/error-state/error-state"
   }
 }

@@ -22,10 +22,16 @@
     <view class="btn btn-primary btn-sm" wx:else bindtap="openCreateBundle">新建捆</view>
   </view>
 
-  <view class="loading-tip" wx:if="{{loading}}">加载中...</view>
+  <skeleton wx:if="{{loading}}" rows="3" />
+  <error-state
+    wx:elif="{{loadError}}"
+    title="加载失败"
+    description="{{loadError}}"
+    bind:retry="onRetryLoad"
+  />
 
-  <block wx:if="{{tab === 'combos'}}">
-    <view class="empty-container" wx:if="{{!loading && combos.length === 0}}">
+  <block wx:elif="{{tab === 'combos'}}">
+    <view class="empty-container" wx:if="{{combos.length === 0}}">
       <text class="empty-icon">📦</text>
       <text class="empty-text">暂无组合包</text>
     </view>
@@ -56,7 +62,7 @@
   </block>
 
   <block wx:else>
-    <view class="empty-container" wx:if="{{!loading && bundles.length === 0}}">
+    <view class="empty-container" wx:if="{{bundles.length === 0}}">
       <text class="empty-icon">🎁</text>
       <text class="empty-text">暂无捆模板</text>
     </view>

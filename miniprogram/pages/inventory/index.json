@@ -4,6 +4,8 @@
   "usingComponents": {
     "search-bar": "/components/search-bar/search-bar",
     "product-card": "/components/product-card/product-card",
-    "empty-state": "/components/empty-state/empty-state"
+    "empty-state": "/components/empty-state/empty-state",
+    "skeleton": "/components/skeleton/skeleton",
+    "error-state": "/components/error-state/error-state"
   }
 }

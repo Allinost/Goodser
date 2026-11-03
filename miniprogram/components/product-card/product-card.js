@@ -61,6 +61,11 @@ Component({
   methods: {
     onTap() {
       this.triggerEvent('tap', { product: this.properties.product })
+    },
+    onImageError() {
+      if (this.data.displayImage !== '/images/placeholder.png') {
+        this.setData({ displayImage: '/images/placeholder.png' })
+      }
     }
   }
 })

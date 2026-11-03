@@ -1,4 +1,8 @@
 {
   "navigationBarTitleText": "组合包与捆",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "skeleton": "/components/skeleton/skeleton",
+    "error-state": "/components/error-state/error-state"
+  }
 }

@@ -54,8 +54,17 @@
     <text class="stats-text">共 {{totalCount}} 条记录</text>
   </view>
 
+  <!-- 加载 / 错误 / 空状态 -->
+  <skeleton wx:if="{{loading}}" rows="3" />
+  <error-state
+    wx:elif="{{loadError}}"
+    title="订单加载失败"
+    description="{{loadError}}"
+    bind:retry="onRetryLoad"
+  />
+
   <!-- 订单列表 -->
-  <view class="order-list" wx:if="{{filteredOrders.length > 0}}">
+  <view class="order-list" wx:elif="{{filteredOrders.length > 0}}">
     <order-card
       wx:for="{{filteredOrders}}"
       wx:key="_id"

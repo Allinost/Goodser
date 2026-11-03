@@ -9,6 +9,7 @@ Page({
     combos: [],
     bundles: [],
     loading: false,
+    loadError: '',
     priceModeLabels: {
       sum: '合计计价',
       fixed: '固定价',
@@ -60,7 +61,7 @@ Page({
   async loadData(force) {
     var inv = this.currentInventory()
     if (!inv) return
-    this.setData({ loading: true })
+    this.setData({ loading: true, loadError: '' })
     try {
       if (this.data.tab === 'combos') {
         var combos = await db.loadCombos(inv._id, !!force)
@@ -70,10 +71,15 @@ Page({
         this.setData({ bundles: bundles })
       }
     } catch (err) {
-      wx.showToast({ title: err.message || '加载失败', icon: 'none' })
+      console.error('[组合包/捆] 加载失败:', err)
+      this.setData({ loadError: (err && err.message) || '加载失败，请稍后重试' })
     } finally {
       this.setData({ loading: false })
     }
+  },
+
+  onRetryLoad() {
+    this.loadData(true)
   },
 
   onInventoryChange(e) {

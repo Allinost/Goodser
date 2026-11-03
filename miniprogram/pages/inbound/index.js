@@ -25,7 +25,9 @@ Page({
     page: 1,
     pageSize: 20,
     hasMore: false,
-    loadingMore: false
+    loadingMore: false,
+    loading: false,
+    loadError: ''
   },
 
   onLoad() {
@@ -75,22 +77,41 @@ Page({
   async loadPage(pageNum, forceRefresh) {
     const invId = this.data.currentInventoryId
     if (!invId) return
-    if (db.isBackendMode && db.isBackendMode()) {
-      var opts = forceRefresh ? true : { page: pageNum, page_size: this.data.pageSize }
-      var result = await db.loadInboundLogs(invId, opts)
-      var formatted = (result.items || []).map(formatLog)
-      if (pageNum === 1) {
-        this.setData({ inboundLogs: formatted, hasMore: result.has_more, page: 1 })
+    if (pageNum === 1) this.setData({ loading: true, loadError: '' })
+    try {
+      if (db.isBackendMode && db.isBackendMode()) {
+        var opts = forceRefresh ? true : { page: pageNum, page_size: this.data.pageSize }
+        var result = await db.loadInboundLogs(invId, opts)
+        var formatted = (result.items || []).map(formatLog)
+        if (pageNum === 1) {
+          this.setData({ inboundLogs: formatted, hasMore: result.has_more, page: 1 })
+        } else {
+          this.setData({
+            inboundLogs: [...this.data.inboundLogs, ...formatted],
+            hasMore: result.has_more,
+            page: pageNum
+          })
+        }
       } else {
-        this.setData({
-          inboundLogs: [...this.data.inboundLogs, ...formatted],
-          hasMore: result.has_more,
-          page: pageNum
-        })
+        this.loadLogs()
       }
-    } else {
-      this.loadLogs()
+    } catch (err) {
+      console.error('[入库] 加载记录失败:', err)
+      if (pageNum === 1) {
+        this.setData({
+          inboundLogs: [],
+          loadError: (err && err.message) || '加载入库记录失败，请稍后重试'
+        })
+      } else {
+        wx.showToast({ title: (err && err.message) || '加载更多失败', icon: 'none' })
+      }
+    } finally {
+      if (pageNum === 1) this.setData({ loading: false })
     }
+  },
+
+  onRetryLoad() {
+    this.refreshData()
   },
 
   loadLogs() {

@@ -48,7 +48,14 @@
     <view class="section-header">
       <text class="section-title">最近入库记录</text>
     </view>
-    <view class="log-list" wx:if="{{inboundLogs.length > 0}}">
+    <skeleton wx:if="{{loading}}" rows="2" />
+    <error-state
+      wx:elif="{{loadError}}"
+      title="入库记录加载失败"
+      description="{{loadError}}"
+      bind:retry="onRetryLoad"
+    />
+    <view class="log-list" wx:elif="{{inboundLogs.length > 0}}">
       <view class="log-item" wx:for="{{inboundLogs}}" wx:key="_id" bindtap="onLogTap" data-id="{{item._id}}">
         <view class="log-info">
           <text class="log-type">{{item._typeLabel}}</text>

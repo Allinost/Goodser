@@ -26,6 +26,8 @@ Page({
     pageSize: 20,
     hasMore: false,
     loadingMore: false,
+    loading: false,
+    loadError: '',
     totalCount: 0
   },
 
@@ -76,32 +78,54 @@ Page({
   async loadPage(pageNum, forceRefresh) {
     const invId = this.data.currentInventoryId
     if (!invId) return
-    if (db.isBackendMode && db.isBackendMode()) {
-      var opts = forceRefresh ? true : { page: pageNum, page_size: this.data.pageSize }
-      var result = await db.loadOutboundOrders(invId, opts)
-      var items = result.items || []
-      var enriched = items.map(function(o) {
-        var inv = db.inventories.find(function(i) { return i._id === o.inventory_id })
-        return {
-          ...o,
-          _inventoryName: inv ? inv.name : '',
-          _typeLabel: o.type === 'reserve' ? '预留' : '出库',
-          _statusLabel: util.getOrderStatusLabel(o.status)
-        }
-      })
-      if (pageNum === 1) {
-        this.setData({ allOrders: enriched, hasMore: result.has_more, page: 1 })
-      } else {
-        this.setData({
-          allOrders: [...this.data.allOrders, ...enriched],
-          hasMore: result.has_more,
-          page: pageNum
+    if (pageNum === 1) this.setData({ loading: true, loadError: '' })
+    try {
+      if (db.isBackendMode && db.isBackendMode()) {
+        var opts = forceRefresh ? true : { page: pageNum, page_size: this.data.pageSize }
+        var result = await db.loadOutboundOrders(invId, opts)
+        var items = result.items || []
+        var enriched = items.map(function(o) {
+          var inv = db.inventories.find(function(i) { return i._id === o.inventory_id })
+          return {
+            ...o,
+            _inventoryName: inv ? inv.name : '',
+            _typeLabel: o.type === 'reserve' ? '预留' : '出库',
+            _statusLabel: util.getOrderStatusLabel(o.status)
+          }
         })
+        if (pageNum === 1) {
+          this.setData({ allOrders: enriched, hasMore: result.has_more, page: 1 })
+        } else {
+          this.setData({
+            allOrders: [...this.data.allOrders, ...enriched],
+            hasMore: result.has_more,
+            page: pageNum
+          })
+        }
+      } else {
+        this.loadOrders()
       }
-    } else {
-      this.loadOrders()
+      this.applyFilters()
+    } catch (err) {
+      console.error('[出库] 加载订单失败:', err)
+      if (pageNum === 1) {
+        this.setData({
+          allOrders: [],
+          filteredOrders: [],
+          loading: false,
+          loadError: (err && err.message) || '加载订单失败，请稍后重试'
+        })
+      } else {
+        wx.showToast({ title: (err && err.message) || '加载更多失败', icon: 'none' })
+      }
+      return
+    } finally {
+      if (pageNum === 1) this.setData({ loading: false })
     }
-    this.applyFilters()
+  },
+
+  onRetryLoad() {
+    this.refreshData()
   },
 
   async onReachBottom() {
