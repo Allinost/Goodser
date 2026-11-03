@@ -74,9 +74,19 @@ Page({
     if (this._alertEnabled) return
     if (!this._hasChanges()) return
     this._alertEnabled = true
-    this._disableAlert = wx.enableAlertBeforeUnload({
-      message: '当前页面有未保存的修改，确定要离开吗？'
-    })
+    if (wx.enableAlertBeforeUnload) {
+      wx.enableAlertBeforeUnload({
+        message: '当前页面有未保存的修改，确定要离开吗？'
+      })
+    }
+  },
+
+  _clearDirtyAlert() {
+    if (!this._alertEnabled) return
+    this._alertEnabled = false
+    if (wx.disableAlertBeforeUnload) {
+      wx.disableAlertBeforeUnload()
+    }
   },
 
   onShow() {
@@ -414,10 +424,7 @@ Page({
           // 通过 API 创建出库单（后端处理库存扣减）
           await db.createOutboundOrder(payload)
 
-          if (this._disableAlert) {
-            this._disableAlert()
-            this._disableAlert = null
-          }
+          this._clearDirtyAlert()
 
           wx.hideLoading()
           wx.showToast({ title: '创建成功', icon: 'success' })
