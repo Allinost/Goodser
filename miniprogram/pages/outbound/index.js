@@ -149,7 +149,7 @@ Page({
         (o.order_no || '').toLowerCase().includes(kw) ||
         (o.order_info || '').toLowerCase().includes(kw) ||
         (o.remark || '').toLowerCase().includes(kw) ||
-        o.items.some(i => i.product_name.toLowerCase().includes(kw))
+        (o.items || []).some(i => (i.product_name || '').toLowerCase().includes(kw) || (i.product_code || '').toLowerCase().includes(kw))
       )
     }
 

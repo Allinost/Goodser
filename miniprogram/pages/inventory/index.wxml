@@ -40,7 +40,7 @@
   <!-- 统计栏 -->
   <view class="stats-bar" wx:if="{{filteredProducts.length > 0 || searchKeyword || filterMainZone || filterStatus || filterTags.length > 0}}">
     <text class="stats-text">共 {{totalCount}} 件商品，当前显示 {{filteredProducts.length}} 件</text>
-    <text class="stats-stock" wx:if="{{totalStock > 0}}">总库存 {{totalStock}}</text>
+    <text class="stats-stock" wx:if="{{totalAll > 0}}">可用 {{totalStock}}<text wx:if="{{totalReserved > 0}}"> · 锁定 {{totalReserved}}</text> · 总量 {{totalAll}}</text>
   </view>
 
   <!-- 排序筛选栏 -->

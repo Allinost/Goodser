@@ -34,6 +34,8 @@ Page({
     tagOptions: [],
     totalCount: 0,
     totalStock: 0,
+    totalReserved: 0,
+    totalAll: 0,
     page: 1,
     pageSize: 20,
     hasMore: false,
@@ -203,11 +205,15 @@ Page({
 
     const totalCount = this.data.allProducts.length
     const totalStock = list.reduce((sum, p) => sum + (p.quantity || 0), 0)
+    const totalReserved = list.reduce((sum, p) => sum + (p.reserved_quantity || 0), 0)
+    const totalAll = totalStock + totalReserved
 
     this.setData({
       filteredProducts: list,
       totalCount,
-      totalStock
+      totalStock,
+      totalReserved,
+      totalAll
     })
   },
 
